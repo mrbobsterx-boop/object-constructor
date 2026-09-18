@@ -1869,7 +1869,7 @@ function saveActiveAnimationSettings(){const a=getActiveAnimation();if(!a)return
 function loadActiveAnimationSettings(){const a=getActiveAnimation(),empty=document.getElementById('animEditorEmpty'),form=document.getElementById('animEditorForm');if(!a){empty.classList.remove('hidden');form.classList.add('hidden');return;}empty.classList.add('hidden');form.classList.remove('hidden');document.getElementById('animName').value=a.name;document.getElementById('animFps').value=a.fps;document.getElementById('animLoop').checked=!!a.loop;document.getElementById('animFrameCount').textContent=a.frames.length;document.getElementById('animSettingsStatus').textContent='FPS: '+a.fps+' · Loop: '+(a.loop?'ON':'OFF')+' · кадров: '+a.frames.length;}
 function renderAnimationList(){ensureAnimationState();const box=document.getElementById('animList');if(!box)return;box.innerHTML='';animations.forEach((a,i)=>{const row=document.createElement('div');row.className='anim-row'+(a.id===activeAnimationId?' active':'');const name=document.createElement('span');name.className='anim-name';name.textContent=(a.id===activeAnimationId?'▶ ':'')+(a.name||('Анимация '+(i+1)));const meta=document.createElement('span');meta.className='anim-meta';meta.textContent=a.fps+' FPS · '+(a.loop?'↻':'→');row.append(name,meta);row.onclick=()=>selectAnimation(a.id);box.appendChild(row);});loadActiveAnimationSettings();}
 async function selectAnimation(idValue){if(idValue===activeAnimationId){loadActiveAnimationSettings();renderAnimationFrames();return;}await saveActiveAnimationFrame();saveActiveAnimationSettings();activeAnimationId=idValue;renderAnimationList();renderAnimationFrames();await loadActiveAnimationFrame();if(window.update)window.update();}
-function addAnimation(){saveActiveAnimationSettings();const a=createAnimationEntity('Animation '+(animations.length+1));animations.push(a);activeAnimationId=a.id;renderAnimationList();if(window.update)window.update();document.getElementById('animName')?.focus();}
+async function addAnimation(){await saveActiveAnimationFrame();saveActiveAnimationSettings();const a=createAnimationEntity('Animation '+(animations.length+1));animations.push(a);activeAnimationId=a.id;mainDoc.clear();renderAnimationList();renderAnimationFrames();if(window.update)window.update();document.getElementById('animName')?.focus();}
 function renameActiveAnimation(){const a=getActiveAnimation();if(!a)return;saveActiveAnimationSettings();renderAnimationList();if(window.update)window.update();}
 function deleteActiveAnimation(){const a=getActiveAnimation();if(!a)return;if(animations.length<=1){alert('Нельзя удалить последнюю анимацию.');return;}const idx=animations.findIndex(x=>x.id===a.id);animations.splice(idx,1);activeAnimationId=animations[Math.max(0,idx-1)].id;renderAnimationList();if(window.update)window.update();}
 async function captureAnimationFrame(){
@@ -1914,10 +1914,9 @@ function renderAnimationFrames(){
     label.textContent='Кадр '+(i+1);
     row.appendChild(label);
     if(frame?.layers?.length){
-      const badge=document.createElement('span');
-      badge.className='anim-meta';
-      badge.textContent=(frame.docW||0)+'×'+(frame.docH||0);
-      row.appendChild(badge);
+      const first=frame.layers.find(l=>l.visible!==false&&l.bitmap);
+      if(first){const im=document.createElement('img');im.src=first.bitmap;im.style.cssText='width:52px;height:52px;object-fit:contain;image-rendering:pixelated;position:absolute;left:50%;top:6px;transform:translateX(-50%);';row.appendChild(im);label.style.paddingTop='54px';}
+      const badge=document.createElement('span');badge.className='anim-meta';badge.textContent=(frame.docW||0)+'×'+(frame.docH||0);row.appendChild(badge);
     }
     row.onclick=()=>selectAnimationFrame(i);
     box.appendChild(row);
