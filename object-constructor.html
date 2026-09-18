@@ -300,6 +300,10 @@ textarea{min-height:70px;resize:vertical}
   <button id="btnAnimFrameDown">Вправо →</button>
 </div>
 <div id="animFrames" class="anim-list" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(82px,1fr));max-height:300px;margin-top:10px"></div>
+<div class="row" style="margin-top:8px;gap:8px">
+  <button id="btnAnimPlay" class="primary">▶ Играть</button>
+  <span class="editor-status" id="animPlaybackStatus" style="flex:1">Кадр 0/0 · 0 FPS</span>
+</div>
 <div class="editor-status" id="animFrameStatus">Кадров: 0</div>
 </div></div></div></div></div>
 
@@ -1868,8 +1872,8 @@ function ensureAnimationState(){if(!animations.length){const a=createAnimationEn
 function saveActiveAnimationSettings(){const a=getActiveAnimation();if(!a)return;const name=document.getElementById('animName'),fps=document.getElementById('animFps'),loop=document.getElementById('animLoop');if(name)a.name=name.value.trim()||a.name||'Анимация';if(fps)a.fps=Math.max(1,Math.min(120,+fps.value||8));if(loop)a.loop=!!loop.checked;}
 function loadActiveAnimationSettings(){const a=getActiveAnimation(),empty=document.getElementById('animEditorEmpty'),form=document.getElementById('animEditorForm');if(!a){empty.classList.remove('hidden');form.classList.add('hidden');return;}empty.classList.add('hidden');form.classList.remove('hidden');document.getElementById('animName').value=a.name;document.getElementById('animFps').value=a.fps;document.getElementById('animLoop').checked=!!a.loop;document.getElementById('animFrameCount').textContent=a.frames.length;document.getElementById('animSettingsStatus').textContent='FPS: '+a.fps+' · Loop: '+(a.loop?'ON':'OFF')+' · кадров: '+a.frames.length;}
 function renderAnimationList(){ensureAnimationState();const box=document.getElementById('animList');if(!box)return;box.innerHTML='';animations.forEach((a,i)=>{const row=document.createElement('div');row.className='anim-row'+(a.id===activeAnimationId?' active':'');const name=document.createElement('span');name.className='anim-name';name.textContent=(a.id===activeAnimationId?'▶ ':'')+(a.name||('Анимация '+(i+1)));const meta=document.createElement('span');meta.className='anim-meta';meta.textContent=a.fps+' FPS · '+(a.loop?'↻':'→');row.append(name,meta);row.onclick=()=>selectAnimation(a.id);box.appendChild(row);});loadActiveAnimationSettings();}
-async function selectAnimation(idValue){if(idValue===activeAnimationId){loadActiveAnimationSettings();renderAnimationFrames();return;}await saveActiveAnimationFrame();saveActiveAnimationSettings();activeAnimationId=idValue;renderAnimationList();renderAnimationFrames();await loadActiveAnimationFrame();if(window.update)window.update();}
-async function addAnimation(){await saveActiveAnimationFrame();saveActiveAnimationSettings();const a=createAnimationEntity('Animation '+(animations.length+1));animations.push(a);activeAnimationId=a.id;mainDoc.clear();renderAnimationList();renderAnimationFrames();if(window.update)window.update();document.getElementById('animName')?.focus();}
+async function selectAnimation(idValue){if(idValue===activeAnimationId){loadActiveAnimationSettings();renderAnimationFrames();return;}stopAnimationPlayback(false);await saveActiveAnimationFrame();saveActiveAnimationSettings();activeAnimationId=idValue;renderAnimationList();renderAnimationFrames();await loadActiveAnimationFrame();if(window.update)window.update();}
+async function addAnimation(){stopAnimationPlayback(false);await saveActiveAnimationFrame();saveActiveAnimationSettings();const a=createAnimationEntity('Animation '+(animations.length+1));animations.push(a);activeAnimationId=a.id;mainDoc.clear();renderAnimationList();renderAnimationFrames();if(window.update)window.update();document.getElementById('animName')?.focus();}
 function renameActiveAnimation(){const a=getActiveAnimation();if(!a)return;saveActiveAnimationSettings();renderAnimationList();if(window.update)window.update();}
 function deleteActiveAnimation(){const a=getActiveAnimation();if(!a)return;if(animations.length<=1){alert('Нельзя удалить последнюю анимацию.');return;}const idx=animations.findIndex(x=>x.id===a.id);animations.splice(idx,1);activeAnimationId=animations[Math.max(0,idx-1)].id;renderAnimationList();if(window.update)window.update();}
 async function captureAnimationFrame(){
@@ -1928,10 +1932,12 @@ async function selectAnimationFrame(index){
   const a=getActiveAnimation();
   if(!a || index<0 || index>=a.frames.length)return;
   await saveActiveAnimationFrame();
+  if(animPlaying)stopAnimationPlayback(false);
   a.activeFrameIndex=index;
   await loadActiveAnimationFrame();
   renderAnimationFrames();
   loadActiveAnimationSettings();
+  updateAnimationPlaybackStatus();
 }
 async function addAnimationFrame(){
   const a=getActiveAnimation(); if(!a)return;
@@ -1985,10 +1991,55 @@ async function moveAnimationFrame(delta){
   if(window.update)window.update();
 }
 
+let animPlaying=false,animPlayTimer=null,animPlaybackIndex=0;
+function stopAnimationPlayback(reset=true){
+  animPlaying=false;
+  if(animPlayTimer){clearTimeout(animPlayTimer);animPlayTimer=null;}
+  const btn=document.getElementById('btnAnimPlay');
+  if(btn)btn.textContent='▶ Играть';
+  const a=getActiveAnimation();
+  if(reset && a && a.frames.length){a.activeFrameIndex=0;animPlaybackIndex=0;loadActiveAnimationFrame().then(()=>{renderAnimationFrames();loadActiveAnimationSettings();if(window.update)window.update();});}
+  updateAnimationPlaybackStatus();
+}
+function updateAnimationPlaybackStatus(){
+  const a=getActiveAnimation(),frames=a?.frames||[],idx=a?getActiveFrameIndex():-1;
+  const el=document.getElementById('animPlaybackStatus');
+  if(el)el.textContent='Кадр '+(frames.length?(idx+1):0)+'/'+frames.length+' · '+(a?.fps||0)+' FPS'+(animPlaying?' · ▶':'');
+}
+async function animationPlaybackTick(){
+  if(!animPlaying)return;
+  const a=getActiveAnimation();
+  if(!a||!a.frames.length){stopAnimationPlayback(false);return;}
+  if(animPlaybackIndex>=a.frames.length){
+    if(a.loop)animPlaybackIndex=0;
+    else{animPlaybackIndex=a.frames.length-1; a.activeFrameIndex=animPlaybackIndex; await loadActiveAnimationFrame(); stopAnimationPlayback(false); renderAnimationFrames(); loadActiveAnimationSettings(); if(window.update)window.update(); return;}
+  }
+  a.activeFrameIndex=animPlaybackIndex;
+  await loadActiveAnimationFrame();
+  renderAnimationFrames();
+  loadActiveAnimationSettings();
+  updateAnimationPlaybackStatus();
+  if(!animPlaying)return;
+  const fps=Math.max(1,Math.min(120,+a.fps||8));
+  animPlaybackIndex++;
+  animPlayTimer=setTimeout(animationPlaybackTick,1000/fps);
+}
+async function playAnimation(){
+  const a=getActiveAnimation();
+  if(!a||!a.frames.length){alert('Нет кадров.');return;}
+  if(animPlaying){stopAnimationPlayback(false);return;}
+  await saveActiveAnimationFrame();
+  animPlaybackIndex=0;
+  a.activeFrameIndex=0;
+  animPlaying=true;
+  document.getElementById('btnAnimPlay').textContent='■ Остановить';
+  await animationPlaybackTick();
+}
 function collectAnimations(){saveActiveAnimationSettings();return animations.map(a=>({name:a.name,fps:a.fps,loop:!!a.loop,frames:Array.isArray(a.frames)?a.frames:[]}));}
-function resetAnimations(){animations=[];activeAnimationId=null;ensureAnimationState();renderAnimationList();renderAnimationFrames();}
+function resetAnimations(){stopAnimationPlayback(false);animations=[];activeAnimationId=null;ensureAnimationState();renderAnimationList();renderAnimationFrames();}
+document.getElementById('btnAnimPlay').onclick=playAnimation;
 document.getElementById('btnAnimFrameAdd').onclick=addAnimationFrame;document.getElementById('btnAnimFrameDuplicate').onclick=duplicateAnimationFrame;document.getElementById('btnAnimFrameDelete').onclick=deleteAnimationFrame;document.getElementById('btnAnimFrameUp').onclick=()=>moveAnimationFrame(-1);document.getElementById('btnAnimFrameDown').onclick=()=>moveAnimationFrame(1);
-document.getElementById('btnAnimAdd').onclick=addAnimation;document.getElementById('btnAnimRename').onclick=renameActiveAnimation;document.getElementById('btnAnimDelete').onclick=deleteActiveAnimation;document.getElementById('animName').addEventListener('change',renameActiveAnimation);document.getElementById('animFps').addEventListener('input',()=>{saveActiveAnimationSettings();renderAnimationList();if(window.update)window.update();});document.getElementById('animLoop').addEventListener('change',()=>{saveActiveAnimationSettings();renderAnimationList();if(window.update)window.update();});
+document.getElementById('btnAnimAdd').onclick=addAnimation;document.getElementById('btnAnimRename').onclick=renameActiveAnimation;document.getElementById('btnAnimDelete').onclick=deleteActiveAnimation;document.getElementById('animName').addEventListener('change',renameActiveAnimation);document.getElementById('animFps').addEventListener('input',()=>{saveActiveAnimationSettings();renderAnimationList();updateAnimationPlaybackStatus();if(window.update)window.update();});document.getElementById('animLoop').addEventListener('change',()=>{saveActiveAnimationSettings();renderAnimationList();updateAnimationPlaybackStatus();if(window.update)window.update();});
 
 /* ============================================================
    CORE APP: categories, tabs, actions list, JSON assembly
