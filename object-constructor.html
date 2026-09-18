@@ -656,7 +656,7 @@ function loadCustomSkills(){ try{ return JSON.parse(localStorage.getItem(CUSTOM_
 function saveCustomSkills(l){ try{ localStorage.setItem(CUSTOM_SKILLS_KEY, JSON.stringify(l)); }catch(e){} }
 function allSkills(){ return [...SKILLS_BUILTIN, ...loadCustomSkills()]; }
 
-let animPlaying=false, animPlayTimer=null, animPlayImgs=[], animPlayIdx=0; // тоже используется раньше своего старого места объявления
+let animPlaying=false, animPlayTimer=null, animPlayImgs=[], animPlayIdx=0, animPlaybackIndex=0; // тоже используется раньше своего старого места объявления
 function esc(s){ return String(s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
 let customFields=[]; // {name,value}[] — свои поля объекта, дружелюбная форма поверх raw JSON
 function parseCustomFieldValue(v){
@@ -1991,7 +1991,6 @@ async function moveAnimationFrame(delta){
   if(window.update)window.update();
 }
 
-let animPlaying=false,animPlayTimer=null,animPlaybackIndex=0;
 function stopAnimationPlayback(reset=true){
   animPlaying=false;
   if(animPlayTimer){clearTimeout(animPlayTimer);animPlayTimer=null;}
