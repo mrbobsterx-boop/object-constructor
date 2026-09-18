@@ -101,6 +101,9 @@ textarea{min-height:70px;resize:vertical}
 .craft-result-preview img{width:60px;height:60px;object-fit:contain;image-rendering:pixelated}
 ::-webkit-scrollbar{width:8px;height:8px}::-webkit-scrollbar-thumb{background:#333;border-radius:4px}
 
+/* ---- animations block (new isolated subsystem) ---- */
+.anim-editor{display:grid;grid-template-columns:260px 1fr;gap:14px}.anim-list-panel{border:1px solid #303844;border-radius:8px;background:#12161c;padding:10px}.anim-list{display:flex;flex-direction:column;gap:5px;margin-top:8px;max-height:360px;overflow:auto}.anim-row{display:flex;align-items:center;gap:7px;padding:7px 8px;border:1px solid #303844;border-radius:6px;background:#171c22;cursor:pointer}.anim-row:hover{border-color:#4d78c9}.anim-row.active{border-color:#4d9a6a;background:#182420}.anim-row .anim-name{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.anim-row .anim-meta{font-size:10px;color:#778391;white-space:nowrap}.anim-settings{border:1px solid #303844;border-radius:8px;background:#12161c;padding:12px}.anim-empty{padding:14px;border:1px dashed #3b4654;border-radius:7px;color:#778391;text-align:center}
+
 </style>
 </head>
 <body>
@@ -185,6 +188,7 @@ textarea{min-height:70px;resize:vertical}
   <div class="tabs">
     <button class="tab active" data-tab="basic">Основное</button>
     <button class="tab" data-tab="appearance">Внешний вид</button>
+    <button class="tab" data-tab="animations">Анимации</button>
     <button class="tab" data-tab="behavior">Поведение</button>
     <button class="tab" data-tab="actions">Действия</button>
     <button class="tab" data-tab="inventory">Инвентарь</button>
@@ -285,6 +289,9 @@ textarea{min-height:70px;resize:vertical}
       <div class="muted" style="margin-top:8px">Путь собирается автоматически как <code>категория/подтип/id_название.png</code> — так что если просто закинешь весь ZIP в игру, файлы сами разложатся по нужным папкам благодаря «/» в пути. Можно поправить вручную.</div>
     </div>
   </div>
+
+
+  <div id="panel-animations" class="panel tabpanel hidden"><div class="section" style="margin-top:0"><div class="row" style="justify-content:space-between"><div><h3 style="margin:0 0 4px">Анимации</h3><div class="muted">Каждая анимация хранит собственные FPS, Loop и список кадров.</div></div><button id="btnAnimAdd" class="primary">+ Добавить анимацию</button></div></div><div class="anim-editor"><div class="anim-list-panel"><div class="left-title" style="margin:0">Список анимаций</div><div id="animList" class="anim-list"></div></div><div class="anim-settings"><div id="animEditorEmpty" class="anim-empty">Выбери анимацию или создай новую.</div><div id="animEditorForm" class="hidden"><div class="form"><div class="field full"><label>Название анимации</label><input id="animName" placeholder="например: Idle"></div><div class="field"><label>FPS <span class="muted">(кадров в секунду)</span></label><input id="animFps" type="number" min="1" max="120" step="1" value="8"></div><div class="field"><label>Loop</label><input id="animLoop" type="checkbox" class="toggle-switch"></div></div><div class="row" style="margin-top:10px"><button id="btnAnimRename">Сохранить название</button><button id="btnAnimDelete">Удалить анимацию</button></div><div class="editor-status" id="animSettingsStatus"></div><div class="section"><h3>Кадры</h3><div class="muted">На этапе 2A здесь только структура анимации. Работа с кадрами подключается следующим этапом.</div><div class="anim-empty" style="margin-top:8px">Кадров: <span id="animFrameCount">0</span></div></div></div></div></div></div>
 
   <div id="panel-behavior" class="panel tabpanel hidden">
     <div class="form">
@@ -1842,6 +1849,24 @@ document.getElementById('btnCraftSave').onclick=async ()=>{
 };
 
 /* ============================================================
+   ANIMATIONS: isolated animation entities and settings (Stage 2A)
+   ============================================================ */
+let animations=[], activeAnimationId=null;
+function createAnimationEntity(name){return {id:'A'+Date.now()+Math.random().toString(36).slice(2),name:name||'Новая анимация',fps:8,loop:true,frames:[]};}
+function getActiveAnimation(){return animations.find(a=>a.id===activeAnimationId)||null;}
+function ensureAnimationState(){if(!animations.length){const a=createAnimationEntity('Idle');animations.push(a);activeAnimationId=a.id;}if(!getActiveAnimation())activeAnimationId=animations[0].id;}
+function saveActiveAnimationSettings(){const a=getActiveAnimation();if(!a)return;const name=document.getElementById('animName'),fps=document.getElementById('animFps'),loop=document.getElementById('animLoop');if(name)a.name=name.value.trim()||a.name||'Анимация';if(fps)a.fps=Math.max(1,Math.min(120,+fps.value||8));if(loop)a.loop=!!loop.checked;}
+function loadActiveAnimationSettings(){const a=getActiveAnimation(),empty=document.getElementById('animEditorEmpty'),form=document.getElementById('animEditorForm');if(!a){empty.classList.remove('hidden');form.classList.add('hidden');return;}empty.classList.add('hidden');form.classList.remove('hidden');document.getElementById('animName').value=a.name;document.getElementById('animFps').value=a.fps;document.getElementById('animLoop').checked=!!a.loop;document.getElementById('animFrameCount').textContent=a.frames.length;document.getElementById('animSettingsStatus').textContent='FPS: '+a.fps+' · Loop: '+(a.loop?'ON':'OFF')+' · кадров: '+a.frames.length;}
+function renderAnimationList(){ensureAnimationState();const box=document.getElementById('animList');if(!box)return;box.innerHTML='';animations.forEach((a,i)=>{const row=document.createElement('div');row.className='anim-row'+(a.id===activeAnimationId?' active':'');const name=document.createElement('span');name.className='anim-name';name.textContent=(a.id===activeAnimationId?'▶ ':'')+(a.name||('Анимация '+(i+1)));const meta=document.createElement('span');meta.className='anim-meta';meta.textContent=a.fps+' FPS · '+(a.loop?'↻':'→');row.append(name,meta);row.onclick=()=>selectAnimation(a.id);box.appendChild(row);});loadActiveAnimationSettings();}
+function selectAnimation(idValue){if(idValue===activeAnimationId){loadActiveAnimationSettings();return;}saveActiveAnimationSettings();activeAnimationId=idValue;renderAnimationList();if(window.update)window.update();}
+function addAnimation(){saveActiveAnimationSettings();const a=createAnimationEntity('Animation '+(animations.length+1));animations.push(a);activeAnimationId=a.id;renderAnimationList();if(window.update)window.update();document.getElementById('animName')?.focus();}
+function renameActiveAnimation(){const a=getActiveAnimation();if(!a)return;saveActiveAnimationSettings();renderAnimationList();if(window.update)window.update();}
+function deleteActiveAnimation(){const a=getActiveAnimation();if(!a)return;if(animations.length<=1){alert('Нельзя удалить последнюю анимацию.');return;}const idx=animations.findIndex(x=>x.id===a.id);animations.splice(idx,1);activeAnimationId=animations[Math.max(0,idx-1)].id;renderAnimationList();if(window.update)window.update();}
+function collectAnimations(){saveActiveAnimationSettings();return animations.map(a=>({name:a.name,fps:a.fps,loop:!!a.loop,frames:Array.isArray(a.frames)?a.frames:[]}));}
+function resetAnimations(){animations=[];activeAnimationId=null;ensureAnimationState();renderAnimationList();}
+document.getElementById('btnAnimAdd').onclick=addAnimation;document.getElementById('btnAnimRename').onclick=renameActiveAnimation;document.getElementById('btnAnimDelete').onclick=deleteActiveAnimation;document.getElementById('animName').addEventListener('change',renameActiveAnimation);document.getElementById('animFps').addEventListener('input',()=>{saveActiveAnimationSettings();renderAnimationList();if(window.update)window.update();});document.getElementById('animLoop').addEventListener('change',()=>{saveActiveAnimationSettings();renderAnimationList();if(window.update)window.update();});
+
+/* ============================================================
    CORE APP: categories, tabs, actions list, JSON assembly
    ============================================================ */
 const CAT_LABELS={character:'Персонаж',creature:'Существо',item:'Предмет',tool:'Инструмент',weapon:'Оружие',clothing:'Одежда',furniture:'Мебель',decor:'Декор',container:'Контейнер',workbench:'Верстак',machine:'Машина',building:'Строительный объект',door:'Дверь',plant:'Растение',resource:'Точка ресурса',special:'Специальный'};
@@ -2135,6 +2160,7 @@ function collect(){
       destroyAnimation: destroyFrames.length?{frameCount:destroyFrames.length,fps:+val('destroyFps')||8,frameNativeWidth:destroyFrameW,frameNativeHeight:destroyFrameH,sheet:val('destroySheetPath')||'broken_anim.png'}:null
     },
     crafting:{ enabled:bool('crafting'), recipe:craftRecipe },
+    animations: collectAnimations(),
     tags: val('tags').split(',').map(x=>x.trim()).filter(Boolean),
     components: currentComponents,
     custom
@@ -2169,6 +2195,7 @@ function resetIdentityAndImages(){
   brokenW=0;brokenH=0; brokenCanvas.width=0;brokenCanvas.height=0; document.getElementById('brokenStatus').textContent='Не задан.'; document.getElementById('btnDownloadBroken').disabled=true;
   damagedW=0;damagedH=0; damagedCanvas.width=0;damagedCanvas.height=0; document.getElementById('damagedStatus').textContent='Не задан.'; document.getElementById('btnDownloadDamaged').disabled=true; document.getElementById('damagedThreshold').value=50;
   destroyFrames=[]; destroyFrameW=0;destroyFrameH=0; renderDestroyThumbs();
+  resetAnimations();
   craftRecipe=null; craftRecipeImageDataUrl=null; craftGrid=Array(15).fill(null);
   if(window.update) window.update();
 }
@@ -2347,6 +2374,8 @@ makeSlider('moveSpeed',{min:0,max:500,step:5,unit:'px/с'});
 });
 document.getElementById('category').value=CAT_LABELS[currentCategory];
 renderActions();
+ensureAnimationState();
+renderAnimationList();
 resetAllToDefaults();
 renderPresetSelect();
 renderCatalogSidebar();
