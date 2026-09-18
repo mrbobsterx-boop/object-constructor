@@ -291,7 +291,17 @@ textarea{min-height:70px;resize:vertical}
   </div>
 
 
-  <div id="panel-animations" class="panel tabpanel hidden"><div class="section" style="margin-top:0"><div class="row" style="justify-content:space-between"><div><h3 style="margin:0 0 4px">Анимации</h3><div class="muted">Каждая анимация хранит собственные FPS, Loop и список кадров.</div></div><button id="btnAnimAdd" class="primary">+ Добавить анимацию</button></div></div><div class="anim-editor"><div class="anim-list-panel"><div class="left-title" style="margin:0">Список анимаций</div><div id="animList" class="anim-list"></div></div><div class="anim-settings"><div id="animEditorEmpty" class="anim-empty">Выбери анимацию или создай новую.</div><div id="animEditorForm" class="hidden"><div class="form"><div class="field full"><label>Название анимации</label><input id="animName" placeholder="например: Idle"></div><div class="field"><label>FPS <span class="muted">(кадров в секунду)</span></label><input id="animFps" type="number" min="1" max="120" step="1" value="8"></div><div class="field"><label>Loop</label><input id="animLoop" type="checkbox" class="toggle-switch"></div></div><div class="row" style="margin-top:10px"><button id="btnAnimRename">Сохранить название</button><button id="btnAnimDelete">Удалить анимацию</button></div><div class="editor-status" id="animSettingsStatus"></div><div class="section"><h3>Кадры</h3><div class="muted">На этапе 2A здесь только структура анимации. Работа с кадрами подключается следующим этапом.</div><div class="anim-empty" style="margin-top:8px">Кадров: <span id="animFrameCount">0</span></div></div></div></div></div></div>
+  <div id="panel-animations" class="panel tabpanel hidden"><div class="section" style="margin-top:0"><div class="row" style="justify-content:space-between"><div><h3 style="margin:0 0 4px">Анимации</h3><div class="muted">Каждая анимация хранит собственные FPS, Loop и список кадров.</div></div><button id="btnAnimAdd" class="primary">+ Добавить анимацию</button></div></div><div class="anim-editor"><div class="anim-list-panel"><div class="left-title" style="margin:0">Список анимаций</div><div id="animList" class="anim-list"></div></div><div class="anim-settings"><div id="animEditorEmpty" class="anim-empty">Выбери анимацию или создай новую.</div><div id="animEditorForm" class="hidden"><div class="form"><div class="field full"><label>Название анимации</label><input id="animName" placeholder="например: Idle"></div><div class="field"><label>FPS <span class="muted">(кадров в секунду)</span></label><input id="animFps" type="number" min="1" max="120" step="1" value="8"></div><div class="field"><label>Loop</label><input id="animLoop" type="checkbox" class="toggle-switch"></div></div><div class="row" style="margin-top:10px"><button id="btnAnimRename">Сохранить название</button><button id="btnAnimDelete">Удалить анимацию</button></div><div class="editor-status" id="animSettingsStatus"></div><div class="section"><h3>Кадры</h3>
+<div class="row" style="gap:6px;flex-wrap:wrap">
+  <button id="btnAnimFrameAdd" class="primary">+ Добавить кадр</button>
+  <button id="btnAnimFrameDuplicate">Дублировать</button>
+  <button id="btnAnimFrameDelete">Удалить</button>
+  <button id="btnAnimFrameUp">← Влево</button>
+  <button id="btnAnimFrameDown">Вправо →</button>
+</div>
+<div id="animFrames" class="anim-list" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(82px,1fr));max-height:300px;margin-top:10px"></div>
+<div class="editor-status" id="animFrameStatus">Кадров: 0</div>
+</div></div></div></div></div>
 
   <div id="panel-behavior" class="panel tabpanel hidden">
     <div class="form">
@@ -1852,18 +1862,133 @@ document.getElementById('btnCraftSave').onclick=async ()=>{
    ANIMATIONS: isolated animation entities and settings (Stage 2A)
    ============================================================ */
 let animations=[], activeAnimationId=null;
-function createAnimationEntity(name){return {id:'A'+Date.now()+Math.random().toString(36).slice(2),name:name||'Новая анимация',fps:8,loop:true,frames:[]};}
+function createAnimationEntity(name){return {id:'A'+Date.now()+Math.random().toString(36).slice(2),name:name||'Новая анимация',fps:8,loop:true,frames:[],activeFrameIndex:-1};}
 function getActiveAnimation(){return animations.find(a=>a.id===activeAnimationId)||null;}
 function ensureAnimationState(){if(!animations.length){const a=createAnimationEntity('Idle');animations.push(a);activeAnimationId=a.id;}if(!getActiveAnimation())activeAnimationId=animations[0].id;}
 function saveActiveAnimationSettings(){const a=getActiveAnimation();if(!a)return;const name=document.getElementById('animName'),fps=document.getElementById('animFps'),loop=document.getElementById('animLoop');if(name)a.name=name.value.trim()||a.name||'Анимация';if(fps)a.fps=Math.max(1,Math.min(120,+fps.value||8));if(loop)a.loop=!!loop.checked;}
 function loadActiveAnimationSettings(){const a=getActiveAnimation(),empty=document.getElementById('animEditorEmpty'),form=document.getElementById('animEditorForm');if(!a){empty.classList.remove('hidden');form.classList.add('hidden');return;}empty.classList.add('hidden');form.classList.remove('hidden');document.getElementById('animName').value=a.name;document.getElementById('animFps').value=a.fps;document.getElementById('animLoop').checked=!!a.loop;document.getElementById('animFrameCount').textContent=a.frames.length;document.getElementById('animSettingsStatus').textContent='FPS: '+a.fps+' · Loop: '+(a.loop?'ON':'OFF')+' · кадров: '+a.frames.length;}
 function renderAnimationList(){ensureAnimationState();const box=document.getElementById('animList');if(!box)return;box.innerHTML='';animations.forEach((a,i)=>{const row=document.createElement('div');row.className='anim-row'+(a.id===activeAnimationId?' active':'');const name=document.createElement('span');name.className='anim-name';name.textContent=(a.id===activeAnimationId?'▶ ':'')+(a.name||('Анимация '+(i+1)));const meta=document.createElement('span');meta.className='anim-meta';meta.textContent=a.fps+' FPS · '+(a.loop?'↻':'→');row.append(name,meta);row.onclick=()=>selectAnimation(a.id);box.appendChild(row);});loadActiveAnimationSettings();}
-function selectAnimation(idValue){if(idValue===activeAnimationId){loadActiveAnimationSettings();return;}saveActiveAnimationSettings();activeAnimationId=idValue;renderAnimationList();if(window.update)window.update();}
+async function selectAnimation(idValue){if(idValue===activeAnimationId){loadActiveAnimationSettings();renderAnimationFrames();return;}await saveActiveAnimationFrame();saveActiveAnimationSettings();activeAnimationId=idValue;renderAnimationList();renderAnimationFrames();await loadActiveAnimationFrame();if(window.update)window.update();}
 function addAnimation(){saveActiveAnimationSettings();const a=createAnimationEntity('Animation '+(animations.length+1));animations.push(a);activeAnimationId=a.id;renderAnimationList();if(window.update)window.update();document.getElementById('animName')?.focus();}
 function renameActiveAnimation(){const a=getActiveAnimation();if(!a)return;saveActiveAnimationSettings();renderAnimationList();if(window.update)window.update();}
 function deleteActiveAnimation(){const a=getActiveAnimation();if(!a)return;if(animations.length<=1){alert('Нельзя удалить последнюю анимацию.');return;}const idx=animations.findIndex(x=>x.id===a.id);animations.splice(idx,1);activeAnimationId=animations[Math.max(0,idx-1)].id;renderAnimationList();if(window.update)window.update();}
+async function captureAnimationFrame(){
+  if(!mainDoc.docW) return null;
+  const state=await mainDoc.serialize();
+  delete state.collision;
+  return state;
+}
+async function restoreAnimationFrame(frame){
+  if(!frame)return;
+  const collision=mainDoc.collision;
+  await mainDoc.restore({...frame,collision});
+}
+async function saveActiveAnimationFrame(){
+  const a=getActiveAnimation();
+  if(!a || a.activeFrameIndex===undefined || a.activeFrameIndex<0)return;
+  const frame=await captureAnimationFrame();
+  if(frame)a.frames[a.activeFrameIndex]=frame;
+}
+async function loadActiveAnimationFrame(){
+  const a=getActiveAnimation();
+  if(!a || a.activeFrameIndex===undefined || a.activeFrameIndex<0)return;
+  const frame=a.frames[a.activeFrameIndex];
+  if(frame)await restoreAnimationFrame(frame);
+}
+function getActiveFrameIndex(){
+  const a=getActiveAnimation();
+  return a&&Number.isInteger(a.activeFrameIndex)?a.activeFrameIndex:-1;
+}
+function renderAnimationFrames(){
+  const a=getActiveAnimation(), box=document.getElementById('animFrames');
+  if(!box)return;
+  box.innerHTML='';
+  const frames=a?.frames||[], active=getActiveFrameIndex();
+  frames.forEach((frame,i)=>{
+    const row=document.createElement('div');
+    row.className='anim-row'+(i===active?' active':'');
+    row.style.cssText='position:relative;min-height:72px;justify-content:center;overflow:hidden;';
+    const label=document.createElement('span');
+    label.className='anim-name';
+    label.style.cssText='text-align:center;font-size:12px;';
+    label.textContent='Кадр '+(i+1);
+    row.appendChild(label);
+    if(frame?.layers?.length){
+      const badge=document.createElement('span');
+      badge.className='anim-meta';
+      badge.textContent=(frame.docW||0)+'×'+(frame.docH||0);
+      row.appendChild(badge);
+    }
+    row.onclick=()=>selectAnimationFrame(i);
+    box.appendChild(row);
+  });
+  document.getElementById('animFrameCount').textContent=frames.length;
+  document.getElementById('animFrameStatus').textContent=frames.length?('Кадр '+(active+1)+'/'+frames.length):'Кадров: 0';
+}
+async function selectAnimationFrame(index){
+  const a=getActiveAnimation();
+  if(!a || index<0 || index>=a.frames.length)return;
+  await saveActiveAnimationFrame();
+  a.activeFrameIndex=index;
+  await loadActiveAnimationFrame();
+  renderAnimationFrames();
+  loadActiveAnimationSettings();
+}
+async function addAnimationFrame(){
+  const a=getActiveAnimation(); if(!a)return;
+  await saveActiveAnimationFrame();
+  const frame=await captureAnimationFrame();
+  if(!frame){alert('Сначала задай изображение в основном редакторе.');return;}
+  a.frames.push(frame);
+  a.activeFrameIndex=a.frames.length-1;
+  renderAnimationFrames();
+  loadActiveAnimationSettings();
+  if(window.update)window.update();
+}
+async function duplicateAnimationFrame(){
+  const a=getActiveAnimation(), idx=getActiveFrameIndex();
+  if(!a || idx<0 || !a.frames[idx])return;
+  await saveActiveAnimationFrame();
+  const copy=JSON.parse(JSON.stringify(a.frames[idx]));
+  a.frames.splice(idx+1,0,copy);
+  a.activeFrameIndex=idx+1;
+  await loadActiveAnimationFrame();
+  renderAnimationFrames();
+  loadActiveAnimationSettings();
+  if(window.update)window.update();
+}
+async function deleteAnimationFrame(){
+  const a=getActiveAnimation(), idx=getActiveFrameIndex();
+  if(!a || idx<0)return;
+  await saveActiveAnimationFrame();
+  a.frames.splice(idx,1);
+  if(!a.frames.length){
+    a.activeFrameIndex=-1;
+  }else{
+    a.activeFrameIndex=Math.min(idx,a.frames.length-1);
+    await loadActiveAnimationFrame();
+  }
+  renderAnimationFrames();
+  loadActiveAnimationSettings();
+  if(window.update)window.update();
+}
+async function moveAnimationFrame(delta){
+  const a=getActiveAnimation(), idx=getActiveFrameIndex();
+  if(!a || idx<0)return;
+  const next=idx+delta;
+  if(next<0 || next>=a.frames.length)return;
+  await saveActiveAnimationFrame();
+  const tmp=a.frames[idx]; a.frames[idx]=a.frames[next]; a.frames[next]=tmp;
+  a.activeFrameIndex=next;
+  await loadActiveAnimationFrame();
+  renderAnimationFrames();
+  loadActiveAnimationSettings();
+  if(window.update)window.update();
+}
+
 function collectAnimations(){saveActiveAnimationSettings();return animations.map(a=>({name:a.name,fps:a.fps,loop:!!a.loop,frames:Array.isArray(a.frames)?a.frames:[]}));}
-function resetAnimations(){animations=[];activeAnimationId=null;ensureAnimationState();renderAnimationList();}
+function resetAnimations(){animations=[];activeAnimationId=null;ensureAnimationState();renderAnimationList();renderAnimationFrames();}
+document.getElementById('btnAnimFrameAdd').onclick=addAnimationFrame;document.getElementById('btnAnimFrameDuplicate').onclick=duplicateAnimationFrame;document.getElementById('btnAnimFrameDelete').onclick=deleteAnimationFrame;document.getElementById('btnAnimFrameUp').onclick=()=>moveAnimationFrame(-1);document.getElementById('btnAnimFrameDown').onclick=()=>moveAnimationFrame(1);
 document.getElementById('btnAnimAdd').onclick=addAnimation;document.getElementById('btnAnimRename').onclick=renameActiveAnimation;document.getElementById('btnAnimDelete').onclick=deleteActiveAnimation;document.getElementById('animName').addEventListener('change',renameActiveAnimation);document.getElementById('animFps').addEventListener('input',()=>{saveActiveAnimationSettings();renderAnimationList();if(window.update)window.update();});document.getElementById('animLoop').addEventListener('change',()=>{saveActiveAnimationSettings();renderAnimationList();if(window.update)window.update();});
 
 /* ============================================================
