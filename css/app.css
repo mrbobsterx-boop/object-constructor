@@ -74,7 +74,9 @@ textarea{min-height:70px;resize:vertical}
 .layer-row.active{border-color:#4d78c9;background:#182030}
 .layer-row .name{flex:1;font-size:12px}
 .layer-row button{padding:3px 6px;font-size:11px}
-.anim-thumb{width:56px;height:36px;border:2px solid #37414e;cursor:pointer;position:relative;overflow:hidden;flex:0 0 auto;background:#0d1116}
+#visualFrames{display:flex;flex-wrap:wrap;gap:6px;align-items:flex-start}
+#visualFrames:empty{display:none}
+.anim-thumb{width:56px;height:56px;border:2px solid #37414e;cursor:pointer;position:relative;overflow:hidden;flex:0 0 auto;background:#0d1116}
 .anim-thumb.active{border-color:#7fe9a0}
 .anim-thumb img{width:100%;height:100%;object-fit:contain;image-rendering:pixelated;position:absolute;left:0;top:0}
 .anim-thumb .idx{position:absolute;left:2px;top:1px;font:10px Consolas,monospace;color:#9c9;background:#000a;padding:0 3px;z-index:2}

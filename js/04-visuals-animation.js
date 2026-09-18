@@ -352,19 +352,34 @@ async function switchToFrame(i){
   renderAnimThumbs(); renderLayerList('visualLayerList',animDoc); updateAnimStatus();
   if(window.update)window.update();
 }
+let thumbRenderToken=0;
 function renderAnimThumbs(){
   const c=document.getElementById('visualFrames'); if(!c)return;
   c.innerHTML='';
   if(!currentVisual || currentVisual.type!=='animation')return;
+  const imgs=[];
   frames.forEach((f,i)=>{
     const d=document.createElement('div'); d.className='anim-thumb'+(i===currentFrameIndex?' active':'');
     const im=document.createElement('img'); im.alt='Кадр '+(i+1);
-    (async()=>{ try{ await scratchDoc.restore(f); const flat=scratchDoc.flatten(); if(flat) im.src=flat.toDataURL(); }catch(e){} })();
     const idx=document.createElement('span'); idx.className='idx'; idx.textContent=i+1;
     d.appendChild(im); d.appendChild(idx);
     d.onclick=()=>switchToFrame(i);
     c.appendChild(d);
+    imgs.push({im,f});
   });
+  thumbRenderToken++;
+  const token=thumbRenderToken;
+  (async()=>{
+    for(const {im,f} of imgs){
+      if(token!==thumbRenderToken)return;
+      try{
+        await scratchDoc.restore(f);
+        const flat=scratchDoc.flatten();
+        if(token!==thumbRenderToken)return;
+        if(flat) im.src=flat.toDataURL();
+      }catch(e){}
+    }
+  })();
 }
 function fitVisualEditorZoom(){
   if(!animDoc.docW||!animDoc.docH)return;
@@ -433,8 +448,87 @@ document.getElementById('btnSpriteSheetCut').onclick=async ()=>{
   if(a)a.frames=frames;
 
   await animDoc.restore(frames[0]);
+  fitVisualEditorZoom();
   renderAnimThumbs();
+  renderLayerList('visualLayerList',animDoc);
   updateAnimStatus();
+  drawWorldPreview();
+  if(window.update)window.update();
+};
+
+async function framesFromCanvas(source,cols,rows){
+  const frameW=Math.floor(source.width/cols);
+  const frameH=Math.floor(source.height/rows);
+  if(frameW<1||frameH<1)throw new Error('Количество колонок или строк больше размера картинки.');
+  const out=[];
+  for(let row=0;row<rows;row++){
+    for(let col=0;col<cols;col++){
+      const piece=document.createElement('canvas');
+      piece.width=frameW; piece.height=frameH;
+      const ctx=piece.getContext('2d');
+      ctx.imageSmoothingEnabled=false;
+      ctx.clearRect(0,0,frameW,frameH);
+      ctx.drawImage(source,col*frameW,row*frameH,frameW,frameH,0,0,frameW,frameH);
+      const state=await new Promise((resolve,reject)=>{
+        const img=new Image();
+        img.onload=async()=>{ try{ scratchDoc.clear(); scratchDoc.addLayerFromImage(img); resolve(await scratchDoc.serialize()); }catch(err){ reject(err); } };
+        img.onerror=()=>reject(new Error('Не удалось создать кадр.'));
+        img.src=piece.toDataURL('image/png');
+      });
+      out.push(state);
+    }
+  }
+  return out;
+}
+
+function freeAnimationName(base){
+  const used=usedVisualNames();
+  if(!used.has(base))return base;
+  let i=2;
+  while(used.has(base+'_'+i))i++;
+  return base+'_'+i;
+}
+
+const btnSliceMain=document.getElementById('btnSliceToAnimation');
+if(btnSliceMain) btnSliceMain.onclick=async ()=>{
+  const source=mainDoc.flatten();
+  if(!source||!source.width||!source.height){ alert('Сначала загрузи основную картинку.'); return; }
+  const cols=Math.max(1,parseInt(document.getElementById('mainSliceCols').value,10)||1);
+  const rows=Math.max(1,parseInt(document.getElementById('mainSliceRows').value,10)||1);
+  if(cols*rows<2){ alert('Укажи количество колонок и строк больше 1.'); return; }
+
+  let newFrames;
+  try{ newFrames=await framesFromCanvas(source,cols,rows); }
+  catch(err){ alert(err.message||'Не удалось разрезать картинку.'); return; }
+
+  if(currentVisual) await commitCurrentFrame();
+
+  const animatedBox=document.getElementById('animated');
+  if(animatedBox && !animatedBox.checked){ animatedBox.checked=true; animatedBox.dispatchEvent(new Event('change',{bubbles:true})); }
+
+  let target=null;
+  if(currentVisual && currentVisual.type==='animation'){
+    target=animations.find(x=>x.id===currentVisual.id)||null;
+  }
+  if(!target){
+    const name=freeAnimationName('idle');
+    target={id:name, fps:8, loop:true, frames:[], collisionMode:'FULL', collisionPadding:0, sound:{enabled:false,source:'NEW',files:[],mode:'single',volume:80,radius:300}, skillProgress:[]};
+    animations.push(target);
+    saveVisualName('animation',name);
+    if(name==='idle')idleCreated=true;
+  }
+
+  target.frames=newFrames;
+  currentVisual=null;
+  currentAnimIndex=-1;
+  frames=[];
+  currentFrameIndex=-1;
+
+  const tab=document.querySelector('.tab[data-tab="animation"]');
+  if(tab)tab.click();
+  await selectVisual('animation',target.id);
+  await switchToFrame(0);
+  renderVisualList();
   if(window.update)window.update();
 };
 
@@ -501,35 +595,99 @@ document.getElementById('visualLoop').onchange=()=>{
   if(currentAnimIndex<0 || !animations[currentAnimIndex])return;
   animations[currentAnimIndex].loop=document.getElementById('visualLoop').checked;
 };
+let animPlayFrames=[], animPlayRaf=null, animPlayNextTime=0;
+
+async function buildPlaybackFrames(){
+  const out=[];
+  for(const f of frames){
+    await scratchDoc.restore(f);
+    const flat=scratchDoc.flatten();
+    const c=document.createElement('canvas');
+    c.width=Math.max(1,flat?flat.width:1); c.height=Math.max(1,flat?flat.height:1);
+    if(flat)c.getContext('2d').drawImage(flat,0,0);
+    out.push(c);
+  }
+  return out;
+}
+
+function markActiveThumb(i){
+  const nodes=document.querySelectorAll('#visualFrames .anim-thumb');
+  nodes.forEach((n,k)=>n.classList.toggle('active',k===i));
+}
+
+function drawPlaybackFrame(i){
+  const src=animPlayFrames[i]; if(!src)return;
+  const canvas=document.getElementById('visualCanvas'); if(!canvas)return;
+  if(canvas.width!==src.width||canvas.height!==src.height){ canvas.width=src.width; canvas.height=src.height; }
+  const ctx=canvas.getContext('2d');
+  ctx.imageSmoothingEnabled=false;
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  ctx.drawImage(src,0,0);
+}
+
+function stopAnimPlayback(){
+  animPlaying=false;
+  if(animPlayRaf)cancelAnimationFrame(animPlayRaf);
+  if(animPlayTimer)clearTimeout(animPlayTimer);
+  animPlayRaf=null; animPlayTimer=null; animPlayFrames=[];
+}
+
 document.getElementById('btnVisualPlay').onclick=async ()=>{
   const btn=document.getElementById('btnVisualPlay'), label=document.getElementById('visualPlayLabel');
+  const handles=document.getElementById('visualHandleLayer');
   if(animPlaying){
-    animPlaying=false; if(animPlayTimer)clearTimeout(animPlayTimer); animPlayTimer=null;
+    stopAnimPlayback();
     btn.textContent='▶ Играть'; label.textContent='';
+    if(handles)handles.style.display='';
     if(frames.length && currentFrameIndex>=0){ await animDoc.restore(frames[currentFrameIndex]); renderAnimThumbs(); updateAnimStatus(); drawWorldPreview(); }
     return;
   }
   if(!currentVisual || currentVisual.type!=='animation' || !frames.length)return alert('Нет кадров.');
   await commitCurrentFrame();
-  animPlaying=true; animPlayIdx=Math.max(0,currentFrameIndex);
+
   btn.textContent='⏸ Стоп';
-  const tick=async ()=>{
+  label.textContent='загрузка кадров…';
+  animPlayFrames=await buildPlaybackFrames();
+  if(!animPlayFrames.length){ btn.textContent='▶ Играть'; label.textContent=''; return; }
+  if(handles)handles.style.display='none';
+
+  animPlaying=true;
+  animPlayIdx=Math.max(0,currentFrameIndex);
+  const a=animations[currentAnimIndex];
+  const fps=Math.max(1,+(a&&a.fps||document.getElementById('visualFps').value)||8);
+  const frameDuration=1000/fps;
+  animPlayNextTime=performance.now()+frameDuration;
+
+  drawPlaybackFrame(animPlayIdx);
+  markActiveThumb(animPlayIdx);
+  label.textContent=`кадр ${animPlayIdx+1}/${animPlayFrames.length} · ${fps} FPS`;
+
+  const step=(now)=>{
     if(!animPlaying)return;
-    const a=animations[currentAnimIndex];
-    const loop=a?a.loop!==false:true;
-    const fps=Math.max(1,+(a?.fps||document.getElementById('visualFps').value)||8);
-    const delay=1000/fps;
-    const idx=animPlayIdx;
-    currentFrameIndex=idx;
-    await animDoc.restore(frames[idx]);
-    renderAnimThumbs(); updateAnimStatus(); drawWorldPreview();
-    label.textContent=`кадр ${idx+1}/${frames.length} · ${fps} FPS`;
-    const isLast=idx>=frames.length-1;
-    if(isLast && !loop){ animPlaying=false; animPlayTimer=null; btn.textContent='▶ Играть'; return; }
-    animPlayIdx=loop?((idx+1)%frames.length):(idx+1);
-    if(animPlaying)animPlayTimer=setTimeout(tick,delay);
+    const cur=animations[currentAnimIndex];
+    const loop=cur?cur.loop!==false:true;
+    const liveFps=Math.max(1,+(cur&&cur.fps||document.getElementById('visualFps').value)||8);
+    const dur=1000/liveFps;
+    if(now>=animPlayNextTime){
+      const isLast=animPlayIdx>=animPlayFrames.length-1;
+      if(isLast && !loop){
+        stopAnimPlayback();
+        btn.textContent='▶ Играть';
+        if(handles)handles.style.display='';
+        animDoc.restore(frames[currentFrameIndex]).then(()=>{ renderAnimThumbs(); drawWorldPreview(); });
+        return;
+      }
+      animPlayIdx=(animPlayIdx+1)%animPlayFrames.length;
+      currentFrameIndex=animPlayIdx;
+      drawPlaybackFrame(animPlayIdx);
+      markActiveThumb(animPlayIdx);
+      label.textContent=`кадр ${animPlayIdx+1}/${animPlayFrames.length} · ${liveFps} FPS`;
+      const drift=now-animPlayNextTime;
+      animPlayNextTime = now + Math.max(0, dur - Math.min(drift, dur));
+    }
+    animPlayRaf=requestAnimationFrame(step);
   };
-  tick();
+  animPlayRaf=requestAnimationFrame(step);
 };
 
 /* ============================================================
