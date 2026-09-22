@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Project Registry</title>
+<link rel="stylesheet" href="css/app.css">
+</head>
+<body>
+<div class="app">
+<header>
+  <h1>Project Registry</h1>
+  <button id="btnConnect" class="primary">📁 Подключить папку проекта</button>
+  <button id="btnRegrant" style="display:none">Разрешить доступ</button>
+  <button id="btnScan">🔄 Сканировать проект</button>
+  <span id="folderStatus" class="status">Папка не подключена</span>
+  <div class="spacer"></div>
+  <span id="scanStatus" class="status"></span>
+</header>
+
+<aside>
+  <div class="panel">
+    <h3>Проект</h3>
+    <div class="statgrid">
+      <div class="stat"><div class="n" id="sObjects">0</div><div class="t">Объектов</div></div>
+      <div class="stat"><div class="n" id="sRooms">0</div><div class="t">Комнат</div></div>
+      <div class="stat"><div class="n" id="sBuildings">0</div><div class="t">Зданий</div></div>
+      <div class="stat"><div class="n" id="sInstances">0</div><div class="t">Экземпляров</div></div>
+    </div>
+  </div>
+  <div class="panel">
+    <h3>Разделы</h3>
+    <div id="navList"></div>
+  </div>
+  <div class="panel">
+    <h3>Автоматические проверки</h3>
+    <div id="checkSummary" class="muted">Сначала просканируй проект.</div>
+  </div>
+</aside>
+
+<main><div id="content"></div></main>
+</div>
+
+<!-- Порядок менять нельзя: скрипты делят одну глобальную область, номер = порядок загрузки, INIT — последний -->
+<script src="js/01-core-utils.js"></script>
+<script src="js/02-scan.js"></script>
+<script src="js/03-relations.js"></script>
+<script src="js/04-checks.js"></script>
+<script src="js/05-ui-core.js"></script>
+<script src="js/06-view-overview.js"></script>
+<script src="js/07-view-objects.js"></script>
+<script src="js/08-view-rooms.js"></script>
+<script src="js/09-view-buildings.js"></script>
+<script src="js/10-view-other.js"></script>
+<script src="js/11-init.js"></script>
+</body>
+</html>
