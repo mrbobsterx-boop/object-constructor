@@ -6,7 +6,7 @@
      комната.instances[].objectId → объект            комната.door.toRoom → комната
      комната.world.blocks[].type → объект (категория block)
      здание.rooms[].room / sequence[].room → комната    слот здания → комнаты по типу/роли/лестницам
-     объект: action_settings (tool, consume, produce), crafting.recipe.pattern, block (tool, drop_table), character_ref
+     объект: action_settings (tool, consume, produce), crafting.recipe.ingredients[].item, block (tool, drop_table), character_ref
    ============================================================ */
 
 let idx={obj:new Map(),room:new Map(),bld:new Map(),set:new Map(),chr:new Map(),rig:new Map(),sprites:new Set(),sounds:new Set()};
@@ -59,8 +59,8 @@ function buildRelations(){
       use('object',s.consume&&s.consume.item,'действие '+aid+' → расходуется');
       use('object',s.produce&&s.produce.item,'действие '+aid+' → выдаётся');
     });
-    const pat=d.crafting&&d.crafting.recipe&&d.crafting.recipe.pattern;
-    if(Array.isArray(pat)){ const seen=new Set(); pat.flat().forEach(c=>{ if(c&&c.id&&!seen.has(c.id)){ seen.add(c.id); use('object',c.id,'рецепт крафта → ингредиент'); } }); }
+    const ingredients=d.crafting&&d.crafting.recipe&&d.crafting.recipe.ingredients;
+    if(Array.isArray(ingredients)){ const seen=new Set(); ingredients.forEach(ing=>{ const iid=ing&&ing.item; if(iid&&!seen.has(iid)){ seen.add(iid); use('object',iid,'рецепт крафта → ингредиент'); } }); }
     if(o.block){ use('object',o.block.tool,'материал → инструмент'); (o.block.drop_table||[]).forEach(dr=>{ if(dr) use('object',dr.item,'материал → добыча'); }); }
     if(d.character_ref&&d.character_ref.id) use('character',d.character_ref.id,'персонаж Assembler');
     objectAssetRefs(d).forEach(a=>addFileRef(a.type,a.rel,'object',o.id,a.ctx));
