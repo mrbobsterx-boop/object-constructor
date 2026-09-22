@@ -1,0 +1,51 @@
+/* ============================================================
+   MODULE 00 — GLOBAL STYLES
+   This block contains shared UI styles only.
+   ============================================================ */
+*{box-sizing:border-box}body{margin:0;background:#11151b;color:#e8edf3;font:14px Arial,sans-serif;overflow:hidden}
+button,input,select{font:inherit}
+button{background:#242b35;color:#e8edf3;border:1px solid #3b4654;border-radius:6px;padding:5px 8px;cursor:pointer;font-size:11.5px}
+button:hover{background:#303947}button.primary{background:#2f6e3f;border-color:#4d9a6a}button.primary:hover{background:#387f4a}
+button:disabled{opacity:.4;cursor:default}
+input,select{background:#10141a;color:#e8edf3;border:1px solid #37414e;border-radius:6px;padding:6px 8px}
+label{font-size:11px;color:#98a4b2;display:block;margin-bottom:3px}
+.row{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.muted{color:#778391;font-size:11px}
+header{grid-column:1/-1;display:flex;align-items:center;gap:6px;padding:6px 10px;border-bottom:1px solid #303844;background:#181d24;flex-wrap:wrap}
+header h1{font-size:13px;margin:0;white-space:nowrap}
+.spacer{flex:1}.status{color:#8f9baa;font-size:11px}
+.app{height:100vh;display:grid;grid-template-columns:260px 1fr;grid-template-rows:auto 1fr}
+aside{background:#171c22;border-right:1px solid #303844;overflow-y:auto;padding:12px}
+main{overflow:auto;position:relative}
+.checker-bg{background-color:#1c1c1c;background-image:linear-gradient(45deg,#232830 25%,transparent 25%),linear-gradient(-45deg,#232830 25%,transparent 25%),linear-gradient(45deg,transparent 75%,#232830 75%),linear-gradient(-45deg,transparent 75%,#232830 75%);background-size:16px 16px;background-position:0 0,0 8px,8px -8px,-8px 0}
+.room-catalog-item{padding:6px 8px;margin-bottom:4px;background:#12161c;border:1px solid #262c35;border-radius:6px;font-size:11.5px;cursor:pointer}
+.room-catalog-item:hover{border-color:#4d78c9}
+.building-room{position:absolute;border:2px solid #4d78c9;background:#22303f99;cursor:move;display:flex;align-items:center;justify-content:center;text-align:center;font-size:11px;color:#cfe0ff;overflow:hidden;padding:4px}
+.building-room-visual{position:absolute;border:2px solid #4d78c9;background:#0d1116;cursor:move;overflow:hidden}
+.building-room-visual.random{border-color:#e7c65b}
+.building-room-visual.selected{border-color:#7fe9a0;box-shadow:0 0 0 2px #7fe9a099}
+.building-bg-layer{position:absolute;pointer-events:none;transform-origin:center center}
+.crop-grid{display:grid;grid-template-columns:1fr 1fr;gap:5px}
+.crop-grid input{width:100%;font-size:11px}
+.bg-layer-row{padding:5px 6px;border:1px solid #2b333d;border-radius:6px;margin-bottom:4px;background:#11161c;cursor:pointer}
+.bg-layer-row.selected{border-color:#7fe9a0}
+
+.building-bg-wrap{position:absolute;transform-origin:center center;pointer-events:auto;cursor:move;box-sizing:border-box}
+.building-bg-wrap.selected{outline:1px solid #7fe9a0;box-shadow:0 0 0 1px #7fe9a055}
+.building-bg-wrap>img{position:absolute;inset:0;width:100%;height:100%;display:block;pointer-events:none;user-select:none}
+.bg-resize-handle{position:absolute;width:10px;height:10px;background:#e8edf3;border:2px solid #4d78c9;border-radius:50%;z-index:20;box-sizing:border-box}
+.bg-resize-handle.nw{left:-5px;top:-5px;cursor:nwse-resize}.bg-resize-handle.ne{right:-5px;top:-5px;cursor:nesw-resize}
+.bg-resize-handle.sw{left:-5px;bottom:-5px;cursor:nesw-resize}.bg-resize-handle.se{right:-5px;bottom:-5px;cursor:nwse-resize}
+.building-room-visual.invalid{border-color:#ff6b57;box-shadow:0 0 0 2px #ff6b5744}
+.room-name-badge{position:absolute;left:2px;top:2px;font-size:10px;color:#dfe6ee;background:#000a;padding:1px 5px;border-radius:3px;z-index:10;pointer-events:none;white-space:nowrap}
+#gridOverlay{position:absolute;inset:0;pointer-events:none;z-index:999;background-image:linear-gradient(to right,rgba(255,255,255,.09) 1px,transparent 1px),linear-gradient(to bottom,rgba(255,255,255,.09) 1px,transparent 1px),linear-gradient(to right,rgba(255,255,255,.16) 1px,transparent 1px),linear-gradient(to bottom,rgba(255,255,255,.16) 1px,transparent 1px);background-size:100px 100px,100px 100px,1000px 1000px,1000px 1000px} /* сетка: 1 м и 10 м (100 px = 1 м) */
+#gridOverlay.hidden{display:none}
+.building-room.random{border-color:#e7c65b;background:#3a301299}
+.building-room.selected{border-color:#7fe9a0;box-shadow:0 0 0 2px #7fe9a099}
+.door-dot{position:absolute;width:8px;height:8px;border-radius:50%;transform:translate(-50%,-50%);z-index:5}
+.door-dot.linked{background:#7fe9a0;border:1px solid #d8ffe4}
+.door-dot.unlinked{background:#e7834d;border:1px solid #ffd0b0}
+.instance-row{display:flex;align-items:center;gap:4px;padding:5px 6px;margin-bottom:3px;background:#12161c;border:1px solid #262c35;border-radius:6px;font-size:11px}
+.instance-row.selected{border-color:#7fe9a0}
+::-webkit-scrollbar{width:8px;height:8px}::-webkit-scrollbar-thumb{background:#333;border-radius:4px}
+.room-issue-badge{position:absolute;right:4px;top:4px;z-index:12;background:#3a3012ee;color:#ffe9a3;border:1px solid #e7c65b;border-radius:10px;font-size:10px;line-height:14px;padding:0 6px;cursor:help}

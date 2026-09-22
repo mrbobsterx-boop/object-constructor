@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<!-- ============================================================
+     BUILDING EDITOR — MODULAR FILE MAP
+     ------------------------------------------------------------
+     MODULE 00  Global CSS
+     MODULE 01  Global utils / units / project folder
+     MODULE 02  Zoom / grid / pan
+     MODULE 03  Room catalog
+     MODULE 04  Placed rooms + building state
+     MODULE 05  Door links + room visuals
+     MODULE 06  Building canvas
+     MODULE 07  Building backgrounds
+     MODULE 08  Recompute + placed list
+     MODULE 09  Building save / load
+     MODULE 10  Init
+
+     IMPORTANT:
+     This version is a structural copy of the previous single-file editor.
+     Functional code is intentionally not rewritten.
+     Each MODULE marker defines the safe area for future edits.
+     Keep module order unless dependencies are deliberately changed.
+     MODULE 10 (INIT) must always stay last.
+     ============================================================ -->
+
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Building Editor</title>
+<link rel="stylesheet" href="css/app.css">
+</head>
+<body>
+<div class="app">
+<header>
+  <h1>Building Editor</h1>
+  <input id="buildingId" placeholder="id здания" style="width:130px">
+  <select id="openBuildingSelect" style="width:170px"><option value="">— выбери здание —</option></select>
+  <button id="btnOpenBuilding">Открыть</button>
+  <input id="buildingName" placeholder="название (Многоквартирный дом...)" style="width:220px">
+  <label class="muted" style="margin:0 0 0 8px">Режим:</label>
+  <select id="modeSelect" style="width:auto">
+    <option value="BUILDING">Здание (2D план, двери)</option>
+    <option value="STREET">Улица (цепочка встык, без дверей)</option>
+  </select>
+  <div class="row" style="margin-left:8px;gap:4px">
+    <button id="btnZoomOut" title="Уменьшить">−</button>
+    <span id="zoomLabel" class="muted" style="min-width:44px;text-align:center">100%</span>
+    <button id="btnZoomIn" title="Увеличить">+</button>
+    <button id="btnZoomReset" title="Сбросить масштаб">1:1</button>
+    <button id="btnZoomFit" title="Показать все размещённые комнаты">Вписать</button>
+    <label style="display:flex;align-items:center;gap:4px;margin:0 0 0 6px;cursor:pointer">
+      <input id="gridToggle" type="checkbox" checked style="margin:0"> Сетка (1 м)
+    </label>
+  </div>
+  <div class="spacer"></div>
+  <button id="btnConnectFolder">📁 Подключить папку проекта</button>
+  <span id="folderStatus" class="status">Папка не подключена</span>
+  <button id="btnRegrantFolder" style="display:none">Разрешить доступ</button>
+  <button id="btnSaveBuilding" class="primary">💾 Сохранить здание</button>
+</header>
+
+<aside>
+  <h3 style="font-size:12px;color:#b9c4cf;margin:4px 0 8px">Комнаты в каталоге</h3>
+  <div class="row" style="margin-bottom:8px"><button id="btnRefreshRooms" style="width:100%">🔄 Обновить список</button></div>
+  <div id="roomCatalogList"></div>
+
+  <h3 style="font-size:12px;color:#b9c4cf;margin:14px 0 8px">Случайный слот</h3>
+  <div class="muted" style="margin-bottom:6px">Слот остаётся на своей позиции, а комнату для него можно менять случайно по правилам ниже.</div>
+  <div class="row">
+    <select id="slotTypeSelect" style="width:100%"></select>
+  </div>
+  <label style="margin-top:7px">Роль комнаты</label>
+  <div class="composition-grid" id="slotRoleGrid" title="Какую роль комнаты должен искать Randomizer">
+    <button type="button" class="composition-cell slot-role-cell" data-role="TOP_LEFT">↖</button>
+    <button type="button" class="composition-cell slot-role-cell" data-role="TOP_CENTER">↑</button>
+    <button type="button" class="composition-cell slot-role-cell" data-role="TOP_RIGHT">↗</button>
+    <button type="button" class="composition-cell slot-role-cell" data-role="CENTER_LEFT">←</button>
+    <button type="button" class="composition-cell slot-role-cell" data-role="CENTER_CENTER">●</button>
+    <button type="button" class="composition-cell slot-role-cell" data-role="CENTER_RIGHT">→</button>
+    <button type="button" class="composition-cell slot-role-cell" data-role="BOTTOM_LEFT">↙</button>
+    <button type="button" class="composition-cell slot-role-cell" data-role="BOTTOM_CENTER">↓</button>
+    <button type="button" class="composition-cell slot-role-cell" data-role="BOTTOM_RIGHT">↘</button>
+  </div>
+  <div class="muted" style="margin-top:4px">По умолчанию: CENTER_CENTER</div>
+  <label style="margin-top:7px">Требуемые лестницы</label>
+  <div class="row" id="slotStairControls">
+    <button type="button" class="stair-filter-btn" data-stair="TOP_LEFT">↖ ↑</button>
+    <button type="button" class="stair-filter-btn" data-stair="TOP_CENTER">↑ ↑</button>
+    <button type="button" class="stair-filter-btn" data-stair="TOP_RIGHT">↗ ↑</button>
+    <button type="button" class="stair-filter-btn" data-stair="BOTTOM_LEFT">↙ ↓</button>
+    <button type="button" class="stair-filter-btn" data-stair="BOTTOM_CENTER">↓ ↓</button>
+    <button type="button" class="stair-filter-btn" data-stair="BOTTOM_RIGHT">↘ ↓</button>
+  </div>
+  <div class="row" style="margin-top:7px">
+    <input id="slotFloor" type="number" step="1" value="0" style="width:70px" placeholder="Этаж">
+    <button id="btnAddRandomSlot" style="width:100%">+ Добавить слот</button>
+  </div>
+
+  <h3 style="font-size:12px;color:#b9c4cf;margin:14px 0 8px">Размещённые комнаты</h3>
+  <div id="placedList"></div>
+  <div style="margin-top:10px;padding-top:8px;border-top:1px solid #232932">
+    <label>Этаж выбранной комнаты</label>
+    <div class="row"><input id="selectedFloor" type="number" step="1" value="0" style="width:80px"><button id="btnApplyFloor">Применить</button></div>
+    <div class="muted" style="margin-top:4px">0 = основной этаж · +1/+2 = выше · −1/−2 = подземелье.</div>
+  </div>
+  <div class="row" id="shuffleRow" style="margin-top:8px;display:none">
+    <button id="btnShuffleAll" style="width:100%">🎲 Перемешать всё <span class="muted">(только превью — в файле и так пул)</span></button>
+  </div>
+  <div class="row" style="margin-top:8px">
+    <button id="btnDeleteSelected" style="width:100%">✕ Удалить выбранную</button>
+  </div>
+
+  <h3 style="font-size:12px;color:#b9c4cf;margin:14px 0 8px">Обрезка выбранной комнаты</h3>
+  <div class="muted" style="margin-bottom:6px">Обрезается только экземпляр комнаты в этом здании. Исходный Room JSON не изменяется.</div>
+  <div class="crop-grid">
+    <div><label>Слева, м</label><input id="cropLeft" type="number" min="0" step="0.1" value="0"></div>
+    <div><label>Справа, м</label><input id="cropRight" type="number" min="0" step="0.1" value="0"></div>
+    <div><label>Сверху, м</label><input id="cropTop" type="number" min="0" step="0.1" value="0"></div>
+    <div><label>Снизу, м</label><input id="cropBottom" type="number" min="0" step="0.1" value="0"></div>
+  </div>
+  <div class="row" style="margin-top:6px"><button id="btnApplyCrop" style="width:100%">Применить обрезку</button></div>
+
+  <h3 style="font-size:12px;color:#b9c4cf;margin:14px 0 8px">Фоны здания</h3>
+  <div class="muted" style="margin-bottom:6px">Добавляй несколько слоёв из assets/sprites/rooms. Они относятся к зданию, а не к отдельной комнате.</div>
+  <div class="row"><button id="btnScanBuildingBackgrounds" style="width:100%">🔄 Найти фоны проекта</button></div>
+  <div class="row" style="margin-top:6px"><select id="buildingBgSelect" style="width:100%"><option value="">— сначала найти фоны проекта —</option></select></div>
+  <div class="row" style="margin-top:6px"><button id="btnAddBuildingBackground" style="width:100%">+ Добавить выбранный фон</button></div>
+  <div class="row" style="margin-top:6px;gap:4px"><button id="btnChooseBuildingBgFile" style="flex:1">📁 Выбрать файл</button><button id="btnPasteBuildingBg" style="flex:1">📋 Вставить</button></div>
+  <input id="buildingBgFileInput" type="file" accept="image/png,image/jpeg,image/webp,image/gif" style="display:none">
+  <div class="muted" style="margin-top:5px">Можно также нажать Ctrl+V, если изображение уже скопировано в буфер.</div>
+  <div id="buildingBgList" style="margin-top:6px"></div>
+  <div id="buildingBgControls" style="display:none;margin-top:6px">
+    <div class="crop-grid">
+      <div><label>X, м</label><input id="bgX" type="number" step="0.1"></div>
+      <div><label>Y, м</label><input id="bgY" type="number" step="0.1"></div>
+      <div><label>Scale</label><input id="bgScale" type="number" min="0.01" step="0.05"></div>
+      <div><label>Opacity</label><input id="bgOpacity" type="number" min="0" max="1" step="0.05"></div>
+      <div><label>Rotation</label><input id="bgRotation" type="number" step="1"></div>
+      <div><label>Layer</label><input id="bgZ" type="number" step="1"></div>
+    </div>
+    <div class="row" style="margin-top:6px"><button id="btnBgFlipH">↔ Flip H</button><button id="btnBgFlipV">↕ Flip V</button><button id="btnDeleteBuildingBg">✕ Удалить</button></div>
+  </div>
+
+  <div id="buildStatus" class="muted" style="margin-top:10px"></div>
+</aside>
+
+<main id="buildingViewport">
+  <div id="buildingCanvas" class="checker-bg" style="position:relative;width:2000px;height:1200px">
+    <div id="gridOverlay" aria-hidden="true"></div>
+  </div>
+</main>
+</div>
+<script src="js/01-core-utils.js"></script>
+<script src="js/02-zoom-pan.js"></script>
+<script src="js/03-room-catalog.js"></script>
+<script src="js/04-placed-rooms.js"></script>
+<script src="js/05-room-visuals-doors.js"></script>
+<script src="js/06-building-canvas.js"></script>
+<script src="js/07-building-backgrounds.js"></script>
+<script src="js/08-placed-list.js"></script>
+<script src="js/09-building-save-load.js"></script>
+<script src="js/10-init.js"></script>
+</body>
+</html>
