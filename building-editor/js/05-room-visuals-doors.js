@@ -157,7 +157,7 @@ function recomputeDoorLinks(){
   const allDoors=[]; // {instanceId, doorIdx, x,y (абсолютные px на холсте здания)}
   placedRooms.forEach(p=>{
     const meta=getRoomMeta(p.roomId); if(!meta)return;
-    meta.doors.forEach((d,idx)=>{ allDoors.push({instanceId:p.instanceId, doorIdx:idx, x:p.x+d.x, y:p.y+d.y}); });
+    meta.doors.forEach((d,idx)=>{ allDoors.push({instanceId:p.instanceId, doorIdx:idx, x:p.x+d.x-(p.crop?.left||0), y:p.y+d.y-(p.crop?.top||0)}); });
   });
   const used=new Set();
   for(let i=0;i<allDoors.length;i++){

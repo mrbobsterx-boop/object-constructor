@@ -60,10 +60,12 @@ async function loadBuildingFromJSON(data){
   } else {
     (data.rooms||[]).forEach(item=>{
       const room=roomCatalog.find(r=>r.id===item.room);
-      placedRooms.push({ instanceId:item.instance_id||('place_'+Date.now()+Math.random().toString(36).slice(2)), mode:item.mode||'FIXED', roomId:item.room,
+      const entry={ instanceId:item.instance_id||('place_'+Date.now()+Math.random().toString(36).slice(2)), mode:item.mode||'FIXED', roomId:item.room,
         typeFilter:item.type_filter||null, requiredRole:item.required_role||null, requiredStairs:item.required_stairs||[], floor:item.floor||0,
         crop:cropFromJSON(item), x:lenPx(item,'x_m','x',0), y:lenPx(item,'y_m','y',0),
-        w:room?room.width:6.4*PIXELS_PER_METER, h:room?room.height:2.2*PIXELS_PER_METER, name:room?room.name:('⚠ '+item.room) });
+        w:room?room.width:6.4*PIXELS_PER_METER, h:room?room.height:2.2*PIXELS_PER_METER, name:room?room.name:('⚠ '+item.room) };
+      placedRooms.push(entry);
+      if(entry.mode==='RANDOM') rerollRandomSlot(entry); // сохранённый room — не выбор, а условие; перевыбираем заново, как POOL в «Улице»
     });
   }
 
@@ -133,7 +135,9 @@ function collectBuildingJSON(){
     schema_version:4, // 4 = все длины в игровых метрах (суффикс _m в имени поля)
     id:base, name:document.getElementById('buildingName').value||base,
     layout_mode: buildingMode,
-    rooms: placedRooms.map((p,idx)=>({ instance_id:p.instanceId, order:idx, room:p.roomId, x_m:pxToM(p.x), y_m:pxToM(p.y), floor:p.floor||0, mode:p.mode, type_filter:p.typeFilter||null, required_role:p.requiredRole||null, required_stairs:Array.isArray(p.requiredStairs)?p.requiredStairs:[], crop_m:cropToJSON(p.crop) })),
+    // RANDOM-слот сохраняется как условие (type_filter/required_role/required_stairs), а не как уже выбранная комната —
+    // конкретный room переигрывается заново при каждой загрузке (см. loadBuildingFromJSON), как POOL в «Улице».
+    rooms: placedRooms.map((p,idx)=>({ instance_id:p.instanceId, order:idx, room:p.mode==='RANDOM'?null:p.roomId, x_m:pxToM(p.x), y_m:pxToM(p.y), floor:p.floor||0, mode:p.mode, type_filter:p.typeFilter||null, required_role:p.requiredRole||null, required_stairs:Array.isArray(p.requiredStairs)?p.requiredStairs:[], crop_m:cropToJSON(p.crop) })),
     backgroundLayers: buildingBackgrounds.map(bgLayerToJSON),
     door_links: doorLinks.map(l=>({ a:{room_instance:l.a.instanceId, door_index:l.a.doorIdx}, b:{room_instance:l.b.instanceId, door_index:l.b.doorIdx} }))
   };
