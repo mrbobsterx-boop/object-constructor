@@ -81,9 +81,10 @@ function syncIdFromName(){
   if(idEl.dataset.auto==='0')return;
   const nameVal=document.getElementById('name').value.trim();
   idEl.value = nameVal ? (translit(nameVal)||'object') : '';
+  if(typeof syncLocaleKeysFromId==='function') syncLocaleKeysFromId();
 }
 document.getElementById('id').dataset.auto='1';
-document.getElementById('id').addEventListener('input', ()=>{ document.getElementById('id').dataset.auto='0'; });
+document.getElementById('id').addEventListener('input', ()=>{ document.getElementById('id').dataset.auto='0'; if(typeof syncLocaleKeysFromId==='function') syncLocaleKeysFromId(); });
 document.getElementById('name').addEventListener('input', syncIdFromName);
 function setArmed(groupSel, btn){ document.querySelectorAll(groupSel+' .paste-arm-btn').forEach(b=>b.classList.remove('armed')); btn.classList.add('armed'); }
 document.getElementById('armPasteMain').onclick=()=>{ setArmed('#panel-basic',document.getElementById('armPasteMain')); window.armPasteTarget('main', loadMainImage); };

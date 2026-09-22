@@ -118,11 +118,21 @@
   <div id="panel-basic" class="panel tabpanel">
     <div class="form">
       <div class="field"><label>ID</label><input id="id" placeholder="автоматически из названия"></div>
-      <div class="field"><label>Название</label><input id="name" placeholder="берётся из имени картинки"></div>
+      <div class="field"><label>Название <span class="muted">(текст игрока — уходит в локализацию)</span></label><input id="name" placeholder="берётся из имени картинки"></div>
+      <div class="field">
+        <label>Ключ локализации <span class="muted">(name)</span></label>
+        <div class="row"><input id="localeKey" readonly style="flex:1"><button type="button" id="btnEditLocaleKey">изменить вручную</button></div>
+        <div class="muted" id="localeStatusName" style="margin-top:4px"></div>
+      </div>
       <div class="field"><label>Категория</label><input id="category" readonly></div>
       <div class="field"><label>Подтип <span class="muted">(свободная подкатегория, необязательно)</span></label><input id="subtype" placeholder="например: chair, human, iron_ore"></div>
       <div class="field"><label>Z-индекс <span class="muted">(порядок отрисовки в игре)</span></label><input id="layer" type="number" value="0"></div>
-      <div class="field full"><label>Описание <span class="muted">(необязательно)</span></label><textarea id="description"></textarea></div>
+      <div class="field full"><label>Описание <span class="muted">(необязательно; текст игрока — уходит в локализацию)</span></label><textarea id="description"></textarea></div>
+      <div class="field full">
+        <label>Ключ локализации <span class="muted">(description)</span></label>
+        <div class="row"><input id="localeKey_desc" readonly style="flex:1"><button type="button" id="btnEditLocaleKeyDesc">изменить вручную</button></div>
+        <div class="muted" id="localeStatusDesc" style="margin-top:4px"></div>
+      </div>
     </div>
 
     <div class="section">
@@ -705,7 +715,6 @@
         <div>
           <div class="muted" style="margin-bottom:6px">Результат — этот объект</div>
           <div class="craft-result-preview" id="craftResultPreview"><span class="muted" style="font-size:10px">нет картинки</span></div>
-          <div class="row" style="margin-top:8px"><label class="check"><input type="checkbox" id="craftAllowMirror" style="width:auto"> Разрешить зеркальный рецепт</label></div>
           <div class="row" style="margin-top:10px"><input id="craftAmount" type="number" min="1" value="1" style="width:70px"><label class="muted" style="align-self:center">кол-во</label></div>
         </div>
       </div>

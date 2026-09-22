@@ -74,25 +74,49 @@ function getCraftBoundingBox(){
   for(let r=0;r<3;r++)for(let c=0;c<5;c++){ if(craftGrid[r*5+c]){ if(r<minR)minR=r; if(r>maxR)maxR=r; if(c<minC)minC=c; if(c>maxC)maxC=c; } }
   return maxR<0 ? null : {minR,maxR,minC,maxC};
 }
-function craftPattern(){
-  const bb=getCraftBoundingBox();
-  if(!bb) return [[]];
-  const rows=[];
-  for(let r=bb.minR;r<=bb.maxR;r++){
-    const row=[];
-    for(let c=bb.minC;c<=bb.maxC;c++){ const cell=craftGrid[r*5+c]; row.push(cell?cell.id:null); }
-    rows.push(row);
-  }
-  return rows;
+function craftIngredients(){
+  const counts=new Map();
+  craftGrid.forEach(cell=>{
+    if(!cell)return;
+    if(!counts.has(cell.id)) counts.set(cell.id,0);
+    counts.set(cell.id,counts.get(cell.id)+1);
+  });
+  return [...counts.entries()].map(([item,count])=>({item,count}));
 }
 function updateCraftCode(){
-  const recipe={ id:(id()||'new_item').toUpperCase(), pattern:craftPattern(), result:{id:id(),amount:+document.getElementById('craftAmount').value||1,label:val('name'),category:currentCategory} };
-  if(document.getElementById('craftAllowMirror').checked){ const m=craftPattern().map(row=>[...row].reverse()); if(JSON.stringify(m)!==JSON.stringify(craftPattern())) recipe.mirrored_pattern=m; }
+  const recipe={ id:(id()||'new_item').toUpperCase(), ingredients:craftIngredients(), result:{id:id(),amount:+document.getElementById('craftAmount').value||1,label:val('name'),category:currentCategory} };
   document.getElementById('craftCodePreview').textContent=JSON.stringify(recipe,null,2);
   return recipe;
 }
 document.getElementById('craftAmount').addEventListener('input',updateCraftCode);
-document.getElementById('craftAllowMirror').addEventListener('change',updateCraftCode);
+function migrateCraftRecipe(recipe){
+  if(!recipe)return null;
+  if(Array.isArray(recipe.ingredients)){
+    const {pattern,mirrored_pattern,...clean}=recipe;
+    return clean;
+  }
+  if(Array.isArray(recipe.pattern)){
+    const counts={};
+    recipe.pattern.flat().forEach(cellId=>{ if(cellId) counts[cellId]=(counts[cellId]||0)+1; });
+    const {pattern,mirrored_pattern,...rest}=recipe;
+    return {...rest, ingredients:Object.entries(counts).map(([item,count])=>({item,count}))};
+  }
+  return {...recipe, ingredients:recipe.ingredients||[]};
+}
+function craftGridFromIngredients(ingredients){
+  const source=projectDirHandle?projectCatalog:loadCatalog();
+  const lookup={}; source.forEach(e=>{ lookup[e.id]=e; });
+  const grid=Array(15).fill(null);
+  let idx=0;
+  (ingredients||[]).forEach(ing=>{
+    const meta=lookup[ing.item];
+    for(let n=0;n<(ing.count||0)&&idx<15;n++){
+      grid[idx]={id:ing.item,name:meta?meta.name:ing.item,image:meta?meta.image:null};
+      idx++;
+    }
+  });
+  return grid;
+}
 document.getElementById('btnCraftClear').onclick=()=>{ craftGrid=Array(15).fill(null); renderCraftGrid(); updateCraftCode(); };
 function loadImageEl(src){ return new Promise(res=>{ const im=new Image(); im.onload=()=>res(im); im.src=src; }); }
 function recipeImagePath(){
@@ -129,6 +153,109 @@ document.getElementById('btnCraftSave').onclick=async ()=>{
   closeCraftModal();
   if(window.update)window.update();
 };
+
+/* ============================================================
+   LOCALIZATION — name/description хранятся в поведении объекта как
+   КЛЮЧИ локализации (напр. "bed_single_name"), сам текст живёт в
+   data/locale/<lang>.json (плоский {key:text}) в папке проекта.
+   Старые объекты (name = обычный текст) не трогаются молча — только
+   по клику «Перенести текст в локализацию» (см. renderLocaleStatus).
+   ============================================================ */
+const DEFAULT_LOCALE_LANG='ru';
+let projectLocales={}; // { lang: {key:text} } — читается из data/locale/*.json подключённой папки
+function syncLocaleKeysFromId(){
+  const idStr=document.getElementById('id').value.trim();
+  const lk=document.getElementById('localeKey');
+  if(lk && lk.dataset.auto!=='0') lk.value = idStr?idStr+'_name':'';
+  const lkd=document.getElementById('localeKey_desc');
+  if(lkd && lkd.dataset.auto!=='0') lkd.value = idStr?idStr+'_desc':'';
+}
+function isLikelyLocaleKey(str){
+  if(!str)return false;
+  return Object.values(projectLocales).some(table=>table && Object.prototype.hasOwnProperty.call(table,str));
+}
+function localeText(key,lang){
+  const table=projectLocales[lang||DEFAULT_LOCALE_LANG];
+  return table ? table[key] : undefined;
+}
+async function loadProjectLocales(){
+  projectLocales={};
+  if(!projectDirHandle)return;
+  try{
+    const dir=await getSubdir(projectDirHandle,'data/locale',false);
+    for await(const [name,handle] of dir.entries()){
+      if(handle.kind!=='file' || !name.endsWith('.json'))continue;
+      const lang=name.replace(/\.json$/,'');
+      try{ const file=await handle.getFile(); projectLocales[lang]=JSON.parse(await file.text()); }
+      catch(e){ projectLocales[lang]={}; }
+    }
+  }catch(e){ /* data/locale ещё не существует — это нормально для новой папки */ }
+}
+async function writeLocaleKey(key,text,lang){
+  lang=lang||DEFAULT_LOCALE_LANG;
+  if(!projectDirHandle || !key)return;
+  const dir=await getSubdir(projectDirHandle,'data/locale',true);
+  let existing={};
+  try{ const file=await (await dir.getFileHandle(lang+'.json')).getFile(); existing=JSON.parse(await file.text()); }catch(e){}
+  if(existing[key]!==text){
+    existing[key]=text;
+    const fileHandle=await dir.getFileHandle(lang+'.json',{create:true});
+    const writable=await fileHandle.createWritable();
+    await writable.write(new TextEncoder().encode(JSON.stringify(existing,null,2)));
+    await writable.close();
+  }
+  projectLocales[lang]=projectLocales[lang]||{}; projectLocales[lang][key]=text;
+}
+// Пишет в locale-файл текущие name/description объекта — но только для полей,
+// уже помеченных как «подтверждено локализовано» (confirmed='1'), чтобы не
+// записать молча текст старого немигрированного объекта (см. restoreLocalizedField).
+async function syncCurrentLocaleKeys(){
+  if(!projectDirHandle)return;
+  const lkEl=document.getElementById('localeKey');
+  if(lkEl.dataset.confirmed==='1'){ const key=val('localeKey').trim(), text=val('name').trim(); if(key&&text) await writeLocaleKey(key,text,DEFAULT_LOCALE_LANG); }
+  const lkdEl=document.getElementById('localeKey_desc');
+  if(lkdEl.dataset.confirmed==='1'){ const keyD=val('localeKey_desc').trim(), textD=val('description').trim(); if(keyD&&textD) await writeLocaleKey(keyD,textD,DEFAULT_LOCALE_LANG); }
+}
+function restoreLocalizedField(fieldId,keyFieldId,suffix,idStr,rawVal){
+  const keyGuess=idStr+suffix;
+  const isKey = !!rawVal && (rawVal===keyGuess || isLikelyLocaleKey(rawVal));
+  const keyEl=document.getElementById(keyFieldId);
+  if(isKey){
+    keyEl.value=rawVal; keyEl.dataset.auto=(rawVal===keyGuess)?'1':'0'; keyEl.dataset.confirmed='1';
+    const resolved=localeText(rawVal,DEFAULT_LOCALE_LANG);
+    document.getElementById(fieldId).value = resolved!==undefined?resolved:'';
+  } else {
+    document.getElementById(fieldId).value=rawVal||'';
+    keyEl.value=keyGuess; keyEl.dataset.auto='1'; keyEl.dataset.confirmed=rawVal?'0':'1';
+  }
+}
+function renderOneLocaleStatus(fieldId,keyFieldId,statusId,suffix){
+  const statusEl=document.getElementById(statusId); if(!statusEl)return;
+  const text=val(fieldId).trim();
+  if(!text){ statusEl.innerHTML=''; return; }
+  const keyEl=document.getElementById(keyFieldId);
+  if(keyEl.dataset.confirmed==='1'){ statusEl.innerHTML='<span style="color:#7fe9a0">Локализовано ✓</span>'; return; }
+  statusEl.innerHTML='<span style="color:#e0a94a">Не локализовано (старый текст)</span> <button type="button">Перенести текст в локализацию</button>';
+  statusEl.querySelector('button').onclick=()=>migrateFieldToLocale(fieldId,keyFieldId,suffix);
+}
+function renderLocaleStatus(){
+  renderOneLocaleStatus('name','localeKey','localeStatusName','_name');
+  renderOneLocaleStatus('description','localeKey_desc','localeStatusDesc','_desc');
+}
+async function migrateFieldToLocale(fieldId,keyFieldId,suffix){
+  if(!projectDirHandle){ alert('Сначала подключи папку проекта — иначе некуда сохранить перевод.'); return; }
+  const text=val(fieldId).trim(); if(!text)return;
+  const keyEl=document.getElementById(keyFieldId);
+  const key = keyEl.value.trim() || (id()+suffix);
+  await writeLocaleKey(key,text,DEFAULT_LOCALE_LANG);
+  keyEl.value=key; keyEl.dataset.auto='1'; keyEl.dataset.confirmed='1';
+  renderLocaleStatus();
+  if(window.update)window.update();
+}
+document.getElementById('localeKey').addEventListener('input',()=>{ const el=document.getElementById('localeKey'); el.dataset.auto='0'; el.dataset.confirmed='1'; });
+document.getElementById('localeKey_desc').addEventListener('input',()=>{ const el=document.getElementById('localeKey_desc'); el.dataset.auto='0'; el.dataset.confirmed='1'; });
+document.getElementById('btnEditLocaleKey').onclick=()=>{ const el=document.getElementById('localeKey'); el.readOnly=false; el.dataset.auto='0'; el.focus(); el.select(); };
+document.getElementById('btnEditLocaleKeyDesc').onclick=()=>{ const el=document.getElementById('localeKey_desc'); el.readOnly=false; el.dataset.auto='0'; el.focus(); el.select(); };
 
 /* ============================================================
    CORE APP: categories, tabs, actions list, JSON assembly
@@ -391,8 +518,9 @@ function collect(){
   customFields.forEach(f=>{ if(f.name) custom[f.name]=parseCustomFieldValue(f.value); });
   return {
     schema_version:4, // 4 = длины в метрах (radius_m, range_m, speed_mps), размер объекта — в см
-    id:id(), name:val('name'), category:currentCategory, category_name:CAT_LABELS[currentCategory],
-    subtype:val('subtype'), description:val('description'),
+    id:id(), name: document.getElementById('localeKey').dataset.confirmed==='1' ? val('localeKey') : val('name'),
+    category:currentCategory, category_name:CAT_LABELS[currentCategory],
+    subtype:val('subtype'), description: document.getElementById('localeKey_desc').dataset.confirmed==='1' ? val('localeKey_desc') : val('description'),
     transform:{ layer:+val('layer')||0 },
     appearance:{ mode:val('visualMode'), asset:val('asset'), imageWidth:mainDoc.docW||0, imageHeight:mainDoc.docH||0, collision:buildCollisionExport(mainDoc) },
     behavior:{ carryable:bool('carryable'), placeable:bool('placeable'), collision:val('collision'), physics:val('physics'), interactive:bool('interactive'), hasWeight:bool('hasWeight'), weight:bool('hasWeight')?+val('weight')||0:0,
@@ -482,14 +610,16 @@ function update(){
   scheduleHistoryPush();
   autofillPaths();
   if(window.syncAllSliders) window.syncAllSliders();
+  syncLocaleKeysFromId();
   const o=collect();
   document.getElementById('json').textContent=JSON.stringify(o,null,2);
-  document.getElementById('titleMini').textContent=o.name||'Новый объект';
+  document.getElementById('titleMini').textContent=val('name')||'Новый объект';
   document.getElementById('tagsView').innerHTML=o.tags.map(t=>`<span class="tag">${esc(t)}</span>`).join('');
   renderComponents();
   updateCombatFieldsVisibility();
   document.getElementById('craftOpenSection').style.display=bool('crafting')?'':'none';
   document.getElementById('craftStatus').textContent=craftRecipe?'Рецепт задан.':'Рецепт не задан.';
+  renderLocaleStatus();
   syncPreview();
 }
 window.update=update;
@@ -501,6 +631,7 @@ function resetIdentityAndImages(){
   customFields=[]; renderCustomFieldList();
   ['id','name','subtype','description'].forEach(f=>document.getElementById(f).value='');
   document.getElementById('id').dataset.auto='1';
+  ['localeKey','localeKey_desc'].forEach(f=>{ const el=document.getElementById(f); el.value=''; el.readOnly=true; el.dataset.auto='1'; el.dataset.confirmed='1'; });
   animSourceMode='MANUAL'; linkedCharacter=null;
   document.getElementById('animSource').value='MANUAL';
   document.getElementById('assemblerPickerField').style.display='none';
@@ -569,6 +700,7 @@ function duplicateObject(){
   });
   nameEl.value=base+' '+String(max+1).padStart(2,'0');
   document.getElementById('id').dataset.auto='1';
+  ['localeKey','localeKey_desc'].forEach(f=>{ const el=document.getElementById(f); el.readOnly=true; el.dataset.auto='1'; el.dataset.confirmed='1'; });
   syncIdFromName();
   document.getElementById('titleMini').textContent=nameEl.value+' — дубликат с новым порядковым номером';
   if(window.update)window.update();
@@ -939,6 +1071,9 @@ async function runProjectLinkCheck(){
   const roomList=await scanJsonDirRaw('data/rooms');
   const rigList=await scanJsonDirRaw('data/rigs');
   const charList=await scanJsonDirRaw('data/characters');
+  const localeList=await scanJsonDirRaw('data/locale');
+  const localeKeys=new Set();
+  localeList.forEach(({data,broken})=>{ if(!broken && data && typeof data==='object') Object.keys(data).forEach(k=>localeKeys.add(k)); });
   const objects={}; objList.forEach(({name,data,broken})=>{ if(broken){ problems.push(`⚠ Битый JSON: data/objects/${name}`); return; } objects[data.id]=data; });
   const rooms={}; roomList.forEach(({name,data,broken})=>{ if(broken){ problems.push(`⚠ Битый JSON: data/rooms/${name}`); return; } rooms[data.id]=data; });
   const rigs={}; rigList.forEach(({name,data,broken})=>{ if(broken){ problems.push(`⚠ Битый JSON: data/rigs/${name}`); return; } rigs[data.id]=data; });
@@ -970,9 +1105,15 @@ async function runProjectLinkCheck(){
       if(s.consume && s.consume.item && !objects[s.consume.item]) problems.push(`${who}: действие ${aid} → расходуемый предмет «${s.consume.item}» не найден`);
       if(s.produce && s.produce.item && !objects[s.produce.item]) problems.push(`${who}: действие ${aid} → выдаваемый предмет «${s.produce.item}» не найден`);
     });
-    const pattern=data.crafting && data.crafting.recipe && data.crafting.recipe.pattern;
-    if(Array.isArray(pattern)) pattern.flat().forEach(cell=>{ if(cell && cell.id && !objects[cell.id]) problems.push(`${who}: рецепт крафта → ингредиент «${cell.id}» не найден`); });
+    const recipe=data.crafting && data.crafting.recipe;
+    if(recipe){
+      const ingredientIds = Array.isArray(recipe.ingredients) ? recipe.ingredients.map(x=>x&&x.item)
+        : (Array.isArray(recipe.pattern) ? recipe.pattern.flat() : []);
+      ingredientIds.forEach(iid=>{ if(iid && !objects[iid]) problems.push(`${who}: рецепт крафта → ингредиент «${iid}» не найден`); });
+    }
     if(data.character_ref && data.character_ref.id && !characters[data.character_ref.id]) problems.push(`${who}: ссылается на персонажа Assembler «${data.character_ref.id}», а его нет`);
+    if(data.name && !localeKeys.has(data.name)) problems.push(`${who}: нет перевода для ключа «${data.name}» (name)`);
+    if(data.description && !localeKeys.has(data.description)) problems.push(`${who}: нет перевода для ключа «${data.description}» (description)`);
   });
   roomList.forEach(({name,data})=>{
     if(!data)return;
@@ -1043,7 +1184,9 @@ function restoreJsonFields(data){
   const set=(id,v)=>{const e=document.getElementById(id);if(e&&v!==undefined&&v!==null)e.value=v;};
   const check=(id,v)=>{const e=document.getElementById(id);if(e&&v!==undefined)e.checked=!!v;};
   set('id',data.id||''); document.getElementById('id').dataset.auto='0';
-  set('name',data.name||''); set('subtype',data.subtype||''); set('description',data.description||''); set('layer',data.transform?.layer??0);
+  restoreLocalizedField('name','localeKey','_name',data.id||'',data.name||'');
+  restoreLocalizedField('description','localeKey_desc','_desc',data.id||'',data.description||'');
+  set('subtype',data.subtype||''); set('layer',data.transform?.layer??0);
   set('asset',data.appearance?.asset||''); set('visualMode',data.appearance?.mode||'IMAGE');
   if(data.category){currentCategory=data.category;document.querySelectorAll('.cat').forEach(b=>b.classList.toggle('active',b.dataset.cat===currentCategory));set('category',CAT_LABELS[currentCategory]||data.category_name||currentCategory);}
   const b=data.behavior||{};
@@ -1062,6 +1205,9 @@ function restoreJsonFields(data){
   const r=data.resource||{};set('resourceType',r.type||'');set('resourceMax',r.max_amount??100);set('resourceInitial',r.initial_amount??100);set('resourceState',r.initial_state||'чистая');set('resourceSource',r.source||'без пополнения');set('resourceRecoveryHours',r.self_recovery_hours??0);
   const d=data.destruction||{};check('destructible',d.enabled);set('hp',d.hp??100);set('damagedThreshold',d.damaged_threshold_percent??50);set('brokenPath',d.broken?.image||'');set('damagedPath',d.damaged?.image||'');set('destroySheetPath',d.destroyAnimation?.sheet||'');set('destroyFps',d.destroyAnimation?.fps??8);
   check('crafting',data.crafting?.enabled);check('animated',data.animation_enabled!==false);set('tags',(data.tags||[]).join(', '));
+  const migratedRecipe = data.crafting && data.crafting.recipe ? migrateCraftRecipe(data.crafting.recipe) : null;
+  craftRecipe=migratedRecipe;
+  craftGrid=migratedRecipe ? craftGridFromIngredients(migratedRecipe.ingredients) : Array(15).fill(null);
   currentActions=data.actions||[]; actionSettings={}; Object.entries(data.action_settings||{}).forEach(([aid,s])=>{actionSettings[aid]={requirements:s.requirements||'',time:s.time||0,tool:s.tool||'',consumeItem:s.consume?.item||'',consumeAmount:s.consume?.amount||0,produceItem:s.produce?.item||'',produceAmount:s.produce?.amount||0,requiredSkill:s.required_skill?.skill||'',requiredSkillLevel:s.required_skill?.level||0,effects:s.effects||[]};}); renderActions();
   currentComponents=Array.isArray(data.components)?JSON.parse(JSON.stringify(data.components)):[];
   customFields=[]; renderCustomFieldList(); set('custom',data.custom&&typeof data.custom==='object'?JSON.stringify(data.custom,null,2):'');
@@ -1301,6 +1447,9 @@ scanProjectFolderCatalog=async function(){
   await scanPreviewBackgrounds();
   await scanExistingObjects();
   if(typeof scanProjectVisualNames==='function') await scanProjectVisualNames();
+  await loadProjectLocales();
+  await syncCurrentLocaleKeys();
+  renderLocaleStatus();
 };
 
 tryRestoreProjectFolder();
