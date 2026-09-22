@@ -1,0 +1,89 @@
+/* ============================================================
+   MODULE 00 — GLOBAL STYLES
+   This block contains shared UI styles only.
+   ============================================================ */
+*{box-sizing:border-box}body{margin:0;background:#11151b;color:#e8edf3;font:14px Arial,sans-serif;overflow:hidden}
+button,input,select,textarea{font:inherit}button{background:#242b35;color:#e8edf3;border:1px solid #3b4654;border-radius:6px;padding:5px 8px;cursor:pointer;font-size:11.5px}
+button:hover{background:#303947}button:disabled{opacity:.4;cursor:default}
+button.primary{background:#2f6e3f;border-color:#4d9a6a}button.primary:hover{background:#387f4a}
+button.danger{background:#6e2f2f;border-color:#9a4d4d}button.danger:hover{background:#7f3838}
+.app{height:100vh;display:grid;grid-template-columns:230px 1fr 260px;grid-template-rows:auto 1fr}
+header{grid-column:1/-1;display:flex;align-items:center;gap:6px;padding:6px 10px;border-bottom:1px solid #303844;background:#181d24;flex-wrap:wrap}
+header h1{font-size:13px;margin:0;white-space:nowrap}
+.spacer{flex:1}.status{color:#8f9baa;font-size:11px}
+input,select,textarea{background:#10141a;color:#e8edf3;border:1px solid #37414e;border-radius:6px;padding:6px 8px;width:100%}
+label{font-size:11px;color:#98a4b2;display:block;margin-bottom:3px}
+.field{margin-bottom:8px}
+.row{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.section{padding:10px;border-bottom:1px solid #232932}
+.section h3{font-size:12px;margin:0 0 8px;color:#b9c4cf}
+
+aside.library{background:#171c22;border-right:1px solid #303844;overflow-y:auto;display:flex;flex-direction:column}
+.lib-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:6px;padding:8px}
+.lib-item{background:#12161c;border:1px solid #303844;border-radius:8px;padding:5px;display:flex;flex-direction:column;align-items:center;gap:3px;cursor:grab}
+.lib-item:hover{border-color:#4d78c9}
+.lib-item img{width:40px;height:40px;object-fit:contain;image-rendering:pixelated}
+.lib-item .n{font-size:9px;color:#8290a0;text-align:center;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%}
+.lib-item .c{font-size:8px;color:#556170}
+
+main{position:relative;overflow:hidden;display:flex;flex-direction:column}
+.canvas-toolbar{display:flex;gap:6px;align-items:center;padding:6px 10px;border-bottom:1px solid #303844;background:#141920;flex-wrap:wrap}
+.canvas-wrap{flex:1;position:relative;overflow:hidden;background-color:#1c1c1c;
+  background-image:linear-gradient(45deg,#232830 25%,transparent 25%),linear-gradient(-45deg,#232830 25%,transparent 25%),linear-gradient(45deg,transparent 75%,#232830 75%),linear-gradient(-45deg,transparent 75%,#232830 75%);
+  background-size:16px 16px;background-position:0 0,0 8px,8px -8px,-8px 0;cursor:grab}
+.canvas-wrap.panning{cursor:grabbing}
+.canvas-stage{position:absolute;left:50%;top:50%;transform-origin:0 0}
+.room-bounds{position:absolute;left:0;top:0;border:2px dashed #4d78c9;background:rgba(77,120,201,.05);pointer-events:none}
+.room-dim-line-v{position:absolute;width:0;border-left:1px dashed #6d8ac9;pointer-events:none}
+.room-dim-line-h{position:absolute;height:0;border-top:1px dashed #6d8ac9;pointer-events:none}
+.room-dim-label{position:absolute;color:#9fb4e0;font:11px Arial,sans-serif;white-space:nowrap;pointer-events:none;background:#11151bcc;padding:1px 4px;border-radius:3px}
+.room-instance{position:absolute;image-rendering:pixelated;cursor:grab;user-select:none;-webkit-user-drag:none}
+.room-instance.selected{outline:2px solid #7fe9a0;outline-offset:2px}
+.room-instance.multi-selected{outline:2px dashed #e7c65b;outline-offset:2px}
+.paint-mode-btn.active{background:#3a4759;border-color:#7fe9a0}
+#btnToggleGrid.active{background:#3a4759;border-color:#7fe9a0}
+.room-instance.decor{outline:2px dotted #b78cf0;outline-offset:2px}
+.room-instance.invalid-placement{outline:2px solid #ff4d4d;outline-offset:2px}
+.room-instance.blocking{box-shadow:0 0 0 2px #e35d5d inset}
+.room-resize-handle{position:absolute;width:12px;height:12px;border-radius:50%;background:#4d78c9;border:2px solid #cfe0ff;cursor:pointer;z-index:1000}
+.room-rotate-handle{position:absolute;width:14px;height:14px;border-radius:50%;background:#e7c65b;border:2px solid #fff0c0;cursor:grab;z-index:1000}
+.room-rotate-line{position:absolute;background:#e7c65b;width:2px;pointer-events:none;z-index:999;transform-origin:top center}
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:900;display:none;align-items:center;justify-content:center}
+.modal-overlay.open{display:flex}
+.modal-box{background:#171c22;border:1px solid #303844;border-radius:10px;width:540px;max-width:94vw;max-height:90vh;overflow:auto;padding:16px}
+.gen-room-item{display:flex;align-items:center;gap:6px;padding:5px 6px;border-radius:6px}
+.gen-room-item:hover{background:#1d232b}
+.room-instance.door{filter:drop-shadow(0 0 4px #e7c65b)}
+
+.zoom-label{color:#556170;font-size:11px}
+.composition-grid{display:grid;grid-template-columns:repeat(3,34px);grid-template-rows:repeat(3,34px);gap:4px;margin-top:6px}
+.composition-cell{padding:0;width:34px;height:34px;font-size:13px;display:flex;align-items:center;justify-content:center}
+.composition-cell.active{background:#2f6e3f;border-color:#7fe9a0;box-shadow:0 0 0 1px #7fe9a055 inset}
+.stair-socket-btn{padding:3px 7px;font-size:11px;min-width:92px}
+.stair-socket-btn.active{background:#4a3b20;border-color:#e7c65b;color:#ffe9a3}
+.stair-socket-marker{position:absolute;width:18px;height:18px;border:2px solid #b78cf0;background:#171c22e6;color:#e5d6ff;border-radius:4px;transform:translate(-50%,-50%);z-index:110;pointer-events:none;font:12px Arial,sans-serif;display:flex;align-items:center;justify-content:center;box-shadow:0 0 0 1px #0008}
+.stair-socket-marker.active{border-color:#e7c65b;color:#ffe9a3;background:#3a3012ee;box-shadow:0 0 0 1px #e7c65b55,0 0 8px #e7c65b55}
+
+
+aside.properties{background:#171c22;border-left:1px solid #303844;overflow-y:auto}
+.empty-hint{padding:14px;color:#778391;font-size:12px;line-height:1.5}
+.check{display:flex;align-items:center;gap:6px;color:#c5ced8;font-size:12px}
+.check input{width:auto}
+::-webkit-scrollbar{width:8px;height:8px}::-webkit-scrollbar-thumb{background:#333;border-radius:4px}
+.thumb-empty{display:inline-flex;align-items:center;justify-content:center;flex:none;box-sizing:border-box;background:#0d1116;border:1px dashed #3b4654;border-radius:4px;color:#e7c65b;font-size:11px;line-height:1;cursor:help}
+
+/* ============================================================
+   MODULE 15 — DESTRUCTIBLE BLOCKS + 3x3 BACKGROUND WORLD
+   ============================================================ */
+.blk-grid{position:absolute;left:0;top:0;pointer-events:none;z-index:-400;background-image:linear-gradient(to right,rgba(255,255,255,.22) 1px,transparent 1px),linear-gradient(to bottom,rgba(255,255,255,.22) 1px,transparent 1px)}
+.blk-sel{position:absolute;pointer-events:none;box-sizing:border-box;border:2px solid #7fe9a0;background:#7fe9a022;z-index:90}
+.canvas-wrap.blk-tool-on{cursor:crosshair}
+.blk-tool.active{background:#2f6e3f;border-color:#7fe9a0}
+/* палитра типов блоков (превью картинок) */
+.blk-palette{display:flex;flex-wrap:wrap;gap:6px;max-height:190px;overflow:auto;padding:2px}
+.blk-pal-item{width:74px;box-sizing:border-box;padding:4px;border:1px solid #303844;border-radius:6px;background:#12161c;cursor:pointer;text-align:center}
+.blk-pal-item:hover{border-color:#5d6d80}
+.blk-pal-item.active{border-color:#7fe9a0;background:#1c2a22;box-shadow:0 0 0 1px #7fe9a0 inset}
+.blk-pal-thumb{width:48px;height:48px;margin:0 auto;display:flex;align-items:center;justify-content:center;overflow:hidden}
+.blk-pal-thumb img{max-width:100%;max-height:100%;object-fit:contain;image-rendering:pixelated}
+.blk-pal-name{margin-top:3px;font-size:10px;line-height:1.15;color:#b9c4cf;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}

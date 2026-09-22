@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<!-- ============================================================
+     ROOM EDITOR — MODULAR FILE MAP
+     ------------------------------------------------------------
+     MODULE 00  Global CSS
+     MODULE 01  Global utils / units / project folder
+     MODULE 02  Catalog / project settings
+     MODULE 03  Room geometry
+     MODULE 04  Room state + canvas render
+     MODULE 05  Canvas tools
+     MODULE 06  Instances + sets
+     MODULE 07  Library
+     MODULE 08  Properties panel
+     MODULE 09  Background layers
+     MODULE 10  Room settings
+     MODULE 11  Room save / load
+     MODULE 12  History + hotkeys
+     MODULE 13  Similar room generator
+     MODULE 14  Room recipes
+     MODULE 15  Destructible blocks + 3x3 background world
+     MODULE 16  Init
+
+     IMPORTANT:
+     This version is a structural copy of the previous single-file editor.
+     Functional code is intentionally not rewritten.
+     Each MODULE marker defines the safe area for future edits.
+     Keep module order unless dependencies are deliberately changed.
+     MODULE 16 (INIT) must always stay last.
+     ============================================================ -->
+
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Room Editor</title>
+<link rel="stylesheet" href="css/app.css">
+</head>
+<body>
+<div class="app">
+<header>
+  <h1>Room Editor</h1>
+  <input id="roomId" placeholder="id комнаты" style="width:130px">
+  <input id="roomName" placeholder="название комнаты" style="width:160px">
+  <select id="roomType" style="width:140px">
+    <option value="">Тип комнаты...</option>
+    <option value="bedroom">Спальня</option>
+    <option value="storage">Склад</option>
+    <option value="bathroom">Ванная</option>
+    <option value="workshop">Мастерская</option>
+    <option value="kitchen">Кухня</option>
+    <option value="common">Общая зона</option>
+    <option value="medical">Медпункт</option>
+    <option value="armory">Оружейная</option>
+    <option value="generator">Генераторная</option>
+    <option value="corridor">Коридор</option>
+    <option value="outdoor">Улица / открытая территория</option>
+    <option value="other">Другое</option>
+  </select>
+  <input id="roomTypeCustom" placeholder="свой тип..." style="width:110px">
+  <button id="btnAddRoomType" title="Добавить свой тип комнаты">+</button>
+  <div class="spacer"></div>
+  <button id="btnGlobalUndo" title="Отменить (Ctrl+Z)" disabled>↶ Отменить</button>
+  <button id="btnGlobalRedo" title="Повторить (Ctrl+Y)" disabled>↷ Вперёд</button>
+  <div class="spacer"></div>
+  <button id="btnNewRoom">Новая комната</button>
+  <button id="btnDuplicateRoom">📑 Дублировать</button>
+  <button id="btnExportJSON">Экспорт JSON</button>
+  <select id="openRoomSelect" style="width:170px"><option value="">— выбери комнату —</option></select>
+  <button id="btnOpenRoom">Открыть</button>
+  <input id="fileOpenRoom" type="file" accept=".json" hidden>
+  <div class="spacer"></div>
+  <button id="btnConnectFolder">📁 Подключить папку проекта</button>
+  <span id="folderStatus" class="status">Папка не подключена</span>
+  <button id="btnRegrantFolder" style="display:none">Разрешить доступ</button>
+  <button id="btnSaveRoom" class="primary">💾 Сохранить комнату</button>
+  <button id="btnOpenGen">🎲 Сгенерировать похожую</button>
+  <button id="btnOpenRecipes">📋 Рецепты комнат</button>
+</header>
+
+<aside class="library">
+  <div class="section">
+    <h3>Библиотека объектов</h3>
+    <input id="libSearch" placeholder="поиск по названию...">
+    <select id="libCategory" style="margin-top:6px" title="Категории берутся из Object Constructor (data/categories.json и объекты проекта)">
+      <option value="">Все категории</option>
+    </select>
+    <button id="btnRefreshLibrary" style="margin-top:6px;width:100%">🔄 Обновить библиотеку</button>
+    <button id="btnSyncSizes" style="margin-top:6px;width:100%" title="Записать актуальные размеры объектов из ОС во все сохранённые комнаты (размер в файле комнаты читает игра)">📐 Размеры из ОС во всех комнатах</button>
+  </div>
+  <div id="libGrid" class="lib-grid"></div>
+  <div class="section" style="border-top:1px solid #303844">
+    <h3>Готовые сеты <span class="status">(клик — вставить в центр комнаты)</span></h3>
+    <div id="setsList"></div>
+  </div>
+</aside>
+
+<main>
+  <div class="canvas-toolbar">
+    <label style="margin:0">Размер комнаты (м):</label>
+    <input id="roomWidth" type="number" min="0.5" step="0.1" value="6.4" style="width:80px">×<input id="roomHeight" type="number" min="0.5" step="0.1" value="2.2" style="width:80px">
+    <button id="btnApplyRoomSize">Применить</button>
+    <span class="status" id="roomSizeMetersHint"></span>
+    <label style="margin:0 0 0 10px">Уровень игрока (Z):</label>
+    <input id="playerWalkZ" type="number" value="10" style="width:55px" title="Игрок ходит на этом Z-уровне. Объекты 'по глубине' блокируют движение только если их Z совпадает с этим числом.">
+    <button id="btnApplyPlayerZ">Применить</button>
+    <div class="spacer"></div>
+    <button id="armPasteBgLayer" title="Вставить новый слой фона (Ctrl+V)">📋 Добавить слой фона</button>
+    <input id="bgLayerFileInput" type="file" accept="image/*" style="width:150px">
+    <div id="bgSelControls" style="display:inline-flex;align-items:center;gap:5px;margin-left:8px" title="Работает с выбранным слоем фона (клик по слою на холсте)">
+      <label style="margin:0">Выбранный фон:</label>
+      <span class="status" id="bgSelHint">слой не выбран</span>
+      <label style="margin:0">Прозр.</label>
+      <input id="bgSelOpacity" type="range" min="0" max="100" step="1" value="100" style="width:90px;padding:0" disabled>
+      <input id="bgSelOpacityNum" type="number" min="0" max="100" step="1" value="100" style="width:52px;padding:2px 4px" disabled>%
+      <button id="btnDeleteBgLayer" class="danger" disabled title="Удалить выбранный слой фона">🗑 Удалить слой</button>
+    </div>
+    <div class="spacer"></div>
+    <span class="zoom-label" id="zoomLabel">100%</span>
+    <span class="status">Ctrl+колесо — зум · ПКМ — двигать холст</span>
+  </div>
+  <div class="canvas-toolbar" id="zoneToolbar" style="border-top:1px solid #232932">
+    <button id="btnToggleGrid" title="Ctrl+G">📐 Сетка/зоны (Ctrl+G)</button>
+    <label style="margin:0 0 0 8px">Толщина полосы ходьбы (см):</label>
+    <input id="walkLineThickness" type="number" min="10" step="10" value="20" style="width:65px">
+    <label style="margin:0 0 0 8px" title="Одно значение на весь проект, применяется сразу ко всем комнатам">Высота полосы от низа (м, на весь проект):</label>
+    <input id="walkLineBottomM" type="number" min="0" step="0.1" value="0.9" style="width:65px">
+    <label style="margin:0 0 0 8px" title="Срез внешних углов блоков, px (1 px = 1 см). Одно значение на весь проект; у материала в ОС можно задать своё">Срез угла блока (px):</label>
+    <input id="blockBevelInput" type="number" min="0" max="10" step="1" value="4" style="width:55px">
+    <button id="btnSaveProjectSettings">💾 Сохранить настройки проекта</button>
+    <div class="spacer"></div>
+    <label style="margin:0">Разметка:</label>
+    <button id="paintNone" class="paint-mode-btn active">Не рисовать</button>
+    <button id="paintRed" class="paint-mode-btn" style="border-color:#e7834d">🔴 Красное (твёрдое)</button>
+    <button id="paintGreen" class="paint-mode-btn" style="border-color:#4dbd7a">🟢 Зелёное (можно ставить)</button>
+    <button id="paintOrange" class="paint-mode-btn" style="border-color:#e7c65b">🟠 Оранжевое (интерактив, строить нельзя)</button>
+    <button id="paintEraser" class="paint-mode-btn" style="border-color:#8fa0b3" title="Стирает разметку выделенных клеток обратно к дефолту (не всю комнату целиком)">🧹 Ластик</button>
+    <button id="btnClearZones" title="Убрать всю ручную разметку, оставить только дефолт">Очистить разметку</button>
+    <span class="status" style="margin-left:6px">Красный = твёрдая поверхность · зелёный = можно строить · оранжевый = нельзя строить / интерактив</span>
+  </div>
+  <div class="canvas-toolbar" id="compositionToolbar" style="border-top:1px solid #232932;align-items:flex-start">
+    <div>
+      <label style="margin:0">Роль комнаты в здании:</label>
+      <div class="composition-grid" id="compositionGrid" title="Позиция комнаты для Building Generator">
+        <button type="button" class="composition-cell" data-role="TOP_LEFT">↖</button>
+        <button type="button" class="composition-cell" data-role="TOP_CENTER">↑</button>
+        <button type="button" class="composition-cell" data-role="TOP_RIGHT">↗</button>
+        <button type="button" class="composition-cell" data-role="CENTER_LEFT">←</button>
+        <button type="button" class="composition-cell" data-role="CENTER_CENTER">●</button>
+        <button type="button" class="composition-cell" data-role="CENTER_RIGHT">→</button>
+        <button type="button" class="composition-cell" data-role="BOTTOM_LEFT">↙</button>
+        <button type="button" class="composition-cell" data-role="BOTTOM_CENTER">↓</button>
+        <button type="button" class="composition-cell" data-role="BOTTOM_RIGHT">↘</button>
+      </div>
+      <div class="status" style="margin-top:4px">По умолчанию: центр / центр.</div>
+    </div>
+    <div style="margin-left:14px;min-width:360px">
+      <label style="margin:0">Лестничные точки подключения:</label>
+      <div class="row" id="stairSocketControls" style="margin-top:6px">
+        <button type="button" class="stair-socket-btn" data-stair="TOP_LEFT">↖ Верх · лево</button>
+        <button type="button" class="stair-socket-btn" data-stair="TOP_CENTER">↑ Верх · центр</button>
+        <button type="button" class="stair-socket-btn" data-stair="TOP_RIGHT">↗ Верх · право</button>
+        <button type="button" class="stair-socket-btn" data-stair="BOTTOM_LEFT">↙ Низ · лево</button>
+        <button type="button" class="stair-socket-btn" data-stair="BOTTOM_CENTER">↓ Низ · центр</button>
+        <button type="button" class="stair-socket-btn" data-stair="BOTTOM_RIGHT">↘ Низ · право</button>
+      </div>
+      <div class="status" style="margin-top:4px">Верхняя точка = лестница вверх · нижняя = лестница вниз. Координаты фиксированы: 1,5 м от края или строго по центру.</div>
+    </div>
+  </div>
+  <div class="canvas-toolbar" id="bgLayerToolbar" style="border-top:1px solid #232932">
+    <label style="margin:0">Слои фона (параллакс), первый — самый дальний:</label>
+    <div id="bgLayerList" style="display:flex;gap:6px;flex-wrap:wrap"></div>
+  </div>
+  <div class="canvas-toolbar" id="worldToolbar" style="border-top:1px solid #232932;display:block">
+    <details id="worldDetails">
+      <summary style="cursor:pointer;font-size:12px;color:#b9c4cf">🧱 Блоки: разрушаемый грунт и стены <span class="status" id="blockSummaryShort"></span></summary>
+      <div style="display:flex;gap:18px;align-items:flex-start;flex-wrap:wrap;margin-top:8px">
+        <div style="min-width:430px;flex:1">
+          <label style="margin:0">Разрушаемые блоки (1 блок = 1×1 м = 5×5 кусков по 20 см):</label>
+          <div class="row" style="margin-top:6px">
+            <button type="button" class="blk-tool active" data-blk-tool="off" title="Обычный режим">👁 Выкл</button>
+            <button type="button" class="blk-tool" data-blk-tool="paint" title="Ставить выбранный тип блока (тяни рамкой по сетке)">🖌 Рисовать</button>
+            <button type="button" class="blk-tool" data-blk-tool="erase" title="Стереть блоки">🧽 Стереть</button>
+            <button type="button" id="btnBlocksFill" title="Залить всю комнату выбранным блоком">▦ Залить комнату</button>
+            <button type="button" id="btnBlocksClear">🗑 Очистить</button>
+            <button type="button" id="btnWorldFit" title="Вписать комнату в экран">🔍 Вписать</button>
+          </div>
+          <div class="row" style="margin-top:6px">
+            <select id="blockTypeSelect" style="min-width:200px" title="Тип блока — объект из Object Constructor"></select>
+            <label class="check" style="margin:0"><input type="checkbox" id="blockShowAllTypes" style="width:auto"> все объекты</label>
+          </div>
+          <div class="status" id="blockSummary" style="margin-top:6px"></div>
+          <div class="status" style="margin-top:4px">Блоки ставятся целыми (рамкой по сетке 1 м) и стыкуются встык, без зазоров. Куски 20×20 см ломаются уже в игре. Тип блока — объект категории «Блок / материал» из ОС («все объекты» показывает остальные). Твёрдые куски считаются красной зоной: на них встают объекты, внутрь ставить нельзя. Внешние углы массива срезаются фаской; у границы комнаты срез не рисуется.</div>
+        </div>
+        <div style="flex:1;min-width:300px">
+          <label style="margin:0">Типы блоков — клик выбирает тип для рисования:</label>
+          <div class="blk-palette" id="blockPalette" style="margin-top:6px"></div>
+          <div class="status" id="worldStatus" style="margin-top:6px"></div>
+        </div>
+      </div>
+    </details>
+  </div>
+  <div class="canvas-wrap" id="canvasWrap">
+    <div class="canvas-stage" id="stage">
+      <div class="room-bounds" id="roomBounds"></div>
+      <div id="roomHandleLayer"></div>
+      <canvas id="zoneGridCanvas" style="position:absolute;left:0;top:0;pointer-events:none;z-index:95;display:none"></canvas>
+    </div>
+  </div>
+</main>
+
+<aside class="properties" id="propertiesPanel">
+  <div class="empty-hint">Кликни по объекту в комнате, чтобы увидеть его свойства. Перетащи объект из библиотеки слева на холст, чтобы разместить.</div>
+</aside>
+</div>
+
+<div class="modal-overlay" id="genModal">
+  <div class="modal-box">
+    <div class="row" style="justify-content:space-between">
+      <strong>Генератор похожей комнаты</strong>
+      <button id="btnCloseGen">Закрыть ✕</button>
+    </div>
+    <div class="field" style="margin-top:10px"><label>Тип комнаты</label><select id="genType"></select></div>
+    <div class="row" style="margin-top:6px">
+      <label style="margin:0">Метод:</label>
+      <select id="genMethod" style="width:auto"><option value="SAMPLES">По образцам (учится на уже сохранённых комнатах)</option><option value="RECIPE">По рецепту (явный список — см. «📋 Рецепты комнат»)</option></select>
+    </div>
+    <div class="field" id="genSamplesField"><label>Комнаты-образцы (отметь, какие использовать)</label>
+      <div id="genRoomList" style="max-height:220px;overflow:auto;border:1px solid #303844;border-radius:6px;padding:6px"></div>
+    </div>
+    <div class="status" id="genRecipeHint" style="display:none;margin-top:6px"></div>
+    <div class="row" style="margin-top:8px">
+      <label style="margin:0">Размер новой комнаты (м):</label>
+      <input id="genWidth" type="number" min="0.5" step="0.1" value="6.4" style="width:80px">×<input id="genHeight" type="number" min="0.5" step="0.1" value="2.2" style="width:80px">
+    </div>
+    <div class="row" style="margin-top:8px">
+      <label class="check"><input type="checkbox" id="genAppend" style="width:auto"> Добавить к текущей комнате (иначе — заменить всё, что уже расставлено)</label>
+    </div>
+    <button id="btnRunGen" class="primary" style="margin-top:12px">🎲 Сгенерировать</button>
+    <div class="status" id="genStatus" style="margin-top:8px"></div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="recipeModal">
+  <div class="modal-box">
+    <div class="row" style="justify-content:space-between">
+      <strong>Рецепты комнат <span class="status">(явный список: что и сколько должно быть в комнате такого типа)</span></strong>
+      <button id="btnCloseRecipes">Закрыть ✕</button>
+    </div>
+    <div class="field" style="margin-top:10px"><label>Тип комнаты</label><select id="recipeType"></select></div>
+    <div id="recipeRows" style="margin-top:8px"></div>
+    <div class="row" style="margin-top:8px">
+      <input id="recipeNewGroup" list="variantGroupDatalist" placeholder="группа (bed, wardrobe...) или пусто = любой декор для этого типа" style="width:260px">
+      <label class="muted">Мин.</label><input id="recipeNewMin" type="number" min="0" value="0" style="width:55px">
+      <label class="muted">Макс.</label><input id="recipeNewMax" type="number" min="0" value="1" style="width:55px">
+      <button id="btnAddRecipeRow">+ Добавить строку</button>
+    </div>
+    <datalist id="variantGroupDatalist"></datalist>
+    <button id="btnSaveRecipe" class="primary" style="margin-top:12px">💾 Сохранить рецепт для этого типа</button>
+    <div class="status" id="recipeStatus" style="margin-top:8px"></div>
+  </div>
+</div>
+<script src="js/01-core-utils.js"></script>
+<script src="js/02-catalog.js"></script>
+<script src="js/03-room-geometry.js"></script>
+<script src="js/04-room-canvas.js"></script>
+<script src="js/05-canvas-tools.js"></script>
+<script src="js/06-instances-sets.js"></script>
+<script src="js/07-library.js"></script>
+<script src="js/08-properties-panel.js"></script>
+<script src="js/09-background-layers.js"></script>
+<script src="js/10-room-settings.js"></script>
+<script src="js/11-room-io.js"></script>
+<script src="js/12-history.js"></script>
+<script src="js/13-room-generator.js"></script>
+<script src="js/14-room-recipes.js"></script>
+<script src="js/15-destructible-blocks.js"></script>
+<script src="js/16-init.js"></script>
+</body>
+</html>
