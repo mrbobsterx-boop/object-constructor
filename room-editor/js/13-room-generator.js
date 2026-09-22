@@ -65,7 +65,7 @@ function buildFrequencyModel(rooms){
         nx: r.width? inst.x/r.width : 0.5, ny: r.height? inst.y/r.height : 0.5,
         rotation: inst.rotation||0, scale: inst.scale||1, flipH:!!inst.flipH, flipV:!!inst.flipV,
         collisionMode: inst.collisionMode||'ZLEVEL', light: inst.light||null, shadow: inst.shadow||null,
-        door: inst.door||null
+        door: inst.door||null, isDecor:!!inst.isDecor
       });
     });
   });
@@ -133,7 +133,7 @@ function generateRoomInstances(model, targetW, targetH){
       x:Math.round(nx*targetW), y:Math.round(ny*targetH),
       rotation:sample.rotation, scale:sample.scale, flipH:sample.flipH, flipV:sample.flipV,
       zIndex:z++, collisionMode:sample.collisionMode,
-      isDecor:false, placementMode,
+      isDecor:sample.isDecor, placementMode,
       realWidthCm:worldSize.widthCm, realHeightCm:worldSize.heightCm, placementValid:true,
       light:sample.light?{...sample.light}:null, shadow:sample.shadow?{...sample.shadow}:null,
       door:sample.door?{...sample.door}:null

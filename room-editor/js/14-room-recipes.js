@@ -83,7 +83,7 @@ function generateFromRecipe(rows, roomType, targetW, targetH){
       if(row.group){
         candidates=catalog.filter(c=>c.json.behavior && c.json.behavior.variant_group===row.group);
       } else {
-        candidates=catalog.filter(c=>c.json.behavior && (c.json.behavior.allowed_room_types||[]).includes(roomType));
+        candidates=catalog.filter(c=>c.json.category==='decor' && c.json.behavior && (c.json.behavior.allowed_room_types||[]).includes(roomType));
       }
       if(!candidates.length){ skipped.push(row.group||'(декор для '+roomType+')'); continue; }
       const cat=candidates[Math.floor(Math.random()*candidates.length)];
@@ -97,7 +97,7 @@ function generateFromRecipe(rows, roomType, targetW, targetH){
         x:Math.round((0.1+Math.random()*0.8)*targetW), y:Math.round((0.1+Math.random()*0.8)*targetH),
         rotation:0, scale:1, flipH:Math.random()<0.5, flipV:false,
         zIndex:z++, collisionMode:'ZLEVEL',
-        isDecor:false, placementMode,
+        isDecor:!row.group, placementMode,
         realWidthCm:worldSize.widthCm, realHeightCm:worldSize.heightCm, placementValid:true,
         light:null, shadow:null, door:null
       });

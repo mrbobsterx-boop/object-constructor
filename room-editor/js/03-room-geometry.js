@@ -137,7 +137,10 @@ function getCollisionBounds(inst){
   return {x1:inst.x-aw/2,x2:inst.x+aw/2,y1:inst.y-ah/2,y2:inst.y+ah/2,w:aw,h:ah};
 }
 function isCollisionEnabled(inst){
-  return !!inst && !inst.isDecor && inst.collisionMode!=='NONE';
+  if(!inst || inst.isDecor || inst.collisionMode==='NONE') return false;
+  // ZLEVEL — «по глубине»: мешает только на том же Z, где ходит игрок (room.playerWalkZ), иначе объект сквозной.
+  if(inst.collisionMode==='ZLEVEL') return inst.zIndex===room.playerWalkZ;
+  return true;
 }
 function collisionOverlaps(a,b){
   if(!isCollisionEnabled(a)||!isCollisionEnabled(b)) return false;
