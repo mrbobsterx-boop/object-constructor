@@ -61,7 +61,7 @@ function buildVisualsExport(){
         frame_count: isAssembled?(a.frameCountMeta||0):a.frames.length, fps:a.fps||8, loop:a.loop!==false,
         source: isAssembled?'assembled':'drawn',
         collision: isAssembled?(a.sourceCollision||'FULL'):(a.collisionMode||'FULL'),
-        sound: (!isAssembled && a.sound&&a.sound.enabled) ? { files:(a.sound.files||[]).map((f,i)=>animSoundPathFor(a.id,i,f.name)), volume:(a.sound.volume||80)/100, radius:a.sound.radius||300, mode:a.sound.mode||'single' } : null,
+        sound: (!isAssembled && a.sound&&a.sound.enabled) ? { files:(a.sound.files||[]).map((f,i)=>animSoundPathFor(a.id,i,f.name)), volume:(a.sound.volume||80)/100, radius_m:a.sound.radius||3, mode:a.sound.mode||'single' } : null,
         skill_progress: (a.skillProgress||[]).map(s=>({skill:s.skill,xp:s.xp||0}))
       };
     }),
@@ -177,7 +177,7 @@ document.getElementById('btnVisualCreate').onclick=async ()=>{
   if(usedVisualNames().has(name))return alert('Такое имя уже занято в этом объекте.');
   saveVisualName(kind,name);
   if(kind==='animation'){
-    animations.push({id:name, fps:8, loop:true, frames:[], collisionMode:'FULL', collisionPadding:0, sound:{enabled:false,source:'NEW',files:[],mode:'single',volume:80,radius:300}, skillProgress:[]});
+    animations.push({id:name, fps:8, loop:true, frames:[], collisionMode:'FULL', collisionPadding:0, sound:{enabled:false,source:'NEW',files:[],mode:'single',volume:80,radius:3}, skillProgress:[]});
     if(name==='idle')idleCreated=true;
     await selectVisual('animation',name);
   }else{
@@ -512,7 +512,7 @@ if(btnSliceMain) btnSliceMain.onclick=async ()=>{
   }
   if(!target){
     const name=freeAnimationName('idle');
-    target={id:name, fps:8, loop:true, frames:[], collisionMode:'FULL', collisionPadding:0, sound:{enabled:false,source:'NEW',files:[],mode:'single',volume:80,radius:300}, skillProgress:[]};
+    target={id:name, fps:8, loop:true, frames:[], collisionMode:'FULL', collisionPadding:0, sound:{enabled:false,source:'NEW',files:[],mode:'single',volume:80,radius:3}, skillProgress:[]};
     animations.push(target);
     saveVisualName('animation',name);
     if(name==='idle')idleCreated=true;
@@ -704,13 +704,13 @@ document.getElementById('visualCollisionMode').onchange=e=>{
    Звук анимации
    ============================================================ */
 function loadSoundUiFromAnim(a){
-  const snd=a.sound||{enabled:false,source:'NEW',files:[],mode:'single',volume:80,radius:300};
+  const snd=a.sound||{enabled:false,source:'NEW',files:[],mode:'single',volume:80,radius:3};
   document.getElementById('animSoundEnabled').checked=!!snd.enabled;
   document.getElementById('animSoundFields').style.display=snd.enabled?'':'none';
   document.getElementById('animSoundSource').value=snd.source||'NEW';
   document.getElementById('animSoundMode').value=snd.mode||'single';
   document.getElementById('animSoundVolume').value=snd.volume||80;
-  document.getElementById('animSoundRadius').value=snd.radius||300;
+  document.getElementById('animSoundRadius').value=snd.radius||3;
   animSoundFiles=snd.files||[];
   renderAnimSoundFileList();
   populateAnimSoundExistingRef();
@@ -750,7 +750,7 @@ document.getElementById('btnClearAnimSoundFiles').onclick=()=>{
 };
 document.getElementById('animSoundMode').onchange=e=>{ if(currentAnimIndex>=0)animations[currentAnimIndex].sound.mode=e.target.value; };
 document.getElementById('animSoundVolume').oninput=e=>{ if(currentAnimIndex>=0)animations[currentAnimIndex].sound.volume=+e.target.value||80; };
-document.getElementById('animSoundRadius').oninput=e=>{ if(currentAnimIndex>=0)animations[currentAnimIndex].sound.radius=+e.target.value||300; };
+document.getElementById('animSoundRadius').oninput=e=>{ if(currentAnimIndex>=0)animations[currentAnimIndex].sound.radius=+e.target.value||3; };
 document.getElementById('btnPreviewAnimSoundVolume').onclick=()=>{
   try{
     const ctx=new (window.AudioContext||window.webkitAudioContext)();

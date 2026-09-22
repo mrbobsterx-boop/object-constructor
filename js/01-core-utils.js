@@ -1,6 +1,6 @@
 /* ============================================================
-   MODULE 01 — GLOBAL DATA / UTILITIES
-   Effects, skills, helpers, catalog and preset state.
+   MODULE 01 — GLOBAL DATA / UTILITIES / UNITS
+   Effects, skills, game-meter units, helpers, catalog and preset state.
    Keep this block before modules that consume these definitions.
    ============================================================ */
 
@@ -150,11 +150,20 @@ function addToCatalog(entry){ // entry: {id,category,name,image(dataURL flattene
   saveCatalogList(list);
   renderCatalogSidebar();
 }
+// Превью объекта каталога. Нет картинки → аккуратная заглушка с подсказкой (а не «битая» иконка браузера).
+function catalogThumbHtml(e,size,extraStyle){
+  const s=size||18;
+  if(e&&e.image) return `<img src="${e.image}" style="width:${s}px;height:${s}px;object-fit:contain;image-rendering:pixelated;${extraStyle||''}">`;
+  const iss=e&&e.imageIssue;
+  const why=iss ? (iss.kind==='invalid'?'Файл картинки повреждён (пустой или не PNG): ':'Основная картинка не найдена на диске: ')+'assets/sprites/'+iss.path
+                : 'У объекта нет картинки: не задана основная картинка и нет кадров анимации';
+  return `<span class="thumb-empty" title="${esc(why)}" style="width:${s}px;height:${s}px">${iss?'⚠':''}</span>`;
+}
 function renderCatalogSidebar(){
   const list = projectDirHandle ? projectCatalog : loadCatalog();
   const el=document.getElementById('catalogList');
   if(!list.length){ el.textContent = projectDirHandle ? 'В подключённой папке пока нет сохранённых объектов.' : 'Пока пусто.'; return; }
-  el.innerHTML = list.slice().reverse().slice(0,30).map(e=>`<div style="display:flex;align-items:center;gap:6px;margin-bottom:4px"><img src="${e.image||''}" style="width:18px;height:18px;object-fit:contain;image-rendering:pixelated;background:#0d1116;border-radius:3px"><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${e.name||e.id}</span></div>`).join('') + (list.length>30?`<div class="muted">…и ещё ${list.length-30}</div>`:'');
+  el.innerHTML = list.slice().reverse().slice(0,30).map(e=>`<div style="display:flex;align-items:center;gap:6px;margin-bottom:4px" title="${esc((e.id||'')+' · '+((typeof CAT_LABELS!=='undefined'&&CAT_LABELS[e.category])||e.category||''))}">${catalogThumbHtml(e,18,'background:#0d1116;border-radius:3px')}<span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(e.name||e.id)}</span></div>`).join('') + (list.length>30?`<div class="muted">…и ещё ${list.length-30}</div>`:'');
   renderObjectCatalogList(list);
 }
 function renderObjectCatalogList(list){
@@ -175,6 +184,53 @@ function renderResourceTypeList(list){
   const dl=document.getElementById('resourceTypeList'); if(!dl)return;
   const types=[...new Set(list.map(e=>e.json&&e.json.behavior&&e.json.behavior.resource&&e.json.behavior.resource.type).filter(Boolean))];
   dl.innerHTML=types.map(t=>`<option value="${esc(t)}">`).join('');
+}
+
+/* ============================================================
+   UNITS — ИГРОВЫЕ МЕТРЫ
+   В JSON объекта длины хранятся в МЕТРАХ (суффикс _m), скорость — в м/с (_mps).
+   Реальный размер объекта — по-прежнему в сантиметрах (real_width_cm / real_height_cm).
+   Пиксели — только для отображения в превью: 100 px = 1 игровой метр.
+   Старые файлы/пресеты/сессии (значения «px») читаются и пересчитываются сами.
+   ============================================================ */
+const PIXELS_PER_METER=100;
+const LEGACY_GEOMETRY_PPM=640; // старые комнаты (schema_version<4): координаты в px при 640 px/м
+const LEGACY_VALUE_PPM=100;    // старые радиусы света/зрения/слуха/звука и скорость были «px» без привязки к сцене
+function mToPx(m){ return Math.round(m*PIXELS_PER_METER*1000)/1000; }
+// Длина из JSON → px. mKeys: ключ(и) в метрах; legacyKey: старый ключ в px; иначе fallbackPx.
+function lenPx(o,mKeys,legacyKey,fallbackPx,legacyPPM){
+  if(!o) return fallbackPx;
+  for(const k of [].concat(mKeys)){ const v=o[k]; if(v!==undefined&&v!==null&&Number.isFinite(+v)) return mToPx(+v); }
+  if(legacyKey){ const v=o[legacyKey]; if(v!==undefined&&v!==null&&Number.isFinite(+v)) return Math.round(+v*PIXELS_PER_METER/(legacyPPM||LEGACY_GEOMETRY_PPM)*1000)/1000; }
+  return fallbackPx;
+}
+// Масштаб фона комнаты: в JSON — реальная ширина в метрах (widthM), масштаб считаем от размера картинки.
+function bgScaleFromJSON(l,nativeW){
+  const wm=l&&l.widthM;
+  if(wm!==undefined&&wm!==null&&nativeW>0) return mToPx(wm)/nativeW;
+  return ((l&&l.scale!==undefined)?l.scale:1)*PIXELS_PER_METER/LEGACY_GEOMETRY_PPM;
+}
+// JSON комнаты (Room Editor, новый или старый) → тот же объект с числами в px (для превью)
+function roomFromJSON(d){
+  const width=lenPx(d,'widthM','width',6.4*PIXELS_PER_METER), height=lenPx(d,'heightM','height',2.2*PIXELS_PER_METER);
+  const bgList=d.backgroundLayers||(d.background?[d.background]:[]);
+  return {...d, width, height, backgroundLayers:bgList.map(l=>({...l, x:lenPx(l,'xM','x',width/2), y:lenPx(l,'yM','y',height/2)}))};
+}
+// Значение в метрах из JSON объекта: новый ключ (метры) → старый ключ (px / 100) → запасное.
+function metersFromJSON(o,mKey,legacyKey,fallbackM){
+  if(o&&o[mKey]!==undefined&&o[mKey]!==null) return +o[mKey];
+  if(o&&o[legacyKey]!==undefined&&o[legacyKey]!==null) return Math.round(+o[legacyKey]/LEGACY_VALUE_PPM*100)/100;
+  return fallbackM;
+}
+// Пресеты и сессии, сохранённые до перехода на метры (нет пометки units:'m'), содержат «px»
+const LEGACY_UNIT_FIELDS=['lightRadius','visionRange','hearingRange','moveSpeed'];
+function migrateLegacyFieldUnits(f){
+  if(!f) return f; const c={...f};
+  LEGACY_UNIT_FIELDS.forEach(k=>{ if(c[k]!==undefined&&c[k]!==''&&Number.isFinite(+c[k])) c[k]=String(Math.round(+c[k]/LEGACY_VALUE_PPM*100)/100); });
+  return c;
+}
+function migrateLegacyAnimUnits(anims){
+  return (anims||[]).map(a=>(a&&a.sound&&a.sound.radius!==undefined)?{...a,sound:{...a.sound,radius:Math.round(a.sound.radius/LEGACY_VALUE_PPM*100)/100}}:a);
 }
 
 /* ---- presets (named templates, no images) ---- */

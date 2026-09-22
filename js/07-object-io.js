@@ -31,7 +31,7 @@ function renderCraftLib(){
   if(!items.length){ grid.innerHTML='<div class="muted" style="grid-column:1/-1">Ничего не найдено. Сохрани подходящий объект (кнопка «Сохранить в папку проекта» или «Экспорт JSON»), он появится здесь.</div>'; return; }
   items.forEach(e=>{
     const el=document.createElement('div'); el.className='modal-item'+(craftSelectedLibItem&&craftSelectedLibItem.id===e.id?' selected':'');
-    el.innerHTML=`<img src="${e.image||''}"><div class="n">${e.name||e.id}</div>`;
+    el.innerHTML=`${catalogThumbHtml(e,32)}<div class="n">${esc(e.name||e.id)}</div>`;
     el.draggable=true;
     el.addEventListener('dragstart', ev=>{ ev.dataTransfer.setData('text/plain', JSON.stringify({id:e.id,name:e.name,image:e.image})); ev.dataTransfer.effectAllowed='copy'; });
     el.onclick=()=>{ craftSelectedLibItem=(craftSelectedLibItem&&craftSelectedLibItem.id===e.id)?null:e; renderCraftLib(); };
@@ -43,7 +43,7 @@ function renderCraftGrid(){
   for(let i=0;i<15;i++){
     const cell=document.createElement('div'); cell.className='craft-cell'+(craftGrid[i]?' filled':'');
     if(craftGrid[i]){
-      cell.innerHTML=`<img src="${craftGrid[i].image}" title="${craftGrid[i].name}">`;
+      cell.innerHTML=craftGrid[i].image ? `<img src="${craftGrid[i].image}" title="${esc(craftGrid[i].name||craftGrid[i].id||'')}">` : `<span class="thumb-empty" title="${esc(craftGrid[i].name||craftGrid[i].id||'')}" style="width:40px;height:40px"></span>`;
       cell.draggable=true;
       cell.addEventListener('dragstart', ev=>{ ev.dataTransfer.setData('text/plain', JSON.stringify(craftGrid[i])); ev.dataTransfer.effectAllowed='copyMove'; });
       cell.addEventListener('dragend', ev=>{
@@ -168,7 +168,13 @@ const STANDARD_ANIMATIONS={
 let currentCategory='character', currentActions=[], currentComponents=[];
 let actionSettings={}; // { ACTION_ID: {requirements,time,consumeItem,consumeAmount,tool} }
 
-function id(){ return document.getElementById('id').value || 'object_'+Date.now(); }
+// Пустой id генерируем ОДИН раз и запоминаем в поле — иначе каждый вызов выдавал бы новую метку времени
+// (имя файла, внутренний id и путь картинки у безымянного объекта расходились, а каждое сохранение создавало новый файл).
+function id(){
+  const el=document.getElementById('id');
+  if(!el.value) el.value='object_'+Date.now();
+  return el.value;
+}
 function val(x){ return document.getElementById(x).value; }
 function bool(x){ const el=document.getElementById(x); if(el && el.type==='checkbox') return el.checked; return val(x)==='YES'; }
 
@@ -384,7 +390,7 @@ function collect(){
   let custom={}; try{ custom=JSON.parse(val('custom')||'{}'); }catch(e){ custom={_error:'invalid_json'}; }
   customFields.forEach(f=>{ if(f.name) custom[f.name]=parseCustomFieldValue(f.value); });
   return {
-    schema_version:3,
+    schema_version:4, // 4 = длины в метрах (radius_m, range_m, speed_mps), размер объекта — в см
     id:id(), name:val('name'), category:currentCategory, category_name:CAT_LABELS[currentCategory],
     subtype:val('subtype'), description:val('description'),
     transform:{ layer:+val('layer')||0 },
@@ -395,7 +401,7 @@ function collect(){
       placement_mode: val('placementMode')||'ANYWHERE',
       variant_group: val('variantGroup').trim()||null,
       allowed_room_types: [...document.getElementById('allowedRoomTypes').selectedOptions].map(o=>o.value),
-      light: bool('emitsLight') ? { radius:+val('lightRadius')||0, color:val('lightColor'), intensity:(+val('lightIntensity')||100)/100,
+      light: bool('emitsLight') ? { radius_m:+val('lightRadius')||0, color:val('lightColor'), intensity:(+val('lightIntensity')||100)/100,
         shape: val('lightShape'),
         angle: val('lightShape')==='CONE' ? (+val('lightAngle')||90) : null,
         spread: val('lightShape')==='CONE' ? (+val('lightSpread')||60) : null,
@@ -424,10 +430,10 @@ function collect(){
         sleep:bool('autonomyEnabled')&&bool('autonomySleep')
       },
       perception:{
-        vision: bool('visionEnabled') ? { range:+val('visionRange')||0 } : null,
-        hearing: bool('hearingEnabled') ? { range:+val('hearingRange')||0 } : null
+        vision: bool('visionEnabled') ? { range_m:+val('visionRange')||0 } : null,
+        hearing: bool('hearingEnabled') ? { range_m:+val('hearingRange')||0 } : null
       },
-      movement:{ enabled:bool('canMove'), speed: bool('canMove') ? (+val('moveSpeed')||0) : 0 },
+      movement:{ enabled:bool('canMove'), speed_mps: bool('canMove') ? (+val('moveSpeed')||0) : 0 },
       danger:{
         reacts:bool('dangerReacts'),
         can_flee:bool('dangerReacts')&&bool('dangerCanFlee'),
@@ -523,16 +529,16 @@ function resetAllToDefaults(){
   document.getElementById('carryable').checked=false; document.getElementById('placeable').checked=false;
   document.getElementById('collision').value='NONE'; document.getElementById('physics').value='STATIC'; document.getElementById('interactive').checked=false;
   document.getElementById('hasWeight').checked=false; document.getElementById('weight').value=1;
-  document.getElementById('emitsLight').checked=false; document.getElementById('lightRadius').value=150; document.getElementById('lightColor').value='#ffcc66'; document.getElementById('lightIntensity').value=100;
+  document.getElementById('emitsLight').checked=false; document.getElementById('lightRadius').value=1.5; document.getElementById('lightColor').value='#ffcc66'; document.getElementById('lightIntensity').value=100;
   document.getElementById('lightShape').value='CIRCLE'; document.getElementById('lightAngle').value=90; document.getElementById('lightSpread').value=60; document.getElementById('lightSoftness').value=40;
   document.getElementById('castsShadow').checked=false; document.getElementById('shadowAbsorption').value=70;
   document.getElementById('needFood').checked=false; document.getElementById('needWater').checked=false; document.getElementById('needSleep').checked=false; document.getElementById('needHealth').checked=false; document.getElementById('needStress').checked=false;
   document.getElementById('thirstRandomInit').checked=false; document.getElementById('thirstInitial').value=100; document.getElementById('thirstMin').value=40; document.getElementById('thirstMax').value=100;
   document.getElementById('thirstDecayRate').value=2; document.getElementById('thirstWantThreshold').value=40; document.getElementById('thirstCriticalThreshold').value=15; document.getElementById('thirstDrinkAmount').value=30; document.getElementById('thirstDrinkTime').value=4;
   document.getElementById('autonomyEnabled').checked=false; document.getElementById('autonomySatisfyNeeds').checked=false; document.getElementById('autonomySearchWater').checked=false; document.getElementById('autonomySearchFood').checked=false; document.getElementById('autonomySleep').checked=false;
-  document.getElementById('visionEnabled').checked=false; document.getElementById('visionRange').value=400;
-  document.getElementById('hearingEnabled').checked=false; document.getElementById('hearingRange').value=300;
-  document.getElementById('canMove').checked=false; document.getElementById('moveSpeed').value=100;
+  document.getElementById('visionEnabled').checked=false; document.getElementById('visionRange').value=4;
+  document.getElementById('hearingEnabled').checked=false; document.getElementById('hearingRange').value=3;
+  document.getElementById('canMove').checked=false; document.getElementById('moveSpeed').value=1;
   document.getElementById('dangerReacts').checked=false; document.getElementById('dangerCanFlee').checked=false; document.getElementById('dangerCanHide').checked=false;
   document.getElementById('makesSounds').checked=false;
   currentActions=[]; actionSettings={}; renderActions();
@@ -611,7 +617,7 @@ function collectFieldValues(){
 function applyFieldValues(f){ Object.keys(f).forEach(k=>{ const el=document.getElementById(k); if(!el)return; if(el.multiple){ const vals=Array.isArray(f[k])?f[k]:[]; [...el.options].forEach(o=>{ o.selected=vals.includes(o.value); }); } else if(el.type==='checkbox') el.checked=f[k]; else el.value=f[k]; }); }
 function savePreset(){
   const name=document.getElementById('presetName').value.trim(); if(!name)return alert('Введи имя пресета.');
-  const presets=loadPresets(); presets[name]={category:currentCategory, fields:collectFieldValues(), actions:currentActions, actionSettings:JSON.parse(JSON.stringify(actionSettings))};
+  const presets=loadPresets(); presets[name]={category:currentCategory, fields:collectFieldValues(), actions:currentActions, actionSettings:JSON.parse(JSON.stringify(actionSettings)), units:'m'};
   savePresetsAll(presets); renderPresetSelect(); document.getElementById('presetSelect').value=name;
 }
 function loadPreset(){
@@ -619,7 +625,7 @@ function loadPreset(){
   const p=loadPresets()[name]; if(!p)return;
   currentCategory=p.category; document.querySelectorAll('.cat').forEach(b=>b.classList.toggle('active',b.dataset.cat===currentCategory)); renderStdAnimSelect();
   document.getElementById('category').value=CAT_LABELS[currentCategory];
-  applyFieldValues(p.fields); currentActions=p.actions||[]; actionSettings=p.actionSettings||{}; renderActions();
+  applyFieldValues(p.units==='m'?p.fields:migrateLegacyFieldUnits(p.fields)); currentActions=p.actions||[]; actionSettings=p.actionSettings||{}; renderActions();
   updateCombatFieldsVisibility(); if(window.update)window.update();
 }
 function deletePreset(){ const name=document.getElementById('presetSelect').value; if(!name)return; const presets=loadPresets(); delete presets[name]; savePresetsAll(presets); renderPresetSelect(); }
@@ -671,7 +677,7 @@ async function exportZip(){
 async function buildSessionState(){
   await commitCurrentFrame();
   return {
-    fields:collectFieldValues(), category:currentCategory, actions:currentActions, actionSettings:JSON.parse(JSON.stringify(actionSettings)),
+    units:'m', fields:collectFieldValues(), category:currentCategory, actions:currentActions, actionSettings:JSON.parse(JSON.stringify(actionSettings)),
     customFields:JSON.parse(JSON.stringify(customFields)),
     mainDoc: mainDoc.docW? await mainDoc.serialize() : null,
     animations:JSON.parse(JSON.stringify(animations)), imageStates:JSON.parse(JSON.stringify(imageStates)),
@@ -685,10 +691,10 @@ async function buildSessionState(){
 async function restoreSessionState(state){
   currentCategory=state.category; document.querySelectorAll('.cat').forEach(b=>b.classList.toggle('active',b.dataset.cat===currentCategory));
   document.getElementById('category').value=CAT_LABELS[currentCategory];
-  applyFieldValues(state.fields); currentActions=state.actions||[]; actionSettings=state.actionSettings||{}; renderActions();
+  applyFieldValues(state.units==='m'?state.fields:migrateLegacyFieldUnits(state.fields)); currentActions=state.actions||[]; actionSettings=state.actionSettings||{}; renderActions();
   customFields=state.customFields?JSON.parse(JSON.stringify(state.customFields)):[]; renderCustomFieldList();
   if(state.mainDoc) await mainDoc.restore(state.mainDoc); else mainDoc.clear();
-  animations=state.animations?JSON.parse(JSON.stringify(state.animations)):[];
+  animations=state.animations?JSON.parse(JSON.stringify(state.units==='m'?state.animations:migrateLegacyAnimUnits(state.animations))):[];
   imageStates=state.imageStates?JSON.parse(JSON.stringify(state.imageStates)):[];
   idleCreated=!!state.idleCreated;
   currentVisual=null; currentAnimIndex=-1; frames=[]; currentFrameIndex=-1; animDoc.clear();
@@ -1044,13 +1050,13 @@ function restoreJsonFields(data){
   check('carryable',b.carryable);check('placeable',b.placeable);set('collision',b.collision||'NONE');set('physics',b.physics||'STATIC');check('interactive',b.interactive);check('hasWeight',b.hasWeight);set('weight',b.weight??1);
   set('realWidthCm',b.real_width_cm??0);set('realHeightCm',b.real_height_cm??0);set('placementMode',b.placement_mode||'ANYWHERE');set('variantGroup',b.variant_group||'');
   const ar=b.allowed_room_types||[]; const sel=document.getElementById('allowedRoomTypes'); if(sel)[...sel.options].forEach(o=>o.selected=ar.includes(o.value));
-  const l=b.light;check('emitsLight',!!l);if(l){set('lightRadius',l.radius);set('lightColor',l.color);set('lightIntensity',Math.round((l.intensity??1)*100));set('lightShape',l.shape||'CIRCLE');set('lightAngle',l.angle??90);set('lightSpread',l.spread??60);set('lightSoftness',Math.round((l.softness??.4)*100));}
+  const l=b.light;check('emitsLight',!!l);if(l){set('lightRadius',metersFromJSON(l,'radius_m','radius',1.5));set('lightColor',l.color);set('lightIntensity',Math.round((l.intensity??1)*100));set('lightShape',l.shape||'CIRCLE');set('lightAngle',l.angle??90);set('lightSpread',l.spread??60);set('lightSoftness',Math.round((l.softness??.4)*100));}
   const sh=b.shadow;check('castsShadow',!!sh);if(sh)set('shadowAbsorption',Math.round((sh.absorption??.7)*100));
   const n=b.needs||{};check('needFood',n.food);check('needWater',n.water);check('needSleep',n.sleep);check('needHealth',n.health);check('needStress',n.stress);
   const wp=n.water_params||{};check('thirstRandomInit',wp.random_initial);set('thirstInitial',wp.initial??100);set('thirstMin',wp.min_initial??40);set('thirstMax',wp.max_initial??100);set('thirstDecayRate',wp.decay_rate_per_hour??2);set('thirstWantThreshold',wp.want_threshold??40);set('thirstCriticalThreshold',wp.critical_threshold??15);set('thirstDrinkAmount',wp.drink_amount??30);set('thirstDrinkTime',wp.drink_time??4);
   const au=b.autonomy||{};check('autonomyEnabled',au.enabled);check('autonomySatisfyNeeds',au.satisfy_needs);check('autonomySearchWater',au.search_water);check('autonomySearchFood',au.search_food);check('autonomySleep',au.sleep);
-  const p=b.perception||{};check('visionEnabled',!!p.vision);if(p.vision)set('visionRange',p.vision.range);check('hearingEnabled',!!p.hearing);if(p.hearing)set('hearingRange',p.hearing.range);
-  const mv=b.movement||{};check('canMove',mv.enabled);set('moveSpeed',mv.speed??100);const dg=b.danger||{};check('dangerReacts',dg.reacts);check('dangerCanFlee',dg.can_flee);check('dangerCanHide',dg.can_hide);check('makesSounds',b.makes_sounds);
+  const p=b.perception||{};check('visionEnabled',!!p.vision);if(p.vision)set('visionRange',metersFromJSON(p.vision,'range_m','range',4));check('hearingEnabled',!!p.hearing);if(p.hearing)set('hearingRange',metersFromJSON(p.hearing,'range_m','range',3));
+  const mv=b.movement||{};check('canMove',mv.enabled);set('moveSpeed',metersFromJSON(mv,'speed_mps','speed',1));const dg=b.danger||{};check('dangerReacts',dg.reacts);check('dangerCanFlee',dg.can_flee);check('dangerCanHide',dg.can_hide);check('makesSounds',b.makes_sounds);
   const co=data.combat||{};check('dealsDamage',co.dealsDamage);set('damageAmount',co.damageAmount??10);check('providesDefense',co.providesDefense);set('defenseAmount',co.defenseAmount??10);check('wearsOut',co.wearsOut);set('wearAmount',co.wearAmount??1);set('wearLifetimeDays',co.wearLifetimeDays??30);
   const iv=data.inventory||{};check('hasInventory',iv.enabled);set('slots',iv.slots??0);set('maxWeight',iv.maxWeight??0);set('storage',iv.storage||'GENERAL');
   const r=data.resource||{};set('resourceType',r.type||'');set('resourceMax',r.max_amount??100);set('resourceInitial',r.initial_amount??100);set('resourceState',r.initial_state||'чистая');set('resourceSource',r.source||'без пополнения');set('resourceRecoveryHours',r.self_recovery_hours??0);
@@ -1061,7 +1067,7 @@ function restoreJsonFields(data){
   customFields=[]; renderCustomFieldList(); set('custom',data.custom&&typeof data.custom==='object'?JSON.stringify(data.custom,null,2):'');
   animations=[];imageStates=[];currentVisual=null;frames=[];currentFrameIndex=-1;idleCreated=!!data.visuals?.idle;
   const vis=data.visuals||{};
-  (vis.animations||[]).forEach(a=>animations.push({id:a.name||'animation',fps:a.fps||8,loop:a.loop!==false,frames:[],collisionMode:a.collision||'FULL',collisionPadding:0,sound:{enabled:false,source:'NEW',files:[],mode:'single',volume:80,radius:300},skillProgress:a.skill_progress||[],source:a.source,sourceSheet:a.asset,frameCountMeta:a.frame_count||0}));
+  (vis.animations||[]).forEach(a=>animations.push({id:a.name||'animation',fps:a.fps||8,loop:a.loop!==false,frames:[],collisionMode:a.collision||'FULL',collisionPadding:0,sound:{enabled:false,source:'NEW',files:[],mode:'single',volume:80,radius:3},skillProgress:a.skill_progress||[],source:a.source,sourceSheet:a.asset,frameCountMeta:a.frame_count||0}));
   (vis.images||[]).forEach(s=>imageStates.push({id:s.name||'image',doc:null,previewDataUrl:null,width:s.width||0,height:s.height||0,collisionMode:s.collision||'FULL',sourceFrame:s.source_frame||null,asset:s.asset||''}));
   animDoc.clear();
 }
@@ -1123,6 +1129,53 @@ document.getElementById('btnOpenObject').onclick=()=>{
   openObjectFromProject(objId);
 };
 
+/* ---- превью объектов каталога ----
+   Порядок поиска картинки: основная → статичное состояние → первый кадр анимации (idle, иначе первая).
+   Файл читается и проверяется на «декодируемость» — пустой/битый PNG даёт заглушку, а не битую иконку. */
+async function readSpriteFile(spritesDir,rel){
+  if(!spritesDir||!rel) return null;
+  try{
+    const clean=String(rel).replace(/^assets\/sprites\//,'').replace(/^\//,'');
+    const parts=clean.split('/'); const fileName=parts.pop();
+    const subDir=parts.length? await getSubdir(spritesDir,parts.join('/'),false) : spritesDir;
+    return await (await subDir.getFileHandle(fileName)).getFile();
+  }catch(e){ return null; }
+}
+function decodeOk(url){ return new Promise(res=>{ const im=new Image(); im.onload=()=>res(true); im.onerror=()=>res(false); im.src=url; }); }
+async function spriteUrl(spritesDir,rel,issue){
+  const f=await readSpriteFile(spritesDir,rel);
+  if(!f){ if(issue&&!issue.kind) issue.kind='missing'; return null; }
+  const url=URL.createObjectURL(f);
+  if(await decodeOk(url)) return url;
+  URL.revokeObjectURL(url); if(issue) issue.kind='invalid'; return null;
+}
+async function firstFrameDataUrl(file,frameCount){
+  const url=URL.createObjectURL(file);
+  try{
+    const img=await new Promise((res,rej)=>{ const im=new Image(); im.onload=()=>res(im); im.onerror=rej; im.src=url; });
+    const n=frameCount>0 ? frameCount : Math.max(1,Math.round(img.naturalWidth/Math.max(1,img.naturalHeight))); // лист — полоска кадров одной ширины
+    const fw=Math.max(1,Math.floor(img.naturalWidth/n)), fh=Math.max(1,img.naturalHeight);
+    const k=Math.min(1,96/Math.max(fw,fh));
+    const c=document.createElement('canvas'); c.width=Math.max(1,Math.round(fw*k)); c.height=Math.max(1,Math.round(fh*k));
+    const ctx=c.getContext('2d'); ctx.imageSmoothingEnabled=false; ctx.drawImage(img,0,0,fw,fh,0,0,c.width,c.height);
+    return c.toDataURL('image/png');
+  } finally { URL.revokeObjectURL(url); }
+}
+async function loadCatalogThumb(spritesDir,obj){
+  const out={image:null,imageIssue:null};
+  if(!spritesDir) return out;
+  const assetRel=obj.appearance&&obj.appearance.asset, vis=obj.visuals||{};
+  const issue={kind:null,path:assetRel||''};
+  if(assetRel){ const u=await spriteUrl(spritesDir,assetRel,issue); if(u){ out.image=u; return out; } }
+  for(const s of (vis.images||[])){ const u=await spriteUrl(spritesDir,s&&s.asset,null); if(u){ out.image=u; return out; } }
+  const anims=(vis.animations||[]).slice().sort((a,b)=>(b.name===vis.idle)-(a.name===vis.idle));
+  for(const a of anims){
+    const f=await readSpriteFile(spritesDir,a.asset); if(!f)continue;
+    try{ out.image=await firstFrameDataUrl(f,a.frame_count); return out; }catch(e){}
+  }
+  if(assetRel && issue.kind) out.imageIssue=issue;
+  return out;
+}
 async function scanProjectFolderCatalog(){
   if(!projectDirHandle)return;
   projectCatalog.forEach(e=>{ if(e.image) URL.revokeObjectURL(e.image); });
@@ -1136,17 +1189,8 @@ async function scanProjectFolderCatalog(){
       try{
         const file=await handle.getFile();
         const obj=JSON.parse(await file.text());
-        let imageUrl=null;
-        const assetRel=obj.appearance && obj.appearance.asset;
-        if(spritesDir && assetRel){
-          try{
-            const parts=assetRel.split('/'); const fileName=parts.pop();
-            const subDir=parts.length? await getSubdir(spritesDir,parts.join('/'),false) : spritesDir;
-            const imgFile=await (await subDir.getFileHandle(fileName)).getFile();
-            imageUrl=URL.createObjectURL(imgFile);
-          }catch(e){ /* картинки нет на диске — просто без превью */ }
-        }
-        result.push({ id:obj.id, category:obj.category, name:obj.name||obj.id, image:imageUrl, json:obj });
+        const thumb=await loadCatalogThumb(spritesDir,obj); // основная картинка → состояние → кадр анимации; иначе заглушка
+        result.push({ id:obj.id, category:obj.category, name:obj.name||obj.id, image:thumb.image, imageIssue:thumb.imageIssue, json:obj });
       }catch(e){ console.warn('Пропущен повреждённый файл каталога:',name,e); }
     }
   }catch(e){ /* data/objects ещё не существует — каталог пуст, это нормально для новой папки */ }
@@ -1272,7 +1316,7 @@ makeSlider('wearLifetimeDays',{min:0,max:100,step:1,unit:'дн.'});
 makeSlider('weight',{min:0,max:100,step:0.5,unit:'кг'});
 makeSlider('slots',{min:0,max:100,step:1});
 makeSlider('maxWeight',{min:0,max:1000,step:1,unit:'кг'});
-makeSlider('lightRadius',{min:0,max:2000,step:10,unit:'px'});
+makeSlider('lightRadius',{min:0,max:20,step:0.1,unit:'м'});
 makeSlider('lightIntensity',{min:0,max:200,step:1,unit:'%'});
 makeSlider('lightAngle',{min:-180,max:180,step:1,unit:'°'});
 makeSlider('lightSpread',{min:1,max:180,step:1,unit:'°'});
@@ -1286,14 +1330,14 @@ makeSlider('thirstWantThreshold',{min:0,max:100,step:1});
 makeSlider('thirstCriticalThreshold',{min:0,max:100,step:1});
 makeSlider('thirstDrinkAmount',{min:0,max:100,step:1});
 makeSlider('thirstDrinkTime',{min:0,max:60,step:1,unit:'сек'});
-makeSlider('visionRange',{min:0,max:2000,step:10,unit:'px'});
-makeSlider('hearingRange',{min:0,max:2000,step:10,unit:'px'});
-makeSlider('moveSpeed',{min:0,max:500,step:5,unit:'px/с'});
+makeSlider('visionRange',{min:0,max:20,step:0.1,unit:'м'});
+makeSlider('hearingRange',{min:0,max:20,step:0.1,unit:'м'});
+makeSlider('moveSpeed',{min:0,max:5,step:0.1,unit:'м/с'});
 ['realWidthCm','realHeightCm'].forEach(id=>{
   document.getElementById(id).addEventListener('change', e=>{ e.target.value=Math.round((+e.target.value||0)/10)*10; if(window.update)window.update(); });
 });
 makeSlider('animSoundVolume',{min:0,max:100,step:1,unit:'%'});
-makeSlider('animSoundRadius',{min:0,max:2000,step:10,unit:'px'});
+makeSlider('animSoundRadius',{min:0,max:20,step:0.1,unit:'м'});
 document.getElementById('category').value=CAT_LABELS[currentCategory];
 renderStdAnimSelect();
 renderActions();

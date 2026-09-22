@@ -121,3 +121,4 @@ textarea{min-height:70px;resize:vertical}
 .visual-card .vname{font-weight:600}
 .visual-card .vmeta{font-size:11px;color:#778391;margin-top:3px}
 .visual-card .vdel{padding:4px 7px}
+.thumb-empty{display:inline-flex;align-items:center;justify-content:center;flex:none;box-sizing:border-box;background:#0d1116;border:1px dashed #3b4654;border-radius:3px;color:#e7c65b;font-size:10px;line-height:1;cursor:help}

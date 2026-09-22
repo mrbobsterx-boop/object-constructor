@@ -9,7 +9,7 @@
 const previewCanvas=document.getElementById('previewCanvas'), pctx=previewCanvas.getContext('2d');
 const previewViewport=document.getElementById('previewViewport'), previewStage=document.getElementById('previewStage');
 let previewZoom=1, previewPanX=0, previewPanY=0;
-const PREVIEW_PPM=640; // 640 px = 1 игровой метр; 64 px = 10 см
+const PREVIEW_PPM=PIXELS_PER_METER; // 100 px = 1 игровой метр; 10 px = 10 см (px — только для отображения)
 const PREVIEW_DEFAULT_W=4*PREVIEW_PPM, PREVIEW_DEFAULT_H=3*PREVIEW_PPM;
 let previewWorldW=PREVIEW_DEFAULT_W, previewWorldH=PREVIEW_DEFAULT_H;
 let previewObjectX=PREVIEW_DEFAULT_W/2, previewObjectY=PREVIEW_DEFAULT_H/2;
@@ -97,7 +97,7 @@ function getPreviewObjectBox(){
 function drawGrid(){
   const enabled=document.getElementById('previewGridEnabled')?.checked!==false;
   if(!enabled)return;
-  const step=PREVIEW_PPM/10; // 64 px = 10 cm
+  const step=PREVIEW_PPM/10; // 10 px = 10 cm
   pctx.save();
   pctx.lineWidth=1;
   for(let x=0;x<=previewWorldW;x+=step){
@@ -225,8 +225,8 @@ async function scanPreviewBackgrounds(){
     for await(const [name,handle] of roomsDir.entries()){
       if(handle.kind!=='file'||!name.endsWith('.json'))continue;
       try{
-        const data=JSON.parse(await (await handle.getFile()).text());
-        const layers=data.backgroundLayers||(data.background?[data.background]:[]);
+        const data=roomFromJSON(JSON.parse(await (await handle.getFile()).text())); // метры → px (старые комнаты пересчитываются)
+        const layers=data.backgroundLayers;
         const room={roomId:data.id||name.replace(/\.json$/,''),roomName:data.name||data.id||name,width:data.width||PREVIEW_DEFAULT_W,height:data.height||PREVIEW_DEFAULT_H,layers:[]};
         for(const ld of layers){
           if(!ld||!ld.image)continue;
@@ -234,7 +234,7 @@ async function scanPreviewBackgrounds(){
           if(!loaded)continue;
           room.layers.push({img:loaded.img,url:loaded.url,nativeWidth:loaded.img.naturalWidth,nativeHeight:loaded.img.naturalHeight,
             opacity:ld.opacity!==undefined?ld.opacity:1,parallax:ld.parallax!==undefined?ld.parallax:1,
-            x:ld.x!==undefined?ld.x:room.width/2,y:ld.y!==undefined?ld.y:room.height/2,scale:ld.scale!==undefined?ld.scale:1,
+            x:ld.x!==undefined?ld.x:room.width/2,y:ld.y!==undefined?ld.y:room.height/2,scale:bgScaleFromJSON(ld,loaded.img.naturalWidth),
             rotation:ld.rotation||0,flipH:!!ld.flipH,flipV:!!ld.flipV});
         }
         if(room.layers.length)found.push(room);
