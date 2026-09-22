@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Object Plan</title>
+<link rel="stylesheet" href="css/app.css">
+</head>
+<body>
+<div class="app">
+<header>
+  <h1>Object Plan</h1>
+  <button id="btnConnect" class="primary">📁 Подключить папку проекта</button>
+  <button id="btnRegrant" style="display:none">Разрешить доступ</button>
+  <button id="btnScan">🔄 Сверить с проектом</button>
+  <button id="btnSaveProject" title="Записать отметки в data/object_plan.json">💾 Прогресс в проект</button>
+  <button id="btnLoadProject" title="Загрузить отметки из data/object_plan.json">📂 Из проекта</button>
+  <button id="btnExport" title="Скачать чек-лист в Markdown">⬇ Чек-лист .md</button>
+  <span id="folderStatus" class="status">Папка не подключена — отметки хранятся в браузере</span>
+  <div class="spacer"></div>
+  <span id="scanStatus" class="status"></span>
+</header>
+
+<aside>
+  <div class="panel">
+    <h3>Прогресс</h3>
+    <div class="statgrid">
+      <div class="stat"><div class="n" id="sDone">0</div><div class="t">Готово</div></div>
+      <div class="stat"><div class="n" id="sWip">0</div><div class="t">В работе</div></div>
+      <div class="stat"><div class="n" id="sTodo">0</div><div class="t">Не начато</div></div>
+      <div class="stat"><div class="n" id="sTotal">0</div><div class="t">Всего</div></div>
+    </div>
+    <div class="bar big" style="margin-top:8px"><i id="sBar" style="width:0"></i></div>
+    <div class="muted" id="sPct" style="margin-top:4px"></div>
+  </div>
+  <div class="panel">
+    <h3>Разделы</h3>
+    <div id="navList"></div>
+  </div>
+  <div class="panel">
+    <h3>Проект</h3>
+    <div id="projSummary" class="muted">Папка не подключена. Объекты, найденные в data/objects, отмечаются автоматически.</div>
+  </div>
+</aside>
+
+<main><div id="content"></div></main>
+</div>
+
+<!-- Порядок менять нельзя: скрипты делят одну глобальную область, номер = порядок загрузки, INIT — последний -->
+<script src="js/01-core-utils.js"></script>
+<script src="js/02-vocab.js"></script>
+<script src="js/03-data-shelter.js"></script>
+<script src="js/04-data-production.js"></script>
+<script src="js/05-data-world.js"></script>
+<script src="js/06-model.js"></script>
+<script src="js/07-store.js"></script>
+<script src="js/08-ui-core.js"></script>
+<script src="js/09-view-overview.js"></script>
+<script src="js/10-view-checklist.js"></script>
+<script src="js/11-view-card.js"></script>
+<script src="js/12-view-roadmap.js"></script>
+<script src="js/13-view-project.js"></script>
+<script src="js/14-view-dictionaries.js"></script>
+<script src="js/15-init.js"></script>
+</body>
+</html>
