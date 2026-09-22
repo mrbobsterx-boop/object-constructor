@@ -55,7 +55,7 @@
 | `rooms[].room`, `sequence[].room` | здание → комната |
 | слот (`RANDOM` / `POOL`) | здание → комнаты по типу, роли и лестницам |
 | `action_settings.*.tool / consume.item / produce.item` | объект → объекты |
-| `crafting.recipe.pattern[].id` | объект → ингредиенты |
+| `crafting.recipe.ingredients[].item` | объект → ингредиенты |
 | `block.tool`, `block.drop_table[].item` | материал → инструмент и добыча |
 | `character_ref.id` | объект → персонаж Assembler |
 | `appearance.asset`, `visuals.*`, `destruction.*`, `recipeImage`, фоны комнат и зданий | → файлы в `assets/sprites`; звуки анимаций → `assets/sounds` |
