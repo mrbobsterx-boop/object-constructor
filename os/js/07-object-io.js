@@ -1450,7 +1450,24 @@ scanProjectFolderCatalog=async function(){
   await loadProjectLocales();
   await syncCurrentLocaleKeys();
   renderLocaleStatus();
+  await syncCategoriesFile();
 };
+// Список категорий (CAT_LABELS) → data/categories.json, в порядке ОС; не пишет, если содержимое не изменилось.
+async function syncCategoriesFile(){
+  if(!projectDirHandle)return;
+  const list=Object.entries(CAT_LABELS).map(([id,name])=>({id,name}));
+  const newText=JSON.stringify(list,null,2);
+  try{
+    const dir=await getSubdir(projectDirHandle,'data',true);
+    let existingText=null;
+    try{ const file=await (await dir.getFileHandle('categories.json')).getFile(); existingText=await file.text(); }catch(e){}
+    if(existingText===newText)return;
+    const fileHandle=await dir.getFileHandle('categories.json',{create:true});
+    const writable=await fileHandle.createWritable();
+    await writable.write(newText);
+    await writable.close();
+  }catch(e){ console.warn('Не удалось записать data/categories.json:',e); }
+}
 
 tryRestoreProjectFolder();
 
