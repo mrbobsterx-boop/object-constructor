@@ -524,8 +524,8 @@ function collect(){
     transform:{ layer:+val('layer')||0 },
     appearance:{ mode:val('visualMode'), asset:val('asset'), imageWidth:mainDoc.docW||0, imageHeight:mainDoc.docH||0, collision:buildCollisionExport(mainDoc) },
     behavior:{ carryable:bool('carryable'), placeable:bool('placeable'), collision:val('collision'), physics:val('physics'), interactive:bool('interactive'), hasWeight:bool('hasWeight'), weight:bool('hasWeight')?+val('weight')||0:0,
-      real_width_cm: Math.round((+val('realWidthCm')||0)/10)*10,
-      real_height_cm: Math.round((+val('realHeightCm')||0)/10)*10,
+      real_width_cm: Math.round(+val('realWidthCm')||0),
+      real_height_cm: Math.round(+val('realHeightCm')||0),
       placement_mode: val('placementMode')||'ANYWHERE',
       variant_group: val('variantGroup').trim()||null,
       allowed_room_types: [...document.getElementById('allowedRoomTypes').selectedOptions].map(o=>o.value),
@@ -1500,7 +1500,7 @@ makeSlider('visionRange',{min:0,max:20,step:0.1,unit:'м'});
 makeSlider('hearingRange',{min:0,max:20,step:0.1,unit:'м'});
 makeSlider('moveSpeed',{min:0,max:5,step:0.1,unit:'м/с'});
 ['realWidthCm','realHeightCm'].forEach(id=>{
-  document.getElementById(id).addEventListener('change', e=>{ e.target.value=Math.round((+e.target.value||0)/10)*10; if(window.update)window.update(); });
+  document.getElementById(id).addEventListener('change', e=>{ e.target.value=Math.round(+e.target.value||0); if(window.update)window.update(); });
 });
 makeSlider('animSoundVolume',{min:0,max:100,step:1,unit:'%'});
 makeSlider('animSoundRadius',{min:0,max:20,step:0.1,unit:'м'});
