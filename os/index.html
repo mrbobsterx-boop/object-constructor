@@ -79,6 +79,7 @@
   <button class="cat" data-cat="workbench">Верстак</button>
   <button class="cat" data-cat="machine">Машина</button>
   <button class="cat" data-cat="building">Строительный объект</button>
+  <button class="cat" data-cat="block">Блок / материал</button>
   <button class="cat" data-cat="door">Дверь</button>
   <button class="cat" data-cat="plant">Растение</button>
   <button class="cat" data-cat="resource">Точка ресурса</button>
@@ -113,6 +114,7 @@
     <button type="button" class="tab" data-tab="crafting" onclick="switchObjectTab(this)">Крафт</button>
     <button type="button" class="tab" data-tab="animation" onclick="switchObjectTab(this)">Анимации</button>
     <button type="button" class="tab" data-tab="destruction" onclick="switchObjectTab(this)">Разрушение</button>
+    <button type="button" class="tab" id="tabBlock" data-tab="block" onclick="switchObjectTab(this)" style="display:none">Материал</button>
     <button type="button" class="tab" data-tab="extra" onclick="switchObjectTab(this)">Дополнительно</button>
   </div>
 
@@ -457,6 +459,22 @@
       </div>
     </div>
 
+  </div>
+  <div id="panel-block" class="panel tabpanel hidden">
+    <div class="muted" style="margin:0 0 10px">Блок 1×1 м = 5×5 кусков по 20 см; кусок ломается независимо от соседних. Картинка блока — основная картинка объекта (вкладка «Основное»), каждый кусок берёт свою 1/5×1/5 часть текстуры.</div>
+    <div class="form">
+      <div class="field"><label>Твёрдость <span class="muted">(относительная величина, 1 = обычная земля)</span></label><input id="blockHardness" type="number" min="0" step="0.1" value="1"></div>
+      <div class="field"><label>Нужный инструмент <span class="muted">(id объекта, необязательно)</span></label><input id="blockTool" list="objectCatalogList"></div>
+      <div class="field"><label>Срез внешних углов <span class="muted">(px = см, 0…10; пусто — общая настройка проекта из Room Editor)</span></label><input id="blockBevel" type="number" min="0" max="10" placeholder="как в проекте"></div>
+      <div class="field"><label>Навык, влияющий на шанс добычи</label><select id="blockSkillSelect"><option value="">— не влияет —</option></select></div>
+      <div class="field"><label>Бонус к шансу за уровень навыка (%)</label><input id="blockSkillBonusPerLevel" type="number" min="0" step="0.1" value="0"></div>
+      <div class="field"><label>Бонус от подходящего инструмента (%)</label><input id="blockToolBonus" type="number" min="0" step="0.1" value="0"></div>
+      <div class="field full">
+        <label>Что даёт один кусок <span class="muted">(по строке: предмет; шанс %; от; до — каждая строка бросается независимо)</span></label>
+        <textarea id="blockDropsText" rows="6" placeholder="stone_chunk; 100; 1; 2&#10;iron_ore; 15; 1; 1"></textarea>
+        <div class="editor-status" id="blockDropsStatus"></div>
+      </div>
+    </div>
   </div>
   <div id="panel-crafting" class="panel tabpanel hidden">
     <div class="form">

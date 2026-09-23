@@ -287,6 +287,7 @@ const STANDARD_ANIMATIONS={
   workbench:[['idle','Простой'],['craft','Крафт']],
   machine:[['idle_off','Простой/выключен'],['working','Работа'],['break','Поломка'],['explode','Взрыв']],
   building:[['idle','Простой'],['building_process','Строительство'],['destroy','Разрушение']],
+  block:[['idle','Простой']],
   door:[['closed','Закрыта'],['opening','Открытие'],['open','Открыта'],['closing','Закрытие'],['breaking','Взлом'],['broken','Выбита']],
   plant:[['idle','Простой'],['growing','Рост'],['ripe','Созревание'],['harvest','Сбор урожая'],['withered','Увядание']],
   resource:[['idle','Простой'],['harvesting','Добыча'],['depleted','Истощён'],['respawning','Восстановление']],
@@ -485,6 +486,73 @@ function updateCombatFieldsVisibility(){
   document.getElementById('charOnlyBehaviorBlock').style.display=(currentCategory==='character'||currentCategory==='creature')?'':'none';
   document.getElementById('animSourceField').style.display=(currentCategory==='character'||currentCategory==='creature')?'':'none';
   document.getElementById('resourceBlock').style.display=(currentCategory==='resource'||currentCategory==='container')?'':'none';
+  updateBlockMaterialUI();
+}
+
+/* ============================================================
+   МАТЕРИАЛ БЛОКА — только у категории «Блок / материал» (block).
+   Блок 1×1 м = 5×5 кусков по 20 см; кусок ломается независимо, срез
+   углов и твёрдость куска читает Room Editor напрямую из block.bevel_px
+   и из маски куска, добычу и инструмент — игра и Project Registry.
+   ============================================================ */
+// «предмет; шанс %; от; до» построчно → {rows:[{item,chance 0..1,min,max}], bad:[нераспознанные строки]}
+function parseBlockDrops(text){
+  const rows=[], bad=[];
+  (text||'').split('\n').forEach(lineRaw=>{
+    const line=lineRaw.trim();
+    if(!line)return;
+    const parts=line.split(';').map(p=>p.trim());
+    if(parts.length<4){ bad.push(lineRaw); return; }
+    const [item,chanceStr,minStr,maxStr]=parts;
+    const chancePct=parseFloat(chanceStr.replace('%','').replace(',','.'));
+    const min=parseInt(minStr,10), max=parseInt(maxStr,10);
+    if(!item||isNaN(chancePct)||isNaN(min)||isNaN(max)){ bad.push(lineRaw); return; }
+    rows.push({item, chance:Math.max(0,Math.min(100,chancePct))/100, min, max});
+  });
+  return {rows, bad};
+}
+function collectBlockJSON(){
+  const {rows}=parseBlockDrops(val('blockDropsText'));
+  const bevelRaw=val('blockBevel').trim();
+  return {
+    piece_size_cm:20, pieces_per_side:5,
+    hardness:+val('blockHardness')||0,
+    tool: val('blockTool').trim()||null,
+    bevel_px: bevelRaw===''?null:Math.max(0,Math.min(10,Math.round(+bevelRaw||0))),
+    drop_table: rows,
+    drop_chance_modifiers:{
+      skill: val('blockSkillSelect')||'',
+      skill_bonus_per_level: (+val('blockSkillBonusPerLevel')||0)/100,
+      tool_bonus: (+val('blockToolBonus')||0)/100
+    }
+  };
+}
+function populateBlockSkillSelect(){
+  const sel=document.getElementById('blockSkillSelect'); if(!sel)return;
+  const cur=sel.value;
+  sel.innerHTML='<option value="">— не влияет —</option>'+allSkills().map(([k,l])=>`<option value="${k}">${esc(l)}</option>`).join('');
+  if(allSkills().some(([k])=>k===cur)) sel.value=cur;
+}
+function updateBlockDropsStatus(){
+  const el=document.getElementById('blockDropsStatus'); if(!el)return;
+  const {rows,bad}=parseBlockDrops(val('blockDropsText'));
+  const source=projectDirHandle?projectCatalog:loadCatalog();
+  const knownIds=new Set(source.map(e=>e.id));
+  const unknown=[...new Set(rows.map(r=>r.item).filter(iid=>!knownIds.has(iid)))];
+  let txt=rows.length?`Строк добычи: ${rows.length}`:'Пока пусто — кусок ничего не даёт.';
+  if(bad.length) txt+=` · не распознано: ${bad.length} (${bad.slice(0,3).join(' | ')}${bad.length>3?'…':''})`;
+  if(unknown.length) txt+=` · нет в каталоге: ${unknown.join(', ')}`;
+  el.textContent=txt;
+}
+function updateBlockMaterialUI(){
+  const btn=document.getElementById('tabBlock'); if(!btn)return;
+  const isBlock=currentCategory==='block';
+  btn.style.display=isBlock?'':'none';
+  if(!isBlock && btn.classList.contains('active')){
+    const basicBtn=document.querySelector('.tab[data-tab="basic"]');
+    if(basicBtn) switchObjectTab(basicBtn);
+  }
+  if(isBlock){ populateBlockSkillSelect(); updateBlockDropsStatus(); }
 }
 function collectDestroyList(){ return ['REMOVE','REMAINS','DROP_ITEMS','LOOTABLE','MOVABLE','DECAYS','DROP_EQUIPPED','REPLACE_OBJECT'].filter(k=>document.getElementById('onDestroy_'+k).checked); }
 function buildCollisionExport(doc){
@@ -597,6 +665,7 @@ function collect(){
       broken: brokenW?{nativeWidth:brokenW,nativeHeight:brokenH,image:val('brokenPath')||'broken.png'}:null,
       destroyAnimation: destroyFrames.length?{frameCount:destroyFrames.length,fps:+val('destroyFps')||8,frameNativeWidth:destroyFrameW,frameNativeHeight:destroyFrameH,sheet:val('destroySheetPath')||'broken_anim.png'}:null
     },
+    block: currentCategory==='block' ? collectBlockJSON() : null,
     crafting:{ enabled:bool('crafting'), recipe:craftRecipe },
     visuals: buildVisualsExport(),
     character_ref: linkedCharacter ? { id:linkedCharacter.id, rig:linkedCharacter.rig||null } : null,
@@ -682,6 +751,14 @@ function resetAllToDefaults(){
   document.getElementById('tags').value=''; document.getElementById('custom').value='';
   document.getElementById('collisionMode').value='AUTO'; document.getElementById('collisionPadding').value=0;
   mainDoc.collision={mode:'AUTO',padding:0,rect:null}; animDoc.collision={mode:'AUTO',padding:0,rect:null};
+  document.getElementById('blockHardness').value=1; document.getElementById('blockTool').value=''; document.getElementById('blockBevel').value='';
+  document.getElementById('blockDropsText').value=''; document.getElementById('blockSkillSelect').value='';
+  document.getElementById('blockSkillBonusPerLevel').value=0; document.getElementById('blockToolBonus').value=0;
+  if(currentCategory==='block'){
+    document.getElementById('realWidthCm').value=100; document.getElementById('realHeightCm').value=100;
+    document.getElementById('collision').value='RECT'; document.getElementById('physics').value='STATIC';
+    document.getElementById('destructible').checked=false;
+  }
   updateCombatFieldsVisibility();
 }
 function newObject(){ resetIdentityAndImages(); }
@@ -1208,6 +1285,16 @@ function restoreJsonFields(data){
   const migratedRecipe = data.crafting && data.crafting.recipe ? migrateCraftRecipe(data.crafting.recipe) : null;
   craftRecipe=migratedRecipe;
   craftGrid=migratedRecipe ? craftGridFromIngredients(migratedRecipe.ingredients) : Array(15).fill(null);
+  const blk=data.block||null;
+  document.getElementById('blockHardness').value=blk&&blk.hardness!=null?blk.hardness:1;
+  document.getElementById('blockTool').value=(blk&&blk.tool)||'';
+  document.getElementById('blockBevel').value=(blk&&blk.bevel_px!=null)?blk.bevel_px:'';
+  document.getElementById('blockDropsText').value=(blk&&Array.isArray(blk.drop_table))?blk.drop_table.map(dr=>`${dr.item}; ${Math.round((dr.chance||0)*10000)/100}%; ${dr.min??0}; ${dr.max??0}`).join('\n'):'';
+  { const mod=(blk&&blk.drop_chance_modifiers)||{};
+    populateBlockSkillSelect(); document.getElementById('blockSkillSelect').value=mod.skill||'';
+    document.getElementById('blockSkillBonusPerLevel').value=Math.round((mod.skill_bonus_per_level||0)*1000)/10;
+    document.getElementById('blockToolBonus').value=Math.round((mod.tool_bonus||0)*1000)/10;
+  }
   currentActions=data.actions||[]; actionSettings={}; Object.entries(data.action_settings||{}).forEach(([aid,s])=>{actionSettings[aid]={requirements:s.requirements||'',time:s.time||0,tool:s.tool||'',consumeItem:s.consume?.item||'',consumeAmount:s.consume?.amount||0,produceItem:s.produce?.item||'',produceAmount:s.produce?.amount||0,requiredSkill:s.required_skill?.skill||'',requiredSkillLevel:s.required_skill?.level||0,effects:s.effects||[]};}); renderActions();
   currentComponents=Array.isArray(data.components)?JSON.parse(JSON.stringify(data.components)):[];
   customFields=[]; renderCustomFieldList(); set('custom',data.custom&&typeof data.custom==='object'?JSON.stringify(data.custom,null,2):'');
