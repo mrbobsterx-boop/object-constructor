@@ -92,7 +92,7 @@
 | Ссылка | Откуда → куда |
 |---|---|
 | `instances[].objectId` | комната → `data/objects/<id>.json` (по **id внутри файла**, имя файла запасное) |
-| `door.toRoom` | дверь в комнате → `data/rooms/<id>.json` |
+| `door.toRoom` | дверь в комнате → `data/rooms/<id>.json` (телепорт; отдельный от пространственной стыковки дверей `door_links` в Building Editor — они не сверяются друг с другом, кроме предупреждений реестра `DOORLINK_AND_TOROOM`/`DOOR_DEAD_IN_BUILDING`) |
 | `world.blocks[].type` | блок → объект категории «Блок / материал» (`block`) |
 | `rooms[].room`, `sequence[].room` | здание → комната |
 | слот `RANDOM` / `POOL` | здание → комнаты по типу, роли и лестницам |

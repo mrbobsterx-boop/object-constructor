@@ -4,7 +4,7 @@
      err  — сломанная ссылка / нечитаемый файл: игра или редактор споткнутся
      warn — вероятная ошибка данных (нет размера, не кратно метру, слот без комнат)
      info — к сведению (старый формат, неиспользуемые файлы)
-   Правила берутся из редакторов: размеры объектов кратны 10 см; блоки лежат на сетке 1 м, поэтому
+   Правила берутся из редакторов: размеры объектов — целые см; блоки лежат на сетке 1 м, поэтому
    комната с блоками должна иметь целые размеры и стоять в здании на целом метре
    (с учётом обрезки слева/сверху); материалы блоков — категория block, 100×100 см.
    ============================================================ */
@@ -219,6 +219,24 @@ function checkBuildings(add){
       const r=idx.room.get(e.roomId);
       if(r&&!(s.door_index>=0&&s.door_index<r.doors.length)) A('err','DOORLINK_BROKEN',`Связь дверей №${k+1}: у комнаты «${r.name}» нет двери с номером ${s.door_index}.`);
     }));
+    // door.toRoom (телепорт-дверь из Room Editor) и door_links (пространственная стыковка в этом здании) —
+    // два независимых механизма, никто их не сверяет: дверь может одновременно иметь toRoom и быть состыкована,
+    // либо не иметь ни того, ни другого — ниже показываем оба случая как info, без предположений о том, что должно сработать в игре.
+    const linkedDoors=new Set();
+    b.doorLinks.forEach(l=>['a','b'].forEach(side=>{ const s=l&&l[side]; if(s) linkedDoors.add(s.room_instance+':'+s.door_index); }));
+    b.doorLinks.forEach((l,k)=>['a','b'].forEach(side=>{
+      const s=l&&l[side]; if(!s)return;
+      const e=byInstance.get(s.room_instance), r=e&&idx.room.get(e.roomId), door=r&&r.doors[s.door_index];
+      if(door&&door.toRoom) A('info','DOORLINK_AND_TOROOM',`Связь дверей №${k+1}: дверь №${s.door_index+1} комнаты «${r.name}» (${s.room_instance}) уже ведёт в «${door.toRoom}» через toRoom — уточни, что должно сработать в игре: стыковка в здании или телепорт.`);
+    }));
+    b.entries.forEach(e=>{
+      if(!e.instanceId)return;
+      const r=idx.room.get(e.roomId); if(!r)return;
+      r.doors.forEach(door=>{
+        if(door.toRoom||linkedDoors.has(e.instanceId+':'+door.idx))return;
+        A('info','DOOR_DEAD_IN_BUILDING',`Комната «${r.name}» (${e.instanceId}) в здании: дверь №${door.idx+1} не состыкована ни с одной другой дверью в этом здании и не ведёт никуда через toRoom.`);
+      });
+    });
   });
 }
 
