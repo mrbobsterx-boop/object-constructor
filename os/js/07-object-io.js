@@ -554,6 +554,58 @@ function updateBlockMaterialUI(){
   }
   if(isBlock){ populateBlockSkillSelect(); updateBlockDropsStatus(); }
 }
+
+/* ============================================================
+   АСПЕКТ-ЛОК — «🔗 Сохранить пропорции». Реальный размер объекта задаётся
+   в целых см и не зависит от пикселей картинки, но картинка растягивается
+   ровно под ширину×высоту — поэтому по умолчанию высота/ширина подгоняются
+   по пропорциям картинки. Состояние кнопки — в localStorage, не в JSON.
+   ============================================================ */
+let keepAspectEnabled=(function(){ try{ const v=localStorage.getItem('uoc_keep_aspect'); return v===null?true:v==='1'; }catch(e){ return true; } })();
+// Пропорции берём из: основной картинки → idle-анимации → кадра, который сейчас редактируется → любой другой анимации → картинки-состояния
+function getObjectImageDims(){
+  if(mainDoc.docW) return {w:mainDoc.docW, h:mainDoc.docH};
+  const idleAnim=animations.find(a=>a.id==='idle');
+  if(idleAnim && idleAnim.frames && idleAnim.frames[0] && idleAnim.frames[0].docW) return {w:idleAnim.frames[0].docW, h:idleAnim.frames[0].docH};
+  if(animDoc.docW) return {w:animDoc.docW, h:animDoc.docH};
+  for(const a of animations){ if(a.frames && a.frames[0] && a.frames[0].docW) return {w:a.frames[0].docW, h:a.frames[0].docH}; }
+  for(const s of imageStates){ if(s.width) return {w:s.width, h:s.height}; }
+  return null;
+}
+// changed: 'w' — только что поправили ширину (пересчитать высоту), 'h' — наоборот. force — игнорировать кнопку (для «Подогнать»).
+function fitSizeFrom(changed, force){
+  if(!force && !keepAspectEnabled) return;
+  const dims=getObjectImageDims(); if(!dims||!dims.w||!dims.h) return;
+  const wEl=document.getElementById('realWidthCm'), hEl=document.getElementById('realHeightCm');
+  if(changed==='w'){ const w=+wEl.value||0; if(!w)return; hEl.value=Math.max(0,Math.round(w*dims.h/dims.w)); }
+  else if(changed==='h'){ const h=+hEl.value||0; if(!h)return; wEl.value=Math.max(0,Math.round(h*dims.w/dims.h)); }
+  if(window.update) window.update();
+}
+function updateAspectUI(){
+  const btn=document.getElementById('btnKeepAspect'); if(!btn)return;
+  btn.classList.toggle('armed',keepAspectEnabled);
+  const statusEl=document.getElementById('aspectStatus'), fitBtn=document.getElementById('btnFitAspect');
+  const dims=getObjectImageDims();
+  if(!dims||!dims.w||!dims.h){ statusEl.textContent=''; fitBtn.style.display='none'; return; }
+  const imgRatio=dims.w/dims.h;
+  let txt=`Пропорции картинки: ${dims.w}×${dims.h} px`;
+  const w=+val('realWidthCm')||0, h=+val('realHeightCm')||0;
+  if(w&&h){
+    const mismatch=Math.abs((w/h)-imgRatio)/imgRatio>0.02;
+    fitBtn.style.display=mismatch?'':'none';
+    if(mismatch) txt+=' · ⚠ размер не совпадает с пропорциями картинки';
+  } else fitBtn.style.display='none';
+  statusEl.textContent=txt;
+}
+document.getElementById('btnKeepAspect').onclick=()=>{
+  keepAspectEnabled=!keepAspectEnabled;
+  try{ localStorage.setItem('uoc_keep_aspect',keepAspectEnabled?'1':'0'); }catch(e){}
+  updateAspectUI();
+};
+document.getElementById('btnFitAspect').onclick=()=>fitSizeFrom('w',true);
+document.getElementById('realWidthCm').addEventListener('input',()=>fitSizeFrom('w'));
+document.getElementById('realHeightCm').addEventListener('input',()=>fitSizeFrom('h'));
+
 function collectDestroyList(){ return ['REMOVE','REMAINS','DROP_ITEMS','LOOTABLE','MOVABLE','DECAYS','DROP_EQUIPPED','REPLACE_OBJECT'].filter(k=>document.getElementById('onDestroy_'+k).checked); }
 function buildCollisionExport(doc){
   if(!doc.docW) return null;
@@ -689,6 +741,7 @@ function update(){
   document.getElementById('craftOpenSection').style.display=bool('crafting')?'':'none';
   document.getElementById('craftStatus').textContent=craftRecipe?'Рецепт задан.':'Рецепт не задан.';
   renderLocaleStatus();
+  updateAspectUI();
   syncPreview();
 }
 window.update=update;

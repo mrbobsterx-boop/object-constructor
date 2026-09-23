@@ -226,8 +226,15 @@
     <div class="form">
       <div class="field"><label>Может быть перемещён (поднять/нести)</label><input type="checkbox" id="carryable" class="toggle-switch"></div>
       <div class="field"><label>Может быть размещён</label><input type="checkbox" id="placeable" class="toggle-switch"></div>
-      <div class="field"><label>Реальная ширина <span class="muted">(см, кратно 10)</span></label><input id="realWidthCm" type="number" min="0" step="10" value="0"></div>
-      <div class="field"><label>Реальная высота <span class="muted">(см, кратно 10)</span></label><input id="realHeightCm" type="number" min="0" step="10" value="0"></div>
+      <div class="field"><label>Реальная ширина <span class="muted">(см)</span></label><input id="realWidthCm" type="number" min="0" step="1" value="0"></div>
+      <div class="field"><label>Реальная высота <span class="muted">(см)</span></label><input id="realHeightCm" type="number" min="0" step="1" value="0"></div>
+      <div class="field full">
+        <div class="row">
+          <button type="button" id="btnKeepAspect" class="paste-arm-btn armed">🔗 Сохранить пропорции</button>
+          <button type="button" id="btnFitAspect" style="display:none">Подогнать высоту по ширине</button>
+        </div>
+        <div class="muted" id="aspectStatus" style="margin-top:4px"></div>
+      </div>
       <div class="field"><label>Расположение в мире <span class="muted">(для Room Editor)</span></label>
         <select id="placementMode">
           <option value="ANYWHERE">Где угодно</option>
