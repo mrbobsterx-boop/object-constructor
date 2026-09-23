@@ -1,6 +1,6 @@
 # Редакторы игры — обзор
 
-Три HTML-редактора работают с одной **папкой проекта** и передают друг другу данные через JSON-файлы. Остальные приложения не редактируют игровые данные: **реестр** читает всю папку проекта и показывает, что в ней есть, кто на кого ссылается и что сломано; **Object Plan** — чек-лист объектов, которые ещё нужно создать в ОС, с отметками о выполнении; **Shelter Architecture Map** — аналогичный чек-лист, но по сценам/чертежу здания (сверяется с `data/rooms`, `data/buildings` и файлами сцен Godot). Игра (Godot) читает те же файлы.
+Три HTML-редактора работают с одной **папкой проекта** и передают друг другу данные через JSON-файлы. Остальные приложения не редактируют игровые данные: **реестр** читает всю папку проекта и показывает, что в ней есть, кто на кого ссылается и что сломано; **Object Plan** — чек-лист объектов, которые ещё нужно создать в ОС, с отметками о выполнении; **Shelter Architecture Map** — чек-лист того, что нужно построить в самой игре (Godot), чтобы данные редакторов реально стали игрой: скрипты, автозагрузки, UI-компоненты, базовые сцены объектов, Resource-классы, и отдельно — чек-лист самих сцен комнат/зданий (сверяется с `data/rooms`, `data/buildings`, `project.godot` и файлами сцен). Игра (Godot) читает те же файлы.
 
 | Документ | Приложение | Делает |
 |---|---|---|
@@ -9,7 +9,7 @@
 | [03-Building-Editor.md](03-Building-Editor.md) | **Building Editor** | Здания и улицы из комнат → `data/buildings/*.json` |
 | [04-Project-Registry.md](04-Project-Registry.md) | **Project Registry** | Реестр всего проекта: списки, связи, проверки. Только читает |
 | [05-Object-Plan.md](05-Object-Plan.md) | **Object Plan** | Чек-лист объектов для создания в ОС: зачем нужен, функция, вариации, параметры, связи, порядок создания; автоматические отметки по проекту. Пишет только `data/object_plan.json` |
-| — *(своего файла пока нет)* | **Shelter Architecture Map** (`Shelter-Architecture-Map/`) | Чек-лист по сценам/архитектуре здания: сверяется с `data/rooms`, `data/buildings`, `project.godot` и `*.tscn`-сценами проекта. Пишет только `data/scene_plan.json` |
+| [06-Shelter-Architecture-Map.md](06-Shelter-Architecture-Map.md) | **Shelter Architecture Map** (`Shelter-Architecture-Map/`) | Чек-лист Godot-стороны: системы, UI-компоненты, игровые объекты, Resource-классы данных + чек-лист сцен комнат/зданий из проекта. Сверяется с `data/rooms`, `data/buildings`, `project.godot` и `*.tscn`. Пишет только `data/scene_plan.json` |
 | [UNITS.md](UNITS.md) | — | Единицы измерения, формат блоков, формулы для Godot |
 
 ## 1. Поток данных
@@ -45,6 +45,7 @@
 │   ├── project_settings.json      ← Room Editor: walk_line_bottom_m, block_bevel_px
 │   ├── room_recipes.json          ← Room Editor: рецепты генерации
 │   ├── object_plan.json           ← Object Plan: отметки о выполнении (необязательный)
+│   ├── scene_plan.json            ← Shelter Architecture Map: отметки о выполнении (необязательный)
 │   ├── characters/, rigs/, parts/ ← Character Assembler (ОС и реестр только читают)
 ├── assets/
 │   ├── sprites/
