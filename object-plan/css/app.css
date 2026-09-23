@@ -98,3 +98,6 @@ ul.clean{margin:0;padding-left:18px}ul.clean li{margin-bottom:3px}
 .osval{display:inline-block;cursor:copy;background:#10141a;border:1px solid #2f3945;border-radius:4px;padding:1px 6px;font:12px/1.5 Consolas,Menlo,monospace;color:#ffd98a;white-space:pre-wrap;word-break:break-word}
 .osval:hover{border-color:#7fe9a0}
 .osval.copied,.copybtn.copied{background:#243128;border-color:#7fe9a0;color:#83d59a}
+.vthumb{width:22px;height:22px;object-fit:contain;background:#10141a;border:1px solid #2a313b;border-radius:4px;vertical-align:middle;margin-right:6px;image-rendering:pixelated}
+.grp-new-row{display:none;margin-top:6px}
+.grp-new-row.show{display:block}

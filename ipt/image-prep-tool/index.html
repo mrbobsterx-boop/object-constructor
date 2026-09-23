@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Image Prep Tool</title>
+<link rel="stylesheet" href="css/app.css">
+</head>
+<body>
+<div class="app">
+  <header>
+    <h1>Image Prep Tool</h1>
+    <button id="btnOpenFiles">📂 Открыть картинки</button>
+    <button id="btnPaste">📋 Вставить из буфера</button>
+    <div class="zoombar">
+      <button id="btnZoomOut" title="Уменьшить">－</button>
+      <span id="zoomLabel">100%</span>
+      <button id="btnZoomIn" title="Увеличить">＋</button>
+      <button id="btnZoomFit" title="По размеру окна">Подогнать</button>
+      <button id="btnZoom100" title="Реальный размер (1 px картинки = 1 клетка)">1:1</button>
+    </div>
+    <div class="spacer"></div>
+    <span class="status" id="folderStatus">Папка не подключена</span>
+    <button id="btnConnectFolder">📁 Подключить папку</button>
+    <button id="btnRegrant" style="display:none">Разрешить доступ</button>
+  </header>
+
+  <div class="side-left">
+    <div class="group">
+      <h3>Очередь (<span id="queueCount">0</span>)</h3>
+      <div id="queueList"></div>
+      <div class="hint" style="margin-top:8px" id="queueHint">Открой одну или несколько картинок — можно сразу пачкой. Каждая картинка может содержать несколько объектов.</div>
+    </div>
+    <div class="group">
+      <h3>Слои (<span id="layerCount">0</span>)</h3>
+      <div id="layerList"></div>
+      <div class="hint" style="margin-top:8px" id="layerHint">Выдели объект инструментом «Выделение» и нажми <span class="kbd">Space</span> — появится здесь как отдельный слой.</div>
+    </div>
+  </div>
+
+  <div class="stage-outer">
+    <div class="ruler-corner"></div>
+    <canvas id="rulerTop"></canvas>
+    <canvas id="rulerLeft"></canvas>
+    <div class="stage" id="stage">
+      <div class="canvas-wrap" id="canvasWrap" style="display:none">
+        <canvas id="mainCanvas"></canvas>
+        <canvas id="remnantCanvas"></canvas>
+        <div id="selectionBox"></div>
+        <div id="cursorRing"></div>
+        <div id="resizeOutline"></div>
+        <div id="resizeHandles">
+          <div class="rhandle nw" data-h="nw"></div><div class="rhandle n" data-h="n"></div><div class="rhandle ne" data-h="ne"></div>
+          <div class="rhandle w" data-h="w"></div><div class="rhandle e" data-h="e"></div>
+          <div class="rhandle sw" data-h="sw"></div><div class="rhandle s" data-h="s"></div><div class="rhandle se" data-h="se"></div>
+        </div>
+      </div>
+      <div id="resizePreview"></div>
+      <div class="empty-drop" id="emptyDrop">
+        Перетащи картинку сюда, вставь из буфера (<span class="kbd">Ctrl</span>+<span class="kbd">V</span>)<br>
+        или нажми <b>«Открыть картинки»</b>
+      </div>
+    </div>
+  </div>
+
+  <div class="side-right">
+    <div class="group">
+      <h3>Инструмент</h3>
+      <button class="toolbtn active" id="toolSelect" data-tool="select">▭ Выделение — вырезать объект в слой</button>
+      <button class="toolbtn" id="toolErase" data-tool="erase">🧽 Ластик — стереть лишнее</button>
+      <button class="toolbtn" id="toolRestore" data-tool="restore">🖌 Восстановить (вернуть стёртое)</button>
+      <button class="toolbtn" id="toolTransform" data-tool="transform">↔ Растянуть за края</button>
+      <div class="hint" id="selectHint">Тяни мышкой рамку вокруг объекта (не обязательно точно) и нажми <span class="kbd">Space</span> — фон внутри рамки уберётся автоматически, рамка обрежется по объекту и станет новым слоем. <span class="kbd">Esc</span> — отменить рамку.</div>
+      <div class="row" id="bgRemoveRow" style="margin-top:4px">
+        <label style="display:flex;gap:6px;align-items:center;margin:0"><input type="checkbox" id="bgRemoveOn" checked style="width:auto"> авто-удаление фона при захвате</label>
+      </div>
+      <div class="row" id="bgToleranceRow">
+        <label class="small" style="width:60px">Чувствит.</label>
+        <input type="range" id="bgTolerance" min="4" max="80" value="26" class="full">
+        <span class="small" id="bgToleranceLabel">26</span>
+      </div>
+      <div class="row" id="brushSizeRow" style="margin-top:4px">
+        <label class="small" style="width:60px">Размер</label>
+        <input type="range" id="brushSize" min="4" max="260" value="40" class="full">
+      </div>
+      <div class="row" id="brushSizeLabelRow"><label class="small" style="width:60px">&nbsp;</label><span class="small" id="brushSizeLabel">40 px</span>
+        <span class="small" style="margin-left:auto">колёсико / <span class="kbd">[</span> <span class="kbd">]</span></span></div>
+      <div class="row" id="brushSoftRow">
+        <label class="small" style="width:60px">Мягкость</label>
+        <input type="range" id="brushSoft" min="0" max="100" value="35" class="full">
+      </div>
+      <div class="hint" id="transformHint" style="display:none">Потяни за квадратик на краю или углу. Боковой — тянет одну сторону, угол — обе (с <span class="kbd">Shift</span> — пропорционально).</div>
+    </div>
+
+    <div class="group">
+      <h3>Название слоя (по плану объектов)</h3>
+      <div class="pickbar">
+        <select id="pkGroup"><option value="">— раздел —</option></select>
+        <select id="pkItem" disabled><option value="">— объект —</option></select>
+        <select id="pkVariant" disabled><option value="">— вариация —</option></select>
+        <div class="hint">Выбор раздела и объекта сохраняется между слоями — меняй только вариацию для следующего объекта того же типа.</div>
+      </div>
+      <details class="mini-form">
+        <summary>+ своя категория / объект / вариация</summary>
+        <div class="pickbar">
+          <select id="ownGroup"><option value="">— раздел —</option><option value="__new__">+ новый раздел…</option></select>
+          <input type="text" id="ownGroupName" placeholder="Название нового раздела" style="display:none">
+          <input type="text" id="ownItemName" placeholder="Название объекта (например: Шкаф локер)">
+          <select id="ownCat"></select>
+          <input type="text" id="ownVariant" placeholder="Вариация (например: зелёный военный)">
+          <button id="btnOwnApply" class="full">Добавить/выбрать и назвать активный слой</button>
+        </div>
+        <div class="hint">Попадёт в свои объекты Object Plan — если раздел+объект уже существуют, вариация просто добавится к нему.</div>
+      </details>
+    </div>
+
+    <div class="group">
+      <h3>Проверка перед сохранением</h3>
+      <button class="toolbtn" id="btnShowRemnants">🔴 Подсветить остатки</button>
+      <div class="hint">Всё, что не до конца стёрлось, станет ярко-красным.</div>
+    </div>
+
+    <div class="group">
+      <h3>Действия (для активного холста — лист или слой)</h3>
+      <div class="row"><button id="btnUndo" style="flex:1">↶ Отменить</button><button id="btnRedo" style="flex:1">↷ Вернуть</button></div>
+      <button class="full" id="btnTrim" style="margin-top:6px">✂ Обрезать пустое пространство</button>
+      <button class="full" id="btnResetImage" style="margin-top:6px">Сбросить всё (к исходной)</button>
+      <div class="hint" style="margin-top:8px">
+        <span class="kbd">Ctrl</span>+<span class="kbd">Z</span> — отменить, <span class="kbd">Ctrl</span>+<span class="kbd">Shift</span>+<span class="kbd">Z</span> — вернуть,
+        <span class="kbd">Delete</span> — удалить активный слой.
+      </div>
+    </div>
+
+    <div class="group">
+      <h3>Сохранение</h3>
+      <label class="small">Имя листа целиком (если слоёв нет — сохранится как один файл)</label>
+      <input type="text" id="baseName" class="full" style="margin-top:4px" placeholder="object">
+      <div class="hint" style="margin:6px 0">Слои сохраняются по своим именам (из плана или своим текстом) в <code>assets/refs/</code>. Существующие файлы не перезаписываются — добавляется номер.</div>
+      <button class="full primary" id="btnSave">💾 Сохранить всё</button>
+      <div class="row" style="margin-top:6px">
+        <label class="small" style="display:flex;gap:6px;align-items:center;margin:0">
+          <input type="checkbox" id="autoTrimOnSave" checked style="width:auto"> дообрезать при сохранении
+        </label>
+      </div>
+      <div class="row" style="margin-top:4px">
+        <label class="small" style="display:flex;gap:6px;align-items:center;margin:0">
+          <input type="checkbox" id="autoNext" checked style="width:auto"> после сохранения — следующая картинка
+        </label>
+      </div>
+      <div class="hint" id="saveStatus" style="margin-top:8px"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Словарь Object Plan подключается напрямую его же скриптами (02+03+04+05) — так каталог разделов/объектов/вариаций
+     всегда совпадает с тем, что видит сам Object Plan. Порядок внутри группы менять нельзя; сама группа должна
+     стоять до 02-plan-bridge.js. -->
+<script src="../../object-plan/js/02-vocab.js"></script>
+<script src="../../object-plan/js/03-data-shelter.js"></script>
+<script src="../../object-plan/js/04-data-production.js"></script>
+<script src="../../object-plan/js/05-data-world.js"></script>
+
+<!-- Порядок ниже менять нельзя: скрипты делят одну глобальную область, номер = порядок загрузки, INIT — последний -->
+<script src="js/01-core-utils.js"></script>
+<script src="js/02-plan-bridge.js"></script>
+<script src="js/03-queue.js"></script>
+<script src="js/04-canvas-core.js"></script>
+<script src="js/05-layers.js"></script>
+<script src="js/06-tools-paint.js"></script>
+<script src="js/07-tool-select.js"></script>
+<script src="js/08-naming-panel.js"></script>
+<script src="js/09-save.js"></script>
+<script src="js/10-init.js"></script>
+</body>
+</html>

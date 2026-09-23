@@ -30,7 +30,7 @@ function checklistRow(i){
 }
 function checklistBody(){
   const parts=[]; let shown=0;
-  GROUPS.forEach(g=>{
+  effectiveGroups().forEach(g=>{
     const all=ITEMS.filter(i=>i.g===g.id); if(!all.length) return;
     const list=all.filter(checklistFilter).sort((a,b)=>(a.p-b.p)||a.n.localeCompare(b.n,'ru')); if(!list.length) return;
     shown+=list.length;
@@ -45,7 +45,7 @@ VIEW_RENDERERS.checklist=function(){
   const body=checklistBody();
   return `<div class="toolbar"><div><h2>Чек-лист объектов</h2><div class="muted" id="clCount">Показано ${body.shown} из ${ITEMS.length}</div></div><div class="spacer"></div></div>
   <div class="filters" style="margin-bottom:12px">
-    ${sel('group','Раздел',[['','Все']].concat(GROUPS.map(g=>[g.id,g.name])))}
+    ${sel('group','Раздел',[['','Все']].concat(effectiveGroups().map(g=>[g.id,g.name])))}
     ${sel('prio','Приоритет',[['','Все']].concat(PRIORITIES.map(p=>[String(p.id),'P'+p.id])))}
     ${sel('status','Статус',[['','Все']].concat(STATUSES.map(s=>[s.id,s.name])))}
     ${sel('cat','Категория ОС',[['','Все']].concat(CATEGORIES.map(c=>[c.id,c.name])))}

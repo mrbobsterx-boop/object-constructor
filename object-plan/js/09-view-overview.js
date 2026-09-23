@@ -16,7 +16,7 @@ VIEW_RENDERERS.overview=function(){
     const list=ITEMS.filter(i=>i.p===p.id), done=list.filter(isDone).length;
     return `<tr class="click" data-act="filter" data-view="checklist" data-fk="prio" data-fv="${p.id}"><td>${prioBadge(p.id)} <span class="muted">${esc(p.name.replace(/^P\d — /,''))}</span></td><td>${done} / ${list.length}</td><td style="width:35%">${progressBar(done,list.length)}</td></tr>`;
   });
-  const groupRows=GROUPS.map(g=>{
+  const groupRows=effectiveGroups().map(g=>{
     const list=ITEMS.filter(i=>i.g===g.id); if(!list.length) return '';
     const done=list.filter(isDone).length, wip=list.filter(i=>statusOf(i)==='wip').length;
     return `<tr class="click" data-act="filter" data-view="checklist" data-fk="group" data-fv="${g.id}"><td><b>${esc(g.name)}</b><div class="muted small">слой ${g.layer}: ${esc(LAYERS[g.layer]||'')}</div></td><td>${done} / ${list.length}${wip?` <span class="muted">(в работе ${wip})</span>`:''}</td><td style="width:35%">${progressBar(done,list.length)}</td></tr>`;

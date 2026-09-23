@@ -9,7 +9,7 @@ VIEW_RENDERERS.dictionaries=function(){
     const list=ITEMS.filter(i=>i.c===c.id), done=list.filter(isDone).length;
     return `<tr class="click" data-act="filter" data-view="checklist" data-fk="cat" data-fv="${c.id}"><td><b>${esc(c.name)}</b> <span class="muted small">${esc(c.id)}</span>${c.needsNew?' <span class="tag new">нет в ОС</span>':''}${c.note?`<div class="muted small">${esc(c.note)}</div>`:''}</td><td>${list.length}</td><td>${done}</td></tr>`;
   });
-  const groupRows=GROUPS.map(g=>{ const list=ITEMS.filter(i=>i.g===g.id); return `<tr class="click" data-act="filter" data-view="checklist" data-fk="group" data-fv="${g.id}"><td><b>${esc(g.name)}</b><div class="muted small">${esc(g.desc)}</div></td><td>${g.layer} — ${esc(LAYERS[g.layer]||'')}</td><td>${list.length}</td></tr>`; });
+  const groupRows=effectiveGroups().map(g=>{ const list=ITEMS.filter(i=>i.g===g.id); return `<tr class="click" data-act="filter" data-view="checklist" data-fk="group" data-fv="${g.id}"><td><b>${esc(g.name)}</b>${g.custom?' <span class="tag new">свой</span>':''}<div class="muted small">${esc(g.desc||'')}</div></td><td>${g.layer||'—'} — ${esc(LAYERS[g.layer]||'')}</td><td>${list.length}</td></tr>`; });
   const sysRows=SYSTEMS.map(s=>{ const list=ITEMS.filter(i=>i.sys.includes(s.id)); return `<tr class="click" data-act="filter" data-view="checklist" data-fk="sys" data-fv="${s.id}"><td><b>${esc(s.name)}</b> <span class="muted small">${esc(s.id)}</span></td><td>${list.length}</td><td>${list.filter(isDone).length}</td></tr>`; });
   const roomRows=ROOM_TYPES.map(r=>{
     const list=ITEMS.filter(i=>i.rooms.includes(r.id)).sort((a,b)=>a.p-b.p);
@@ -36,20 +36,30 @@ VIEW_RENDERERS.checks=function(){
 };
 
 /* ---------- свои объекты ---------- */
+const NEW_GROUP_OPT='__new__';
+function groupSelectHtml(id,selected){
+  return `<select id="${id}">${effectiveGroups().map(g=>`<option value="${g.id}"${g.id===selected?' selected':''}>${esc(g.name)}</option>`).join('')}<option value="${NEW_GROUP_OPT}">+ новый раздел…</option></select>`;
+}
 VIEW_RENDERERS.custom=function(){
-  const rows=(store.custom||[]).map(c=>`<tr><td>${lnk(c.id)} <span class="muted small">${esc(c.id)}</span></td><td>${esc(catName(c.c))}</td><td>${esc(groupName(c.g))}</td><td>${prioBadge(c.p)}</td><td><button data-act="del-custom" data-id="${esc(c.id)}">Удалить</button></td></tr>`);
+  const rows=(store.custom||[]).map(c=>`<tr><td>${lnk(c.id)} <span class="muted small">${esc(c.id)}</span></td><td>${esc(catName(c.c))}</td><td>${esc(groupName(c.g))}</td><td>${prioBadge(c.p)}</td><td>${(c.v||[]).length}</td><td><button data-act="del-custom" data-id="${esc(c.id)}">Удалить</button></td></tr>`);
   return `<div class="toolbar"><div><h2>Свои объекты</h2><div class="muted">Добавь объект, которого нет в каталоге: он появится в чек-листе, порядке создания и сверке</div></div></div>
   ${card('Новый объект',`<div class="filters">
     <div><label>id (a-z, 0-9, _)</label><input id="cId" placeholder="например: bed_wide"></div>
     <div><label>Название</label><input id="cName" placeholder="Кровать широкая"></div>
     <div><label>Категория ОС</label><select id="cCat">${CATEGORIES.map(c=>`<option value="${c.id}">${esc(c.name)}</option>`).join('')}</select></div>
-    <div><label>Раздел</label><select id="cGroup">${GROUPS.map(g=>`<option value="${g.id}">${esc(g.name)}</option>`).join('')}</select></div>
+    <div><label>Раздел</label>${groupSelectHtml('cGroup','')}</div>
     <div><label>Приоритет</label><select id="cPrio">${PRIORITIES.map(p=>`<option value="${p.id}"${p.id===1?' selected':''}>P${p.id}</option>`).join('')}</select></div>
-  </div><div style="margin-top:8px"><label>Зачем нужен</label><input id="cWhy" style="width:100%"></div>
+  </div>
+  <div class="grp-new-row" id="cGroupNewRow"><label>Название нового раздела</label><input id="cGroupNewName" placeholder="например: Транспорт" style="width:280px"></div>
+  <div style="margin-top:8px"><label>Зачем нужен</label><input id="cWhy" style="width:100%"></div>
   <div style="margin-top:8px"><label>Функциональная способность</label><input id="cFn" style="width:100%"></div>
+  <div style="margin-top:8px"><label>Вариации (через запятую, по-русски — английский слаг получится сам)</label><input id="cVariants" style="width:100%" placeholder="серый, зелёный военный, бежевый"></div>
   <div style="margin-top:10px"><button class="primary" data-act="add-custom">➕ Добавить в план</button> <span id="cMsg" class="muted"></span></div>`)}
-  ${card('Мои объекты ('+(store.custom||[]).length+')',table(['Объект','Категория','Раздел','Приоритет',''],rows,'Пока нет своих объектов.'))}`;
+  ${card('Мои объекты ('+(store.custom||[]).length+')',table(['Объект','Категория','Раздел','Приоритет','Вариаций',''],rows,'Пока нет своих объектов.'))}`;
 };
+document.addEventListener('change',e=>{
+  if(e.target.id==='cGroup') document.getElementById('cGroupNewRow').classList.toggle('show',e.target.value===NEW_GROUP_OPT);
+});
 document.addEventListener('click',e=>{
   const a=e.target.closest('[data-act="add-custom"],[data-act="del-custom"]'); if(!a) return;
   if(a.dataset.act==='del-custom'){
@@ -62,6 +72,14 @@ document.addEventListener('click',e=>{
   if(!/^[a-z0-9_\-]+$/.test(id)){ msg.textContent='id: только a-z, 0-9, _ и -'; return; }
   if(BY_ID.has(id)){ msg.textContent='Такой id уже есть в плане.'; return; }
   if(!name){ msg.textContent='Укажи название.'; return; }
-  store.custom.push({id,n:name,c:v('cCat'),g:v('cGroup'),p:Number(v('cPrio')),why:v('cWhy'),fn:v('cFn'),use:'',note:''});
+  let groupId=v('cGroup');
+  if(groupId===NEW_GROUP_OPT){
+    const gName=v('cGroupNewName'); if(!gName){ msg.textContent='Укажи название нового раздела.'; return; }
+    const gId=sanitizeSlug(gName)||('group_'+Date.now());
+    if(!effectiveGroups().some(g=>g.id===gId)) store.customGroups.push({id:gId,name:gName,layer:0,desc:'Свой раздел',custom:true});
+    groupId=gId;
+  }
+  const variants=v('cVariants').split(',').map(s=>s.trim()).filter(Boolean);
+  store.custom.push({id,n:name,c:v('cCat'),g:groupId,p:Number(v('cPrio')),why:v('cWhy'),fn:v('cFn'),v:variants,use:'',note:''});
   saveStore(); buildModel(); if(PROJECT.scanned) PROJECT.extra=[...PROJECT.found.values()].filter(o=>!BY_ID.has(o.id)); render();
 });

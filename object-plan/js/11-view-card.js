@@ -59,7 +59,7 @@ VIEW_RENDERERS.card=function(id){
   const i=BY_ID.get(id);
   if(!i) return `<div class="toolbar"><button data-act="back">← Назад</button></div><div class="empty">Объект «${esc(id)}» не найден в плане.</div>`;
   const s=statusOf(i), auto=statusIsAuto(i), st=stepStats(i), f=found(i);
-  const cat=CATEGORIES.find(c=>c.id===i.c), g=GROUPS.find(x=>x.id===i.g);
+  const cat=CATEGORIES.find(c=>c.id===i.c), g=effectiveGroups().find(x=>x.id===i.g);
   const head=`<div class="toolbar"><button data-act="back">← Назад</button><div><h2>${esc(i.n)} <span class="muted small">${esc(i.id)}</span></h2></div>
     <div class="row">${prioBadge(i.p)} ${badge(catName(i.c))} ${badge(groupName(i.g))} ${statusBadge(i)} ${i.custom?badge('свой','info'):''}</div></div>`;
 
@@ -74,7 +74,11 @@ VIEW_RENDERERS.card=function(id){
     <div><div class="muted small">ДЛЯ ЧЕГО ПОЛЕЗЕН</div>${esc(i.use)||'—'}</div>
     ${i.note?`<div style="margin-top:8px"><div class="muted small">ОТКРЫТЫЕ ВОПРОСЫ</div><span class="warn">${esc(i.note)}</span></div>`:''}`);
 
-  const variants=card('Вариации ('+i.v.length+')',i.v.length?`<ul class="clean">${i.v.map(v=>`<li>${esc(v)}</li>`).join('')}</ul>`+(i.vg?`<div class="muted small" style="margin-top:6px">Группа взаимозаменяемости для генератора комнат: <b>${esc(i.vg)}</b> (поле «Группа» в ОС)</div>`:''):'<span class="muted">Нет.</span>');
+  const variantRow=v=>{
+    const ru=variationRu(v), en=variationEn(v), url=refThumbFor(i,v);
+    return `<li>${url?`<img class="vthumb" src="${esc(url)}" alt="">`:''}${esc(ru)} <span class="muted small">(${esc(en)})</span>${url?'':' <span class="muted small">· нет превью в assets/refs</span>'}</li>`;
+  };
+  const variants=card('Вариации ('+i.v.length+')',i.v.length?`<ul class="clean">${i.v.map(variantRow).join('')}</ul>`+(i.vg?`<div class="muted small" style="margin-top:6px">Группа взаимозаменяемости для генератора комнат: <b>${esc(i.vg)}</b> (поле «Группа» в ОС)</div>`:''):'<span class="muted">Нет.</span>');
 
   const osParams=osCard(i);
 

@@ -12,6 +12,15 @@ function num(v,def){ const n=Number(v); return Number.isFinite(n)?n:(def===undef
 function normPath(p){ return String(p||'').replace(/\\/g,'/').replace(/^\.?\//,'').replace(/^assets\/(sprites|sounds)\//,''); }
 function pct(a,b){ return b?Math.round(a/b*100):0; }
 
+// Транслитерация и вариации: вариация (поле v объекта) — либо просто русская строка (английский слаг
+// получается транслитерацией), либо {ru,en} с явным английским именем. Используется картинками-превью
+// (assets/refs/<id>_<en>.*) и image-prep-tool при автоматическом наименовании слоёв.
+const TRANSLIT_MAP={а:'a',б:'b',в:'v',г:'g',д:'d',е:'e',ё:'e',ж:'zh',з:'z',и:'i',й:'y',к:'k',л:'l',м:'m',н:'n',о:'o',п:'p',р:'r',с:'s',т:'t',у:'u',ф:'f',х:'h',ц:'ts',ч:'ch',ш:'sh',щ:'sch',ъ:'',ы:'y',ь:'',э:'e',ю:'yu',я:'ya'};
+function translit(str){ return String(str||'').toLowerCase().split('').map(ch=>TRANSLIT_MAP[ch]!==undefined?TRANSLIT_MAP[ch]:ch).join(''); }
+function sanitizeSlug(s){ return translit(String(s||'')).replace(/[^a-z0-9]+/g,'_').replace(/^_+|_+$/g,'').slice(0,60); }
+function variationRu(v){ return typeof v==='string'?v:String((v&&v.ru)||''); }
+function variationEn(v){ if(typeof v==='string') return sanitizeSlug(v); return String((v&&v.en)||sanitizeSlug((v&&v.ru)||'')); }
+
 const DB_NAME='object_plan_fs', DB_STORE='handles';
 let projectDirHandle=null;
 function idbOpen(){

@@ -7,15 +7,19 @@
      w   — «взаимодействует с»: с кем и чем работает объект в игре (обратная связь считается автоматически).
    ============================================================ */
 
-// Отметки пользователя (localStorage и data/object_plan.json): статусы, шаги, заметки, свои объекты
-let store={status:{},steps:{},notes:{},custom:[]};
+// Отметки пользователя (localStorage и data/object_plan.json): статусы, шаги, заметки, свои объекты, свои разделы
+let store={status:{},steps:{},notes:{},custom:[],customGroups:[]};
 let ITEMS=[], BY_ID=new Map();
 let REL={neededBy:new Map(), touchedBy:new Map()};   // id → [id] (кто требует этот объект / кто с ним взаимодействует)
 let WAVES=[];                                         // WAVES[n] = [item…]
 let PLAN_PROBLEMS=[];                                 // {level, code, id, msg}
 
 const CAT_BY_ID=()=>new Map(CATEGORIES.map(c=>[c.id,c]));
-const GROUP_BY_ID=()=>new Map(GROUPS.map(g=>[g.id,g]));
+// Разделы плана + свои разделы (store.customGroups — добавляются из этого приложения или из image-prep-tool,
+// хранятся вместе с остальными отметками в data/object_plan.json). Везде, где раньше читали GROUPS напрямую,
+// нужно читать effectiveGroups() — иначе объект в своём разделе получит ошибку «раздела нет в словаре».
+function effectiveGroups(){ return GROUPS.concat(Array.isArray(store.customGroups)?store.customGroups:[]); }
+const GROUP_BY_ID=()=>new Map(effectiveGroups().map(g=>[g.id,g]));
 
 function normalizeItem(raw,custom){
   const it=Object.assign({p:1,sz:null,wt:0,v:[],os:{},cf:[],pn:[],act:[],req:[],w:[],rooms:[],vis:[],sys:[],why:'',fn:'',use:'',note:'',rc:''},raw);
@@ -24,7 +28,7 @@ function normalizeItem(raw,custom){
   if(!it.os||typeof it.os!=='object'||Array.isArray(it.os)) it.os={};
   const d=CAT_DEFAULTS[it.c]||{ph:'STATIC',pl:'ANYWHERE'};
   it.phEff=it.ph||d.ph; it.plEff=it.pl||d.pl; it.carry=!!d.carry;
-  const g=GROUPS.find(x=>x.id===it.g); it.layer=g?g.layer:0;
+  const g=effectiveGroups().find(x=>x.id===it.g); it.layer=g?g.layer:0;
   it.search=[it.id,it.n,it.c,it.s,it.g,(it.sys||[]).join(' '),(it.rooms||[]).join(' '),it.why,it.fn,(it.v||[]).join(' ')].join(' ').toLowerCase();
   return it;
 }

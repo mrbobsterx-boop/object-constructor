@@ -11,14 +11,14 @@ const STORE_KEY='object_plan_v1';
 function loadStore(){
   try{
     const s=JSON.parse(localStorage.getItem(STORE_KEY)||'{}');
-    store={status:s.status||{},steps:s.steps||{},notes:s.notes||{},custom:Array.isArray(s.custom)?s.custom:[]};
+    store={status:s.status||{},steps:s.steps||{},notes:s.notes||{},custom:Array.isArray(s.custom)?s.custom:[],customGroups:Array.isArray(s.customGroups)?s.customGroups:[]};
   }catch(e){ console.warn('Не удалось прочитать отметки:',e); }
 }
 function saveStore(){ try{ localStorage.setItem(STORE_KEY,JSON.stringify(store)); }catch(e){ console.warn(e); } }
 async function saveStoreToProject(){
   if(!projectDirHandle){ alert('Сначала подключи папку проекта.'); return; }
   try{
-    const data={schema_version:1,saved_at:new Date().toISOString(),status:store.status,steps:store.steps,notes:store.notes,custom:store.custom};
+    const data={schema_version:1,saved_at:new Date().toISOString(),status:store.status,steps:store.steps,notes:store.notes,custom:store.custom,customGroups:store.customGroups};
     await writeFileToProject('data/object_plan.json',new TextEncoder().encode(JSON.stringify(data,null,2)));
     setFolderStatus('Прогресс записан в data/object_plan.json · '+new Date().toLocaleTimeString());
   }catch(e){ console.error(e); alert('Не удалось записать: '+e.message); }
@@ -30,21 +30,32 @@ async function loadStoreFromProject(){
     const r=await readJsonFile(dir,'object_plan.json');
     if(!r.data){ alert('Файл data/object_plan.json не найден или повреждён.'); return; }
     if(!confirm('Заменить текущие отметки в браузере отметками из data/object_plan.json?')) return;
-    store={status:r.data.status||{},steps:r.data.steps||{},notes:r.data.notes||{},custom:Array.isArray(r.data.custom)?r.data.custom:[]};
+    store={status:r.data.status||{},steps:r.data.steps||{},notes:r.data.notes||{},custom:Array.isArray(r.data.custom)?r.data.custom:[],customGroups:Array.isArray(r.data.customGroups)?r.data.customGroups:[]};
     saveStore(); buildModel(); render();
     setFolderStatus('Отметки загружены из проекта.');
   }catch(e){ console.error(e); alert('Не удалось прочитать: '+e.message); }
 }
 
 /* ---------- сверка с проектом ---------- */
-let PROJECT={scanned:false,at:null,found:new Map(),sprites:new Set(),usage:new Map(),extra:[],missingObjects:false};
+// refs — превью-кропы из image-prep-tool (assets/refs/<id>_<вариация-en>.*): имя → object URL для миниатюры
+// рядом с вариацией на карточке объекта.
+let PROJECT={scanned:false,at:null,found:new Map(),sprites:new Set(),refs:new Map(),usage:new Map(),extra:[],missingObjects:false};
 async function scanProjectObjects(){
   if(!projectDirHandle) return;
   const el=document.getElementById('scanStatus'); if(el) el.textContent='Сверка с проектом…';
-  const P={scanned:true,at:new Date(),found:new Map(),sprites:new Set(),usage:new Map(),extra:[],missingObjects:false};
+  const P={scanned:true,at:new Date(),found:new Map(),sprites:new Set(),refs:new Map(),usage:new Map(),extra:[],missingObjects:false};
   const use=(id,n)=>{ if(id) P.usage.set(id,(P.usage.get(id)||0)+(n||1)); };
   const objs=await listJsonDir('data/objects'); P.missingObjects=objs.missing;
   const sp=await listFilesRecursive('assets/sprites',SPRITE_EXT); sp.files.forEach(f=>P.sprites.add(f));
+  for(const [oldPath,oldUrl] of PROJECT.refs) URL.revokeObjectURL(oldUrl);
+  const rf=await listFilesRecursive('assets/refs',SPRITE_EXT);
+  for(const relPath of rf.files){
+    try{
+      const dir=await getSubdir(projectDirHandle,'assets/refs/'+relPath.split('/').slice(0,-1).join('/'),false);
+      const file=await (await dir.getFileHandle(relPath.split('/').pop())).getFile();
+      P.refs.set(relPath,URL.createObjectURL(file));
+    }catch(e){ /* пропускаем нечитаемый файл превью */ }
+  }
   objs.items.forEach(f=>{
     if(!f.data||typeof f.data!=='object') return;
     const d=f.data, b=d.behavior||{}, id=String(d.id||f.name.replace(/\.json$/i,''));
@@ -71,6 +82,16 @@ async function scanProjectObjects(){
   render();
 }
 function found(item){ return PROJECT.found.get(item.id)||null; }
+// Превью вариации: первый файл assets/refs/, чьё имя начинается с <id>_<английская вариация> — так их
+// сохраняет image-prep-tool. Без подключённой папки/скана — ничего.
+function refThumbFor(item,v){
+  const prefix=(item.id+'_'+variationEn(v)).toLowerCase();
+  for(const [relPath,url] of PROJECT.refs){
+    const base=relPath.split('/').pop().replace(/\.[a-z0-9]+$/i,'').toLowerCase();
+    if(base.indexOf(prefix)===0) return url;
+  }
+  return null;
+}
 
 /* ---------- шаги и статусы ---------- */
 function stepList(item){ return STEP_DEFS.filter(s=>s.when(item)); }
@@ -109,7 +130,7 @@ function setNote(id,text){ if(text&&text.trim()) store.notes[id]=text; else dele
 
 function exportMarkdown(){
   const out=['# Object Plan — чек-лист объектов','',`Сформировано: ${new Date().toLocaleString('ru-RU')}`,''];
-  GROUPS.forEach(g=>{
+  effectiveGroups().forEach(g=>{
     const list=ITEMS.filter(i=>i.g===g.id).sort((a,b)=>a.p-b.p);
     if(!list.length) return;
     const done=list.filter(isDone).length;

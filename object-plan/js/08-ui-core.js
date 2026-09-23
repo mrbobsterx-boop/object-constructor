@@ -22,7 +22,7 @@ function lnk(id,label){
 function badge(text,cls){ return `<span class="badge ${cls||''}">${esc(text)}</span>`; }
 function prioBadge(p){ return `<span class="prio p${p}" title="${esc((PRIORITIES.find(x=>x.id===p)||{}).name||'')}">P${p}</span>`; }
 function catName(id){ const c=CATEGORIES.find(x=>x.id===id); return c?c.name:id; }
-function groupName(id){ const g=GROUPS.find(x=>x.id===id); return g?g.name:id; }
+function groupName(id){ const g=effectiveGroups().find(x=>x.id===id); return g?g.name:id; }
 function statusBadge(item){
   const st=statusOf(item), name=(STATUSES.find(s=>s.id===st)||{}).name||st;
   return `<span class="st ${st}">${esc(name)}</span>`+(statusIsAuto(item)&&st!=='todo'?' <span class="muted small" title="Определено автоматически по шагам и проекту">авто</span>':'');
