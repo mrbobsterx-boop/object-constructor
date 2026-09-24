@@ -9,12 +9,12 @@ let tool='select', brushSize=40, brushSoft=35;
 function setToolUI(){
   document.querySelectorAll('.toolbtn').forEach(b=>b.classList.toggle('active',b.dataset.tool===tool));
   const rows={
-    select:['selectHint','bgRemoveRow','bgToleranceRow'],
+    select:['selectHint'],
     erase:['brushSizeRow','brushSizeLabelRow','brushSoftRow'],
     restore:['brushSizeRow','brushSizeLabelRow','brushSoftRow'],
     transform:['transformHint']
   };
-  ['selectHint','bgRemoveRow','bgToleranceRow','brushSizeRow','brushSizeLabelRow','brushSoftRow','transformHint'].forEach(id=>{
+  ['selectHint','brushSizeRow','brushSizeLabelRow','brushSoftRow','transformHint'].forEach(id=>{
     document.getElementById(id).style.display=(rows[tool]||[]).includes(id)?'':'none';
   });
   document.getElementById('resizeHandles').style.display=tool==='transform'?'block':'none';
@@ -28,8 +28,6 @@ setToolUI();
 const brushSizeInput=document.getElementById('brushSize'), brushSizeLabel=document.getElementById('brushSizeLabel');
 brushSizeInput.oninput=()=>{ brushSize=+brushSizeInput.value; brushSizeLabel.textContent=brushSize+' px'; updateCursorRing(); };
 document.getElementById('brushSoft').oninput=e=>{ brushSoft=+e.target.value; };
-const bgToleranceInput=document.getElementById('bgTolerance'), bgToleranceLabel=document.getElementById('bgToleranceLabel');
-bgToleranceInput.oninput=()=>{ bgToleranceLabel.textContent=bgToleranceInput.value; };
 
 let drawing=false, lastPt=null;
 const cursorRing=document.getElementById('cursorRing');

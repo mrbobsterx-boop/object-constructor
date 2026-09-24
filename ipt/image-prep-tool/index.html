@@ -70,15 +70,7 @@
       <button class="toolbtn" id="toolErase" data-tool="erase">🧽 Ластик — стереть лишнее</button>
       <button class="toolbtn" id="toolRestore" data-tool="restore">🖌 Восстановить (вернуть стёртое)</button>
       <button class="toolbtn" id="toolTransform" data-tool="transform">↔ Растянуть за края</button>
-      <div class="hint" id="selectHint">Тяни мышкой рамку вокруг объекта (не обязательно точно) и нажми <span class="kbd">Space</span> — фон внутри рамки уберётся автоматически, рамка обрежется по объекту и станет новым слоем. <span class="kbd">Esc</span> — отменить рамку.</div>
-      <div class="row" id="bgRemoveRow" style="margin-top:4px">
-        <label style="display:flex;gap:6px;align-items:center;margin:0"><input type="checkbox" id="bgRemoveOn" checked style="width:auto"> авто-удаление фона при захвате</label>
-      </div>
-      <div class="row" id="bgToleranceRow">
-        <label class="small" style="width:60px">Чувствит.</label>
-        <input type="range" id="bgTolerance" min="4" max="80" value="26" class="full">
-        <span class="small" id="bgToleranceLabel">26</span>
-      </div>
+      <div class="hint" id="selectHint">Тяни мышкой рамку вокруг объекта и нажми <span class="kbd">Space</span> — рамка обрежется по непрозрачному содержимому (как кнопка «Обрезать пустое пространство») и станет новым слоем. Пиксели внутри не трогаются — если у листа непрозрачный фон, сотри его ластиком уже на слое. <span class="kbd">Esc</span> — отменить рамку.</div>
       <div class="row" id="brushSizeRow" style="margin-top:4px">
         <label class="small" style="width:60px">Размер</label>
         <input type="range" id="brushSize" min="4" max="260" value="40" class="full">

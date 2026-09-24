@@ -1,8 +1,12 @@
 /* ============================================================
    MODULE 05 — СЛОИ
    Каждый захваченный объект — отдельная цель (targets[layer.id]) + запись в layers[] с именем.
-   Создание слоя (вырезать из листа → убрать фон → обрезать) — здесь; сам алгоритм убирания
-   фона/обрезки офскрин-холста — в 07-tool-select.js (createLayerFromSheetRegion его только вызывает).
+   Создание слоя (вырезать из листа → обрезать пустое пространство) — здесь; сама обрезка
+   офскрин-холста — в 07-tool-select.js (createLayerFromSheetRegion её только вызывает).
+   Захват НЕ трогает пиксели внутри рамки — только обрезает вокруг, как кнопка «Обрезать
+   пустое пространство» (btnTrim). Если фон внутри рамки непрозрачный (обычный белый фон
+   у исходной картинки-листа), его нужно стереть ластиком отдельно — это уже интерактивная
+   правка, а не автоматика захвата.
    ============================================================ */
 
 let layers=[];
@@ -19,11 +23,7 @@ function createLayerFromSheetRegion(x0,y0,w,h){
   const crop=makeOffscreen(w,h);
   crop.getContext('2d').drawImage(src,x0,y0,w,h,0,0,w,h);
 
-  if(document.getElementById('bgRemoveOn').checked){
-    const tol=Number(document.getElementById('bgTolerance').value)||26;
-    floodRemoveBackground(crop.getContext('2d'),w,h,tol);
-  }
-  const trimmed=trimOffscreen(crop,3);
+  const trimmed=trimOffscreen(crop,4);
   const finalCanvas=trimmed||crop;
   if(finalCanvas.width<1||finalCanvas.height<1) return null;
 

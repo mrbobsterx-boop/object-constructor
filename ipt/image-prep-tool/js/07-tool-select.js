@@ -1,8 +1,10 @@
 /* ============================================================
    MODULE 07 — ИНСТРУМЕНТ «ВЫДЕЛЕНИЕ»: рамка мышкой → Space → новый слой
-   При захвате: вырезаем прямоугольник → (если включено) убираем фон заливкой от краёв рамки
-   внутрь по схожести цвета с углами → обрезаем пустое пространство. Рамку не обязательно
-   вести точно по контуру — операции ниже сами уберут лишнее вокруг объекта.
+   При захвате вырезаем прямоугольник и обрезаем вокруг него пустое пространство — ровно то же,
+   что делает кнопка «Обрезать пустое пространство» (btnTrim, см. 04-canvas-core.js: trimCanvas).
+   Пиксели внутри рамки не трогаем: если у листа непрозрачный фон, его убирают ластиком отдельно,
+   уже на самом слое. Рамку не обязательно вести точно по контуру — она обрежется по контенту сама,
+   но только там, где действительно пусто (прозрачно), а не по цвету.
    ============================================================ */
 
 let selDrag=null;
@@ -47,32 +49,6 @@ function tryCaptureSelection(){
   return !!layer;
 }
 
-/* ---------------- убрать фон заливкой от границ рамки (по схожести с цветом углов) ---------------- */
-function floodRemoveBackground(cctx,w,h,tolerance){
-  const img=cctx.getImageData(0,0,w,h);
-  const d=img.data;
-  const sample=(x,y)=>{ const i=(y*w+x)*4; return [d[i],d[i+1],d[i+2]]; };
-  const corners=[sample(0,0),sample(w-1,0),sample(0,h-1),sample(w-1,h-1)];
-  const bg=[0,1,2].map(c=>Math.round(corners.reduce((s,p)=>s+p[c],0)/4));
-  const tol2=tolerance*tolerance*3;
-  const visited=new Uint8Array(w*h);
-  const stack=[];
-  const closeToBg=i=>{ const dr=d[i]-bg[0],dg=d[i+1]-bg[1],db=d[i+2]-bg[2]; return dr*dr+dg*dg+db*db<=tol2; };
-  const seed=(x,y)=>{ const idx=y*w+x; if(!visited[idx]&&closeToBg(idx*4)){ visited[idx]=1; stack.push(idx); } };
-  for(let x=0;x<w;x++){ seed(x,0); seed(x,h-1); }
-  for(let y=0;y<h;y++){ seed(0,y); seed(w-1,y); }
-  while(stack.length){
-    const idx=stack.pop(), x=idx%w, y=(idx/w)|0, i=idx*4;
-    d[i+3]=0;
-    const neigh=[[x-1,y],[x+1,y],[x,y-1],[x,y+1]];
-    for(const [nx,ny] of neigh){
-      if(nx<0||ny<0||nx>=w||ny>=h) continue;
-      const nidx=ny*w+nx; if(visited[nidx]) continue;
-      if(closeToBg(nidx*4)){ visited[nidx]=1; stack.push(nidx); }
-    }
-  }
-  cctx.putImageData(img,0,0);
-}
 function trimOffscreen(srcCanvas,pad){
   pad=pad===undefined?4:pad;
   const w=srcCanvas.width,h=srcCanvas.height;
