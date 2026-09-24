@@ -8,7 +8,7 @@
    ============================================================ */
 
 // Отметки пользователя (localStorage и data/object_plan.json): статусы, шаги, заметки, свои объекты, свои разделы
-let store={status:{},steps:{},notes:{},custom:[],customGroups:[]};
+let store={status:{},steps:{},notes:{},custom:[],customGroups:[],variationOverrides:{}};
 let ITEMS=[], BY_ID=new Map();
 let REL={neededBy:new Map(), touchedBy:new Map()};   // id → [id] (кто требует этот объект / кто с ним взаимодействует)
 let WAVES=[];                                         // WAVES[n] = [item…]
@@ -84,6 +84,17 @@ function buildModel(){
   const seen=new Set();
   PLAN_ITEMS.forEach(r=>{ const it=normalizeItem(r,false); if(seen.has(it.id)) PLAN_PROBLEMS.push({level:'err',code:'ID_DUP',id:it.id,msg:'Повторяется id в каталоге плана.'}); seen.add(it.id); ITEMS.push(it); BY_ID.set(it.id,it); });
   (store.custom||[]).forEach(r=>{ const it=normalizeItem(r,true); if(BY_ID.has(it.id)){ PLAN_PROBLEMS.push({level:'err',code:'ID_DUP',id:it.id,msg:'Свой объект повторяет id объекта каталога.'}); return; } ITEMS.push(it); BY_ID.set(it.id,it); });
+
+  // вариации, добавленные к УЖЕ существующим (в т.ч. встроенным) объектам — отдельно от store.custom,
+  // потому что встроенный объект нельзя просто продублировать под тем же id (см. проверку ID_DUP выше).
+  // Пишет их и Object Plan (со временем), и image-prep-tool (js/02-plan-bridge.js, addVariationToItem).
+  Object.entries(store.variationOverrides||{}).forEach(([id,extra])=>{
+    const it=BY_ID.get(id); if(!it||!Array.isArray(extra)) return;
+    extra.forEach(vr=>{
+      const en=variationEn(vr), ru=variationRu(vr).trim().toLowerCase();
+      if(!it.v.some(v=>variationEn(v)===en||variationRu(v).trim().toLowerCase()===ru)) it.v.push(vr);
+    });
+  });
 
   // обратные связи
   REL={neededBy:new Map(), touchedBy:new Map()};

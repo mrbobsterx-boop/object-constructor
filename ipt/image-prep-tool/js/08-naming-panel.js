@@ -73,6 +73,32 @@ document.getElementById('pkGroup').addEventListener('change',e=>{ pickState.grou
 document.getElementById('pkItem').addEventListener('change',e=>{ pickState.itemId=e.target.value; pickState.variantIdx=-1; populateVariantSelect(); applyPickToActiveLayerIfAny(); });
 document.getElementById('pkVariant').addEventListener('change',e=>{ pickState.variantIdx=e.target.value===''?-1:Number(e.target.value); applyPickToActiveLayerIfAny(); });
 
+/* ---------- быстрое «+ вариация» к уже выбранному вверху объекту ---------- */
+document.getElementById('btnQuickAddVariant').addEventListener('click',async ()=>{
+  const item=pickState.itemId?planItemById(pickState.itemId):null;
+  if(!item){ alert('Сначала выбери раздел и объект в списках выше.'); return; }
+  const typedEl=document.getElementById('quickVarText');
+  const typed=typedEl.value.trim();
+  if(!typed){ alert('Впиши состояние или текст новой вариации.'); return; }
+  const combine=document.getElementById('quickVarCombine').checked;
+  let baseText='';
+  if(combine&&pickState.variantIdx>=0){
+    const baseV=(item.v||[])[pickState.variantIdx];
+    if(baseV) baseText=variationRu(baseV);
+  }
+  const finalText=baseText?(baseText+' — '+typed):typed;
+  try{
+    appendVariationToItem(item,finalText);
+    await savePlanCustomToProject();
+    typedEl.value='';
+    populateVariantSelect();
+    const idx=(item.v||[]).findIndex(v=>normName(variationRu(v))===normName(finalText));
+    pickState.variantIdx=idx;
+    document.getElementById('pkVariant').value=idx>=0?String(idx):'';
+    applyPickToActiveLayerIfAny();
+  }catch(err){ alert(err.message); }
+});
+
 document.getElementById('ownGroup').addEventListener('change',e=>{
   document.getElementById('ownGroupName').style.display=e.target.value==='__new__'?'':'none';
 });

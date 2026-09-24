@@ -11,14 +11,14 @@ const STORE_KEY='object_plan_v1';
 function loadStore(){
   try{
     const s=JSON.parse(localStorage.getItem(STORE_KEY)||'{}');
-    store={status:s.status||{},steps:s.steps||{},notes:s.notes||{},custom:Array.isArray(s.custom)?s.custom:[],customGroups:Array.isArray(s.customGroups)?s.customGroups:[]};
+    store={status:s.status||{},steps:s.steps||{},notes:s.notes||{},custom:Array.isArray(s.custom)?s.custom:[],customGroups:Array.isArray(s.customGroups)?s.customGroups:[],variationOverrides:(s.variationOverrides&&typeof s.variationOverrides==='object')?s.variationOverrides:{}};
   }catch(e){ console.warn('Не удалось прочитать отметки:',e); }
 }
 function saveStore(){ try{ localStorage.setItem(STORE_KEY,JSON.stringify(store)); }catch(e){ console.warn(e); } }
 async function saveStoreToProject(){
   if(!projectDirHandle){ alert('Сначала подключи папку проекта.'); return; }
   try{
-    const data={schema_version:1,saved_at:new Date().toISOString(),status:store.status,steps:store.steps,notes:store.notes,custom:store.custom,customGroups:store.customGroups};
+    const data={schema_version:1,saved_at:new Date().toISOString(),status:store.status,steps:store.steps,notes:store.notes,custom:store.custom,customGroups:store.customGroups,variationOverrides:store.variationOverrides};
     await writeFileToProject('data/object_plan.json',new TextEncoder().encode(JSON.stringify(data,null,2)));
     setFolderStatus('Прогресс записан в data/object_plan.json · '+new Date().toLocaleTimeString());
   }catch(e){ console.error(e); alert('Не удалось записать: '+e.message); }
@@ -30,7 +30,7 @@ async function loadStoreFromProject(){
     const r=await readJsonFile(dir,'object_plan.json');
     if(!r.data){ alert('Файл data/object_plan.json не найден или повреждён.'); return; }
     if(!confirm('Заменить текущие отметки в браузере отметками из data/object_plan.json?')) return;
-    store={status:r.data.status||{},steps:r.data.steps||{},notes:r.data.notes||{},custom:Array.isArray(r.data.custom)?r.data.custom:[],customGroups:Array.isArray(r.data.customGroups)?r.data.customGroups:[]};
+    store={status:r.data.status||{},steps:r.data.steps||{},notes:r.data.notes||{},custom:Array.isArray(r.data.custom)?r.data.custom:[],customGroups:Array.isArray(r.data.customGroups)?r.data.customGroups:[],variationOverrides:(r.data.variationOverrides&&typeof r.data.variationOverrides==='object')?r.data.variationOverrides:{}};
     saveStore(); buildModel(); render();
     setFolderStatus('Отметки загружены из проекта.');
   }catch(e){ console.error(e); alert('Не удалось прочитать: '+e.message); }

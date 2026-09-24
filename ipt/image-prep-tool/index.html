@@ -92,6 +92,16 @@
         <select id="pkVariant" disabled><option value="">— вариация —</option></select>
         <div class="hint">Выбор раздела и объекта сохраняется между слоями — меняй только вариацию для следующего объекта того же типа.</div>
       </div>
+      <div class="pickbar" style="margin-top:6px">
+        <div class="row" style="margin:0">
+          <input type="text" id="quickVarText" placeholder="состояние/вариант, напр. сломанная" style="flex:1">
+          <button id="btnQuickAddVariant" title="Добавить как ещё одну вариацию к выбранному вверху объекту">+ вариация</button>
+        </div>
+        <label class="small" style="display:flex;gap:6px;align-items:center;margin:0">
+          <input type="checkbox" id="quickVarCombine" checked style="width:auto"> приписать к выбранной вариации сверху (через «—»)
+        </label>
+        <div class="hint">Не пересоздаёт объект и не трогает раздел/название — просто добавляет вариацию к тому, что уже выбрано в списке выше (работает и со встроенными объектами каталога, не только со своими).</div>
+      </div>
       <details class="mini-form">
         <summary>+ своя категория / объект / вариация</summary>
         <div class="pickbar">
