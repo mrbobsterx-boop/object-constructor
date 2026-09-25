@@ -35,7 +35,7 @@ function commitActiveToTarget(){
   t.canvas.width=canvas.width; t.canvas.height=canvas.height;
   const c=t.canvas.getContext('2d'); c.clearRect(0,0,canvas.width,canvas.height); c.drawImage(canvas,0,0);
 }
-function setActiveTarget(key){
+function setActiveTarget(key,options={}){
   if(activeTargetKey===key) return;
   commitActiveToTarget();
   const t=targets[key]; if(!t) return;
@@ -48,7 +48,7 @@ function setActiveTarget(key){
   smartFit();
   updateRemnantOverlay();
   if(typeof renderLayers==='function') renderLayers();
-  if(typeof onActiveTargetChanged==='function') onActiveTargetChanged(key);
+ if(!options.skipNameSync&&typeof onActiveTargetChanged==='function') onActiveTargetChanged(key);
 }
 
 /* ---------------- история (своя на каждую цель) ---------------- */

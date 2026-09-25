@@ -40,7 +40,9 @@ async function saveAll(){
       if(unnamed.length && !confirm(unnamed.length+' слой(ев) без имени сохранятся как layer_N — так их не найдёт Object Plan. Продолжить?')){ return; }
       let savedCount=0;
       for(const layer of layers.slice()){
-        setActiveTarget(layer.id);
+        // Переключаем холст для экспорта, но не применяем текущий выбор из панели
+        // именования: у каждого слоя должно остаться уже назначенное ему имя.
+        setActiveTarget(layer.id,{skipNameSync:true});
         if(autoTrim){ pushHistory(); trimCanvas(0); }
         const blob=await new Promise(res=>canvas.toBlob(res,'image/png'));
         await saveBlob(blob, layer.name||layer.id);

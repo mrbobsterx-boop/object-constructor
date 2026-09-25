@@ -1,8 +1,8 @@
 /* ============================================================
-   MODULE 06 — ИНСТРУМЕНТЫ: переключение + ластик/восстановить/растянуть
-   Все указательные события холста разбираются здесь одним набором обработчиков и передаются
-   дальше по инструменту — так на канвасе нет нескольких независимых слушателей одного события.
-   ============================================================ */
+ M ODULE 06 — ИНСТРУМ*ЕНТЫ: переключение + ластик/восстановить/растянуть
+ Все указательные события холста разбираются здесь одним набором обработчиков и передаются
+ дальше по инструменту — так на канвасе нет нескольких независимых слушателей одного события.
+ ============================================================ */
 
 let tool='select', brushSize=40, brushSoft=35;
 
@@ -22,7 +22,9 @@ function setToolUI(){
   else document.getElementById('resizeOutline').style.display='none';
   if(tool!=='select'&&typeof cancelSelection==='function') cancelSelection();
 }
-document.querySelectorAll('.toolbtn').forEach(b=>{ b.onclick=()=>{ tool=b.dataset.tool; setToolUI(); }; });
+// Только кнопки, у которых указан инструмент. Например, btnShowRemnants тоже
+// выглядит как toolbtn, но не должен переключать текущий инструмент.
+document.querySelectorAll('[data-tool]').forEach(b=>{ b.onclick=()=>{ tool=b.dataset.tool; setToolUI(); }; });
 setToolUI();
 
 const brushSizeInput=document.getElementById('brushSize'), brushSizeLabel=document.getElementById('brushSizeLabel');

@@ -35,6 +35,18 @@ const stage=document.getElementById('stage');
 stage.addEventListener('drop',e=>{ if(e.dataTransfer.files.length) addFilesToQueue(e.dataTransfer.files); });
 
 /* ---------------- клавиатура ---------------- */
+function selectLayerByShortcut(index){
+  const layer=layers[index];
+  if(!layer) return false;
+  setActiveTarget(layer.id);
+  return true;
+}
+function selectNextLayer(){
+  if(!layers.length) return false;
+  const currentIndex=layers.findIndex(layer=>layer.id===activeTargetKey);
+  const nextIndex=currentIndex<0 ? 0 : (currentIndex+1)%layers.length;
+  return selectLayerByShortcut(nextIndex);
+}
 window.addEventListener('keydown',e=>{
   const tag=(e.target.tagName||'').toLowerCase();
   if(tag==='input'||tag==='textarea'||tag==='select') return;
@@ -42,13 +54,32 @@ window.addEventListener('keydown',e=>{
   if((e.ctrlKey||e.metaKey) && e.code==='KeyY'){ e.preventDefault(); redo(); return; }
   if(e.code==='Space'){ if(tryCaptureSelection()) e.preventDefault(); return; }
   if(e.code==='Escape'){ cancelSelection(); return; }
+  if(e.code==='KeyA'){ e.preventDefault(); document.getElementById('btnShowRemnants').click(); return; }
   if(e.code==='Delete'||e.code==='Backspace'){ if(activeLayer()){ e.preventDefault(); deleteLayer(activeTargetKey); } return; }
+  // Й/Q обрезает прозрачные края активного холста.
+  if(e.code==='KeyQ'){ e.preventDefault(); document.getElementById('btnTrim').click(); return; }
+  // X/Ч удаляет активный слой; Delete и Backspace оставлены как дополнительные варианты.
+  if(e.code==='Delete'||e.code==='Backspace'||e.code==='KeyX'){
+    if(activeLayer()){ e.preventDefault(); deleteLayer(activeTargetKey); }
+    return;
+  }
   if(e.code==='BracketLeft'){ brushSize=Math.max(4,brushSize-6); brushSizeInput.value=brushSize; brushSizeLabel.textContent=brushSize+' px'; }
   if(e.code==='BracketRight'){ brushSize=Math.min(260,brushSize+6); brushSizeInput.value=brushSize; brushSizeLabel.textContent=brushSize+' px'; }
   if(e.code==='KeyS'){ document.getElementById('toolSelect').click(); }
   if(e.code==='KeyE'){ document.getElementById('toolErase').click(); }
   if(e.code==='KeyR'){ document.getElementById('toolRestore').click(); }
   if(e.code==='KeyT'){ document.getElementById('toolTransform').click(); }
+  // event.code привязан к физической клавише, поэтому сочетания работают и в
+  // английской, и в русской раскладке: M/Ь, E/У, R/К, T/Е.
+  const toolButtons={ KeyM:'toolSelect', KeyE:'toolErase', KeyR:'toolRestore', KeyT:'toolTransform' };
+  if(toolButtons[e.code]){ e.preventDefault(); document.getElementById(toolButtons[e.code]).click(); return; }
+  if(e.code==='Tab'){
+    if(selectNextLayer()) e.preventDefault();
+    return;
+  }
+  if(/^Digit[1-9]$/.test(e.code)){
+    if(selectLayerByShortcut(Number(e.code.slice(-1))-1)) e.preventDefault();
+  }
 });
 
 tryRestoreFolder();
