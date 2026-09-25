@@ -66,10 +66,12 @@
   <div class="side-right">
     <div class="group">
       <h3>Инструмент</h3>
+      <button class="toolbtn" id="toolAutoSelect" data-tool="autoselect">🪄 Клик по объекту — рамка сама</button>
       <button class="toolbtn active" id="toolSelect" data-tool="select">▭ Выделение — вырезать объект в слой</button>
       <button class="toolbtn" id="toolErase" data-tool="erase">🧽 Ластик — стереть лишнее</button>
       <button class="toolbtn" id="toolRestore" data-tool="restore">🖌 Восстановить (вернуть стёртое)</button>
       <button class="toolbtn" id="toolTransform" data-tool="transform">↔ Растянуть за края</button>
+      <div class="hint" id="autoSelectHint" style="display:none">Кликни по объекту — рамка построится сама, по границе непрозрачных пикселей вокруг клика (не по цвету — прозрачность не тронута правкой не будет). Если объекты на листе соприкасаются без прозрачного зазора, кликом захватятся оба сразу — раздели их вручную инструментом «Выделение» и ластиком. Если на листе нет прозрачного фона вовсе, авто-выделение откажется работать — тяни рамку вручную.</div>
       <div class="hint" id="selectHint">Тяни мышкой рамку вокруг объекта и нажми <span class="kbd">Space</span> — рамка обрежется по непрозрачному содержимому (как кнопка «Обрезать пустое пространство») и станет новым слоем. Пиксели внутри не трогаются — если у листа непрозрачный фон, сотри его ластиком уже на слое. <span class="kbd">Esc</span> — отменить рамку.</div>
       <div class="row" id="brushSizeRow" style="margin-top:4px">
         <label class="small" style="width:60px">Размер</label>

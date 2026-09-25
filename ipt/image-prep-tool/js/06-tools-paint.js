@@ -1,20 +1,21 @@
 /* ============================================================
- M ODULE 06 — ИНСТРУМ*ЕНТЫ: переключение + ластик/восстановить/растянуть
- Все указательные события холста разбираются здесь одним набором обработчиков и передаются
- дальше по инструменту — так на канвасе нет нескольких независимых слушателей одного события.
- ============================================================ */
+   MODULE 06 — ИНСТРУМЕНТЫ: переключение + ластик/восстановить/растянуть
+   Все указательные события холста разбираются здесь одним набором обработчиков и передаются
+   дальше по инструменту — так на канвасе нет нескольких независимых слушателей одного события.
+   ============================================================ */
 
 let tool='select', brushSize=40, brushSoft=35;
 
 function setToolUI(){
   document.querySelectorAll('.toolbtn').forEach(b=>b.classList.toggle('active',b.dataset.tool===tool));
   const rows={
+    autoselect:['autoSelectHint'],
     select:['selectHint'],
     erase:['brushSizeRow','brushSizeLabelRow','brushSoftRow'],
     restore:['brushSizeRow','brushSizeLabelRow','brushSoftRow'],
     transform:['transformHint']
   };
-  ['selectHint','brushSizeRow','brushSizeLabelRow','brushSoftRow','transformHint'].forEach(id=>{
+  ['autoSelectHint','selectHint','brushSizeRow','brushSizeLabelRow','brushSoftRow','transformHint'].forEach(id=>{
     document.getElementById(id).style.display=(rows[tool]||[]).includes(id)?'':'none';
   });
   document.getElementById('resizeHandles').style.display=tool==='transform'?'block':'none';
@@ -40,7 +41,7 @@ function canvasPointFromEvent(e){
   return { x:(e.clientX-r.left)*sx, y:(e.clientY-r.top)*sy };
 }
 function updateCursorRing(e){
-  if(!e||tool==='select'||tool==='transform'){ cursorRing.style.display='none'; return; }
+  if(!e||tool==='select'||tool==='transform'||tool==='autoselect'){ cursorRing.style.display='none'; return; }
   const r=canvas.getBoundingClientRect();
   const dispSize=brushSize*(r.width/canvas.width);
   cursorRing.style.display='block';
@@ -80,6 +81,7 @@ function strokeTo(pt){
 
 canvas.addEventListener('pointerdown',e=>{
   if(e.button!==0||!activeTargetKey) return;
+  if(tool==='autoselect'){ handleAutoSelectClick(canvasPointFromEvent(e)); return; }
   if(tool==='select'){ selectPointerDown(canvasPointFromEvent(e),e); return; }
   if(tool==='transform') return;
   drawing=true; lastPt=null;

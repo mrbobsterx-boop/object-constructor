@@ -49,6 +49,47 @@ function tryCaptureSelection(){
   return !!layer;
 }
 
+/* ---------------- «Клик по объекту» — рамка сама, по связной области непрозрачных пикселей ---------------- */
+// Заливка идёт по альфа-каналу (прозрачно/непрозрачно), а не по цвету — поэтому, в отличие от
+// убранной ранее заливки по цвету фона, не может «съесть» кусок объекта похожего цвета.
+function findOpaqueRegionAt(srcCanvas,x,y){
+  const w=srcCanvas.width,h=srcCanvas.height;
+  x=Math.floor(x); y=Math.floor(y);
+  if(x<0||y<0||x>=w||y>=h) return null;
+  const data=srcCanvas.getContext('2d').getImageData(0,0,w,h).data;
+  const opaque=i=>data[i*4+3]>ALPHA_THRESHOLD;
+  const start=y*w+x;
+  if(!opaque(start)) return null; // клик попал в прозрачную область — под курсором нет объекта
+  const visited=new Uint8Array(w*h);
+  visited[start]=1;
+  const stack=[start];
+  let minX=x,maxX=x,minY=y,maxY=y;
+  while(stack.length){
+    const idx=stack.pop(), px=idx%w, py=(idx/w)|0;
+    if(px<minX)minX=px; if(px>maxX)maxX=px; if(py<minY)minY=py; if(py>maxY)maxY=py;
+    const neigh=[[px-1,py],[px+1,py],[px,py-1],[px,py+1]];
+    for(const [nx,ny] of neigh){
+      if(nx<0||ny<0||nx>=w||ny>=h) continue;
+      const nidx=ny*w+nx; if(visited[nidx]) continue;
+      if(opaque(nidx)){ visited[nidx]=1; stack.push(nidx); }
+    }
+  }
+  return {minX,minY,maxX,maxY};
+}
+function handleAutoSelectClick(pt){
+  if(activeTargetKey!=='sheet') return; // как и «Выделение» — новые объекты берём только с листа, не со слоя
+  const src=targets.sheet.canvas;
+  const region=findOpaqueRegionAt(src,pt.x,pt.y);
+  if(!region){ alert('Здесь нет объекта — клик попал в прозрачную область листа.'); return; }
+  const w=src.width,h=src.height;
+  const touchesAllEdges=region.minX<=1&&region.minY<=1&&region.maxX>=w-2&&region.maxY>=h-2;
+  if(touchesAllEdges){ alert('Похоже, на этом листе нет прозрачного фона — авто-выделение не может найти границы объекта. Обведи объект рамкой вручную инструментом «Выделение».'); return; }
+  const pad=6;
+  const x0=Math.max(0,region.minX-pad), y0=Math.max(0,region.minY-pad);
+  const x1=Math.min(w-1,region.maxX+pad), y1=Math.min(h-1,region.maxY+pad);
+  const layer=createLayerFromSheetRegion(x0,y0,x1-x0+1,y1-y0+1);
+  if(layer&&typeof onLayerCreated==='function') onLayerCreated(layer);
+}
 function trimOffscreen(srcCanvas,pad){
   pad=pad===undefined?4:pad;
   const w=srcCanvas.width,h=srcCanvas.height;

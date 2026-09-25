@@ -71,7 +71,7 @@ window.addEventListener('keydown',e=>{
   if(e.code==='KeyT'){ document.getElementById('toolTransform').click(); }
   // event.code привязан к физической клавише, поэтому сочетания работают и в
   // английской, и в русской раскладке: M/Ь, E/У, R/К, T/Е.
-  const toolButtons={ KeyM:'toolSelect', KeyE:'toolErase', KeyR:'toolRestore', KeyT:'toolTransform' };
+  const toolButtons={ KeyC:'toolAutoSelect', KeyM:'toolSelect', KeyE:'toolErase', KeyR:'toolRestore', KeyT:'toolTransform' };
   if(toolButtons[e.code]){ e.preventDefault(); document.getElementById(toolButtons[e.code]).click(); return; }
   if(e.code==='Tab'){
     if(selectNextLayer()) e.preventDefault();
