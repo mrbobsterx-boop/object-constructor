@@ -31,13 +31,22 @@
     <button class="full" id="btnAddVar" style="margin-top:8px">+ переменная</button>
   </div>
   <div class="group">
-    <h3>Узлы (<span id="nodeCount">0</span>)</h3>
+    <h3>Узлы (<span id="nodeCount">0</span>) — по разделам</h3>
     <div class="row" style="margin-bottom:6px">
       <button id="btnAddEvent">+ Событие</button>
       <button id="btnAddChoice">+ Выбор</button>
       <button id="btnAddBackground">+ Фоновое</button>
     </div>
     <div id="nodeList" class="nodelist"></div>
+  </div>
+  <div class="group">
+    <h3>Импорт идей</h3>
+    <div class="row">
+      <button id="btnImportIdea">📥 Импорт идеи (JSON)</button>
+      <button id="btnDownloadTemplate">⬇ Шаблон идеи</button>
+    </div>
+    <input type="file" id="ideaFileInput" accept=".json" style="display:none">
+    <div id="ideaLogList" class="hint">Импортированных идей пока нет.</div>
   </div>
   <div class="group">
     <h3>Проверки</h3>
@@ -57,12 +66,33 @@
 </div>
 </div>
 
+<!-- Каталог Object Plan подключается напрямую его же скриптами — раздел/объект/предметы/навыки всегда
+     совпадают с тем, что видит сам Object Plan. Даёт PLAN_ITEMS, OS_SKILLS, SYSTEMS. -->
+<script src="../object-plan/js/02-vocab.js"></script>
+<script src="../object-plan/js/03-data-shelter.js"></script>
+<script src="../object-plan/js/04-data-production.js"></script>
+<script src="../object-plan/js/05-data-world.js"></script>
+
+<!-- Каталог систем Shelter Architecture Map — только чтение. НЕ подключаем его js/02-vocab.js: там
+     const PRIORITIES/STATUSES совпадают по именам с object-plan/js/02-vocab.js и это будет
+     SyntaxError (классические скрипты делят одну область имён). Вместо этого — свой addSystems(),
+     достаточный для чисто-данных-файлов 03..06, чтобы получить SAM_SYSTEM_ITEMS без конфликтов. -->
+<script>
+  const SAM_SYSTEM_ITEMS=[];
+  function addSystems(list){ list.forEach(i=>SAM_SYSTEM_ITEMS.push(i)); }
+</script>
+<script src="../Shelter-Architecture-Map/js/03-data-systems-foundation.js"></script>
+<script src="../Shelter-Architecture-Map/js/04-data-systems-character-shelter.js"></script>
+<script src="../Shelter-Architecture-Map/js/05-data-systems-world-npc.js"></script>
+<script src="../Shelter-Architecture-Map/js/06-data-systems-livingworld-consequences.js"></script>
+
 <script src="js/01-core-utils.js"></script>
 <script src="js/02-graph-state.js"></script>
 <script src="js/03-canvas.js"></script>
 <script src="js/04-inspector.js"></script>
 <script src="js/05-checks.js"></script>
 <script src="js/06-save-load.js"></script>
-<script src="js/07-init.js"></script>
+<script src="js/07-idea-import.js"></script>
+<script src="js/08-init.js"></script>
 </body>
 </html>

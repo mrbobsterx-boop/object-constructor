@@ -76,6 +76,10 @@ async function tryRestoreProjectFolder(){
     if(p==='granted') await loadStoryFromProject();
   }catch(e){ console.warn('Не удалось восстановить папку проекта:',e); }
 }
+function downloadText(name,text,mime){
+  const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([text],{type:mime||'application/json'})); a.download=name;
+  document.body.appendChild(a); a.click(); setTimeout(()=>{ URL.revokeObjectURL(a.href); a.remove(); },500);
+}
 async function regrantProjectFolder(){
   if(!projectDirHandle) return;
   try{

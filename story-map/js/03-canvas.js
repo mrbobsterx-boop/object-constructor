@@ -33,12 +33,47 @@ function renderLeft(){
 
   const nodeEl=document.getElementById('nodeList');
   document.getElementById('nodeCount').textContent=nodes.length;
-  nodeEl.innerHTML=nodes.map(n=>`
-    <div class="noderow ${n.id===selectedNodeId?'active':''}" data-node="${esc(n.id)}">
-      <span class="tag ${n.type}">${n.type}</span>
-      <span class="nm">${esc(n.title||'(без названия)')}</span>
-      <button class="del-x" data-delnode="${esc(n.id)}">✕</button>
-    </div>`).join('') || '<div class="hint">Пока нет узлов.</div>';
+  nodeEl.innerHTML=renderNodesByCategory();
+}
+// Группировка левой панели по разделу (SYSTEMS из Object Plan) — «раздел + ветки с тем, на что они
+// влияют», чтобы список не превращался в кашу по мере роста графа.
+function categoryName(id){
+  const list=(typeof SYSTEMS!=='undefined')?SYSTEMS:[];
+  const s=list.find(x=>x.id===id);
+  return s?s.name:(id||'(без раздела)');
+}
+function nodeAffectsSummary(n){
+  const ids=new Set();
+  (n.effects||[]).forEach(e=>{ if(e.var) ids.add(e.var); });
+  (n.choices||[]).forEach(c=>(c.effects||[]).forEach(e=>{ if(e.var) ids.add(e.var); }));
+  const names=[...ids].map(id=>{ const v=findVariable(id); return v?v.name:id; });
+  return names.join(', ');
+}
+function renderNodesByCategory(){
+  if(!nodes.length) return '<div class="hint">Пока нет узлов.</div>';
+  const byCat=new Map();
+  nodes.forEach(n=>{ const cat=n.category||'story'; if(!byCat.has(cat)) byCat.set(cat,[]); byCat.get(cat).push(n); });
+  const catOrder=[...byCat.keys()].sort((a,b)=>categoryName(a).localeCompare(categoryName(b),'ru'));
+  return catOrder.map(cat=>{
+    const list=byCat.get(cat);
+    const rows=list.map(n=>{
+      const summary=nodeAffectsSummary(n);
+      return `<div class="noderow ${n.id===selectedNodeId?'active':''}" data-node="${esc(n.id)}">
+        <span class="tag ${n.type}">${n.type}</span>
+        <div class="nm-wrap"><span class="nm">${esc(n.title||'(без названия)')}</span>${summary?`<span class="affects muted small">→ ${esc(summary)}</span>`:''}</div>
+        <button class="del-x" data-delnode="${esc(n.id)}">✕</button>
+      </div>`;
+    }).join('');
+    return `<div class="cat-header">${esc(categoryName(cat))} <span class="muted small">(${list.length})</span></div>${rows}`;
+  }).join('');
+}
+function focusNode(id){
+  const n=findNode(id); if(!n) return;
+  const rect=canvasOuter.getBoundingClientRect();
+  zoom=1;
+  pan.x=rect.width/2-(n.x+NODE_W/2);
+  pan.y=rect.height/2-(n.y+NODE_H/2);
+  applyWorldTransform();
 }
 
 document.getElementById('varList').addEventListener('input',e=>{
@@ -57,7 +92,7 @@ document.getElementById('varList').addEventListener('click',e=>{
 document.getElementById('nodeList').addEventListener('click',e=>{
   const del=e.target.closest('[data-delnode]');
   if(del){ if(confirm('Удалить узел? Ссылки на него из других переходов тоже уберутся.')) deleteNode(del.dataset.delnode); return; }
-  const row=e.target.closest('[data-node]'); if(row) selectNode(row.dataset.node);
+  const row=e.target.closest('[data-node]'); if(row){ selectNode(row.dataset.node); focusNode(row.dataset.node); }
 });
 
 /* ---------- холст: узлы + связи ---------- */

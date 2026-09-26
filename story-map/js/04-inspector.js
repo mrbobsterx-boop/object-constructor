@@ -30,6 +30,31 @@ function condRowsHtml(basePath,list,isEffects){
   return rows+`<button data-addrow="${basePath}">+ ${isEffects?'эффект':'условие'}</button>`;
 }
 
+// Пикер «фишками» + даталист-автодополнение — общий для тегов раздела (SYSTEMS), нужных предметов
+// (PLAN_ITEMS из Object Plan) и нужных навыков (OS_SKILLS из Object Plan). Выбор кликом по «+» ищет
+// точное совпадение по подписи среди вариантов; если не нашёл — добавляет как есть (не блокирует
+// ввод, просто не подсвечивает человекочитаемым именем).
+function chipOptionsFor(src){
+  if(src==='items') return (typeof PLAN_ITEMS!=='undefined'?PLAN_ITEMS:[]).map(i=>({id:i.id,label:i.n}));
+  if(src==='skills') return (typeof OS_SKILLS!=='undefined'?OS_SKILLS:[]).map(s=>({id:s,label:s}));
+  if(src==='systems') return (typeof SYSTEMS!=='undefined'?SYSTEMS:[]).map(s=>({id:s.id,label:s.name}));
+  return [];
+}
+function chipPickerHtml(fieldPath,values,src){
+  const options=chipOptionsFor(src);
+  const chips=values.map((v,i)=>{
+    const opt=options.find(o=>o.id===v);
+    return `<span class="chip">${esc(opt?opt.label:v)}<button data-delchip="${fieldPath}" data-delchipidx="${i}">✕</button></span>`;
+  }).join('')||'<span class="muted small">пусто</span>';
+  const inputId='chipin_'+fieldPath.replace(/[^a-zA-Z0-9]/g,'_');
+  return `<div class="chiprow">${chips}</div>
+    <div class="row" style="margin-top:4px">
+      <input type="text" list="${inputId}_dl" id="${inputId}" placeholder="начни печатать…" style="flex:1">
+      <button data-addchip="${fieldPath}" data-chipinput="${inputId}">+</button>
+    </div>
+    <datalist id="${inputId}_dl">${options.map(o=>`<option value="${esc(o.label)}">`).join('')}</datalist>`;
+}
+
 function choiceCardHtml(c,i){
   return `<div class="choice-card">
     <div class="row">
@@ -68,6 +93,16 @@ function renderInspector(){
         <div><label class="small">Концовка (если это финал)</label>
           <input type="text" data-path="ending" value="${esc(n.ending)}" placeholder="напр. death, victory"></div>
       </div>
+      <div class="row" style="margin-top:6px">
+        <div><label class="small">Раздел (система игры)</label>
+          <select data-path="category">${(typeof SYSTEMS!=='undefined'?SYSTEMS:[]).map(s=>`<option value="${esc(s.id)}" ${(n.category||'story')===s.id?'selected':''}>${esc(s.name)}</option>`).join('')}</select>
+        </div>
+        <div><label class="small">Система Godot (необязательно, из Shelter Architecture Map)</label>
+          <select data-path="samSystem"><option value="">— не указано —</option>${(typeof SAM_SYSTEM_ITEMS!=='undefined'?SAM_SYSTEM_ITEMS:[]).map(s=>`<option value="${esc(s.id)}" ${n.samSystem===s.id?'selected':''}>${esc(s.n||s.id)}</option>`).join('')}</select>
+        </div>
+      </div>
+      <label class="small" style="margin-top:6px">Доп. теги (другие системы, которых это тоже касается — по ним подключаются идеи-импорты)</label>
+      ${chipPickerHtml('tags',n.tags||[],'systems')}
     </div>
 
     <div class="group">
@@ -103,8 +138,10 @@ function renderInspector(){
         <div><label class="small">Расход воды</label><input type="number" data-path="sim.waterCost" value="${num(n.sim.waterCost)}" style="width:70px"></div>
       </div>
       <div class="hint">Отрицательное число в расходе еды/воды — узел или переход их, наоборот, восполняет (например, «поесть» или «попить»).</div>
-      <label class="small">Нужны предметы (через запятую)</label><input type="text" class="full" data-path="sim.requiresItems" value="${esc(n.sim.requiresItems)}">
-      <label class="small" style="margin-top:6px">Нужны навыки (через запятую)</label><input type="text" class="full" data-path="sim.requiresSkills" value="${esc(n.sim.requiresSkills)}">
+      <label class="small">Нужны предметы (из каталога Object Plan)</label>
+      ${chipPickerHtml('sim.requiresItems',n.sim.requiresItems||[],'items')}
+      <label class="small" style="margin-top:6px">Нужны навыки (из каталога Object Plan)</label>
+      ${chipPickerHtml('sim.requiresSkills',n.sim.requiresSkills||[],'skills')}
     </div>
 
     <div class="group">
@@ -134,8 +171,32 @@ inspectorEl.addEventListener('change',e=>{
     pushHistory(); renderAll();
   }
 });
+function srcForField(fieldPath){
+  if(fieldPath==='tags') return 'systems';
+  if(fieldPath==='sim.requiresItems') return 'items';
+  if(fieldPath==='sim.requiresSkills') return 'skills';
+  return '';
+}
 inspectorEl.addEventListener('click',e=>{
   const n=findNode(selectedNodeId); if(!n) return;
+  const addChip=e.target.closest('[data-addchip]');
+  if(addChip){
+    const fieldPath=addChip.dataset.addchip, input=document.getElementById(addChip.dataset.chipinput);
+    const typed=input.value.trim(); if(!typed) return;
+    const options=chipOptionsFor(srcForField(fieldPath));
+    const match=options.find(o=>o.label===typed||o.id===typed);
+    const value=match?match.id:typed;
+    const arr=getByPath(n,fieldPath);
+    if(!arr.includes(value)) arr.push(value);
+    input.value='';
+    pushHistory(); renderAll(); return;
+  }
+  const delChip=e.target.closest('[data-delchip]');
+  if(delChip){
+    const arr=getByPath(n,delChip.dataset.delchip);
+    arr.splice(Number(delChip.dataset.delchipidx),1);
+    pushHistory(); renderAll(); return;
+  }
   const addRow=e.target.closest('[data-addrow]');
   if(addRow){
     const path=addRow.dataset.addrow, arr=getByPath(n,path);

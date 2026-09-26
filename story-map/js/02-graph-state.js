@@ -12,7 +12,7 @@ let nodes=[];
 let selectedNodeId=null;
 let pan={x:60,y:60}, zoom=1;
 
-function defaultSim(){ return {durationHours:1,dangerChance:0,foodCost:0,waterCost:0,requiresItems:'',requiresSkills:''}; }
+function defaultSim(){ return {durationHours:1,dangerChance:0,foodCost:0,waterCost:0,requiresItems:[],requiresSkills:[]}; }
 function defaultTrigger(type){
   if(type==='background') return {kind:'scheduled',afterHours:24,sinceNode:'',repeat:false};
   return {kind:'conditions',all:[]};
@@ -41,7 +41,7 @@ function addNode(type,x,y){
   const isFirst=nodes.length===0;
   const n={
     id:uid('n'),title:type==='background'?'Новое фоновое событие':(type==='choice'?'Новый выбор':'Новое событие'),
-    text:'',type:type||'event',
+    text:'',type:type||'event',category:'story',tags:[],samSystem:'',
     x:x!==undefined?x:120+Math.random()*40, y:y!==undefined?y:120+Math.random()*40,
     trigger:isFirst?{kind:'start'}:defaultTrigger(type),
     effects:[], sim:defaultSim(), choices:[], ending:''
