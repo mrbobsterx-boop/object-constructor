@@ -5,7 +5,7 @@
    с тем же transform) и НЕ нужно пересчитывать экранные координаты самим — только координаты узлов.
    ============================================================ */
 
-const NODE_W=190, NODE_H=58;
+const NODE_W=220, NODE_H=58;
 const canvasOuter=document.getElementById('canvasOuter');
 const worldEl=document.getElementById('world');
 const edgeLayer=document.getElementById('edgeLayer');
@@ -14,6 +14,7 @@ function applyWorldTransform(){
   worldEl.style.transform=`translate(${pan.x}px,${pan.y}px) scale(${zoom})`;
   edgeLayer.style.transform=worldEl.style.transform;
   document.getElementById('zoomLabel').textContent=Math.round(zoom*100)+'%';
+  renderMinimap();
 }
 function setZoom(z){ zoom=Math.max(0.25,Math.min(2.5,z)); applyWorldTransform(); }
 function renderDirtyStatus(){
@@ -95,7 +96,7 @@ function renderNodesByCategory(){
     const isCollapsed=collapsedCats.has(cat);
     const rows=isCollapsed?'':list.map(n=>{
       const summary=nodeAffectsSummary(n);
-      return `<div class="noderow ${n.id===selectedNodeId?'active':''}" data-node="${esc(n.id)}">
+      return `<div class="noderow ${multiSelected.has(n.id)?'active':''}" data-node="${esc(n.id)}">
         <span class="tag ${n.type}">${n.type}</span>
         <div class="nm-wrap"><span class="nm">${esc(n.title||'(без названия)')}</span>${summary?`<span class="affects muted small">→ ${esc(summary)}</span>`:''}</div>
         <button class="del-x" data-delnode="${esc(n.id)}">✕</button>
@@ -153,7 +154,12 @@ document.getElementById('nodeList').addEventListener('click',e=>{
     document.getElementById('nodeList').innerHTML=renderNodesByCategory();
     return;
   }
-  const row=e.target.closest('[data-node]'); if(row){ selectNode(row.dataset.node); focusNode(row.dataset.node); }
+  const row=e.target.closest('[data-node]');
+  if(row){
+    if(e.ctrlKey||e.metaKey||e.shiftKey) toggleMultiSelect(row.dataset.node);
+    else selectNode(row.dataset.node);
+    focusNode(row.dataset.node);
+  }
 });
 
 /* ---------- холст: узлы + связи ---------- */
@@ -179,12 +185,16 @@ function edgePath(a,b){
 let tempConnectFrom=null, tempConnectPt=null;
 
 function renderCanvas(){
-  worldEl.innerHTML=nodes.map(n=>{
+  worldEl.innerHTML=`<div id="boxSelectOverlay"></div>`+nodes.map(n=>{
     const outCount=n.choices.length;
-    return `<div class="node-box ${n.type} ${n.id===selectedNodeId?'selected':''}" data-node="${esc(n.id)}" style="left:${n.x}px;top:${n.y}px;width:${NODE_W}px;min-height:${NODE_H}px">
+    const shown=n.choices.slice(0,3).map(c=>`<div class="nb-choice">${esc(c.label||'(без текста)')}</div>`).join('');
+    const more=outCount>3?`<div class="nb-choice muted">+${outCount-3} ещё</div>`:'';
+    const choicesHtml=outCount?`<div class="nb-choices">${shown}${more}</div>`:'';
+    return `<div class="node-box ${n.type} ${multiSelected.has(n.id)?'selected':''}" data-node="${esc(n.id)}" style="left:${n.x}px;top:${n.y}px;width:${NODE_W}px;min-height:${NODE_H}px">
       <div class="nb-title">${esc(n.title||'(без названия)')}</div>
       <div class="nb-meta"><span>${triggerLabel(n.trigger)}</span><span>→ ${outCount}</span></div>
-      <div class="node-handle" data-handle="${esc(n.id)}" title="Тяни на другой узел — создать переход"></div>
+      ${choicesHtml}
+      <div class="node-handle" data-handle="${esc(n.id)}" title="Тяни на другой узел (или на пустое место — создаст новый) — переход"></div>
     </div>`;
   }).join('');
 
@@ -214,8 +224,9 @@ function triggerLabel(t){
   return '⚑ условие';
 }
 
-/* ---------- взаимодействие: клик, перетаскивание узла, панорама, зум, соединение ---------- */
-let dragNode=null, dragOffset=null, panDrag=null;
+/* ---------- взаимодействие: клик/мультивыбор, перетаскивание (в т.ч. группой), панорама, зум,
+   соединение (с быстрым созданием узла, если отпустить на пустом месте), рамка выделения ---------- */
+let dragIds=null, dragStart=null, panDrag=null, boxSelectStart=null, boxSelectRect=null;
 
 worldEl.addEventListener('pointerdown',e=>{
   const handle=e.target.closest('[data-handle]');
@@ -228,21 +239,42 @@ worldEl.addEventListener('pointerdown',e=>{
   }
   if(box){
     const id=box.dataset.node;
-    selectNode(id);
-    const n=findNode(id);
-    dragNode=id; dragOffset={x:worldPt.x-n.x,y:worldPt.y-n.y};
+    const additive=e.ctrlKey||e.metaKey||e.shiftKey;
+    if(additive){ toggleMultiSelect(id); e.stopPropagation(); return; }
+    if(!multiSelected.has(id)) selectNode(id); // клик по узлу вне текущего выделения — начать выделение заново
+    const ids=multiSelected.size?[...multiSelected]:[id];
+    dragIds=ids;
+    dragStart={pt:worldPt,positions:new Map(ids.map(nid=>{ const nn=findNode(nid); return [nid,{x:nn.x,y:nn.y}]; }))};
     e.stopPropagation(); canvasOuter.setPointerCapture(e.pointerId);
   }
 });
 canvasOuter.addEventListener('pointerdown',e=>{
   if(e.target!==canvasOuter&&e.target!==worldEl&&e.target.id!=='edgeLayer') return;
+  if(e.shiftKey){
+    boxSelectStart=screenToWorld(e.clientX,e.clientY);
+    boxSelectRect={x0:boxSelectStart.x,y0:boxSelectStart.y,x1:boxSelectStart.x,y1:boxSelectStart.y};
+    canvasOuter.setPointerCapture(e.pointerId);
+    return;
+  }
   panDrag={x0:e.clientX,y0:e.clientY,px0:pan.x,py0:pan.y};
   canvasOuter.classList.add('panning');
   canvasOuter.setPointerCapture(e.pointerId);
 });
 canvasOuter.addEventListener('pointermove',e=>{
   if(tempConnectFrom){ tempConnectPt=screenToWorld(e.clientX,e.clientY); renderCanvas(); return; }
-  if(dragNode){ const p=screenToWorld(e.clientX,e.clientY); moveNode(dragNode,p.x-dragOffset.x,p.y-dragOffset.y); return; }
+  if(boxSelectStart){
+    const p=screenToWorld(e.clientX,e.clientY);
+    boxSelectRect={x0:Math.min(boxSelectStart.x,p.x),y0:Math.min(boxSelectStart.y,p.y),x1:Math.max(boxSelectStart.x,p.x),y1:Math.max(boxSelectStart.y,p.y)};
+    updateBoxSelectOverlay();
+    return;
+  }
+  if(dragIds){
+    const p=screenToWorld(e.clientX,e.clientY);
+    const dx=p.x-dragStart.pt.x, dy=p.y-dragStart.pt.y;
+    dragIds.forEach(id=>{ const n=findNode(id); const base=dragStart.positions.get(id); if(n&&base){ n.x=base.x+dx; n.y=base.y+dy; } });
+    renderCanvas();
+    return;
+  }
   if(panDrag){ pan.x=panDrag.px0+(e.clientX-panDrag.x0); pan.y=panDrag.py0+(e.clientY-panDrag.y0); applyWorldTransform(); }
 });
 canvasOuter.addEventListener('pointerup',e=>{
@@ -253,9 +285,19 @@ canvasOuter.addEventListener('pointerup',e=>{
       return n&&worldPt.x>=n.x&&worldPt.x<=n.x+NODE_W&&worldPt.y>=n.y&&worldPt.y<=n.y+NODE_H;
     });
     if(targetBox&&targetBox.dataset.node!==tempConnectFrom) addChoice(tempConnectFrom,targetBox.dataset.node);
+    else if(!targetBox){ const created=addNode('event',worldPt.x,worldPt.y); addChoice(tempConnectFrom,created.id); }
     tempConnectFrom=null; tempConnectPt=null; renderCanvas();
   }
-  if(dragNode){ dragNode=null; commitMove(); }
+  if(boxSelectStart){
+    const r=boxSelectRect;
+    const ids=nodes.filter(n=>n.x<r.x1&&n.x+NODE_W>r.x0&&n.y<r.y1&&n.y+NODE_H>r.y0).map(n=>n.id);
+    multiSelected=new Set(ids);
+    selectedNodeId=ids.length===1?ids[0]:null;
+    boxSelectStart=null; boxSelectRect=null;
+    hideBoxSelectOverlay();
+    renderAll();
+  }
+  if(dragIds){ dragIds=null; dragStart=null; commitMove(); }
   if(panDrag){ panDrag=null; canvasOuter.classList.remove('panning'); }
 });
 canvasOuter.addEventListener('wheel',e=>{ e.preventDefault(); setZoom(zoom*(e.deltaY<0?1.1:0.9)); },{passive:false});
@@ -264,6 +306,46 @@ function screenToWorld(clientX,clientY){
   const r=canvasOuter.getBoundingClientRect();
   return { x:(clientX-r.left-pan.x)/zoom, y:(clientY-r.top-pan.y)/zoom };
 }
+function updateBoxSelectOverlay(){
+  const el=document.getElementById('boxSelectOverlay'); if(!el) return;
+  const r=boxSelectRect;
+  el.style.display='block';
+  el.style.left=r.x0+'px'; el.style.top=r.y0+'px';
+  el.style.width=(r.x1-r.x0)+'px'; el.style.height=(r.y1-r.y0)+'px';
+}
+function hideBoxSelectOverlay(){ const el=document.getElementById('boxSelectOverlay'); if(el) el.style.display='none'; }
+
+/* ---------- миникарта ---------- */
+let minimapView=null;
+function renderMinimap(){
+  const canvas=document.getElementById('minimapCanvas'); if(!canvas) return;
+  const ctx=canvas.getContext('2d');
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  if(!nodes.length){ minimapView=null; return; }
+  const minX=Math.min(...nodes.map(n=>n.x)), maxX=Math.max(...nodes.map(n=>n.x+NODE_W));
+  const minY=Math.min(...nodes.map(n=>n.y)), maxY=Math.max(...nodes.map(n=>n.y+NODE_H));
+  const pad=8;
+  const scale=Math.min((canvas.width-pad*2)/Math.max(1,maxX-minX),(canvas.height-pad*2)/Math.max(1,maxY-minY));
+  const ox=pad-minX*scale, oy=pad-minY*scale;
+  nodes.forEach(n=>{
+    ctx.fillStyle=multiSelected.has(n.id)?'#6bbf90':(n.type==='choice'?'#4f7fbf':n.type==='background'?'#c9834a':'#7c8794');
+    ctx.fillRect(ox+n.x*scale,oy+n.y*scale,Math.max(2,NODE_W*scale),Math.max(2,NODE_H*scale));
+  });
+  const rect=canvasOuter.getBoundingClientRect();
+  const vx0=-pan.x/zoom, vy0=-pan.y/zoom, vx1=vx0+rect.width/zoom, vy1=vy0+rect.height/zoom;
+  ctx.strokeStyle='#e8edf3'; ctx.lineWidth=1;
+  ctx.strokeRect(ox+vx0*scale,oy+vy0*scale,(vx1-vx0)*scale,(vy1-vy0)*scale);
+  minimapView={scale,ox,oy};
+}
+document.getElementById('minimapCanvas').addEventListener('pointerdown',e=>{
+  if(!minimapView) return;
+  const r=e.target.getBoundingClientRect();
+  const mx=e.clientX-r.left, my=e.clientY-r.top;
+  const worldX=(mx-minimapView.ox)/minimapView.scale, worldY=(my-minimapView.oy)/minimapView.scale;
+  const outerRect=canvasOuter.getBoundingClientRect();
+  pan.x=outerRect.width/2-worldX*zoom; pan.y=outerRect.height/2-worldY*zoom;
+  applyWorldTransform();
+});
 
 /* ---------- сужаемая левая панель ---------- */
 (function initLeftResizer(){

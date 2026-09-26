@@ -10,6 +10,8 @@
 let variables=[];
 let nodes=[];
 let selectedNodeId=null;
+let multiSelected=new Set(); // всегда синхронизирован с selectedNodeId для одиночного выбора — это цель для групповых операций
+let clipboard=null;
 let pan={x:60,y:60}, zoom=1;
 
 function defaultSim(){ return {durationHours:1,dangerChance:0,foodCost:0,waterCost:0,requiresItems:[],requiresSkills:[]}; }
@@ -47,7 +49,7 @@ function addNode(type,x,y){
     effects:[], sim:defaultSim(), choices:[], ending:''
   };
   nodes.push(n);
-  selectedNodeId=n.id;
+  selectedNodeId=n.id; multiSelected=new Set([n.id]);
   pushHistory(); renderAll();
   return n;
 }
@@ -66,9 +68,56 @@ function deleteNode(id){
   nodes=nodes.filter(n=>n.id!==id);
   nodes.forEach(n=>{ n.choices=n.choices.filter(c=>c.target!==id); });
   if(selectedNodeId===id) selectedNodeId=null;
+  multiSelected.delete(id);
   pushHistory(); renderAll();
 }
-function selectNode(id){ selectedNodeId=id; renderAll(); }
+function selectNode(id){ selectedNodeId=id; multiSelected=id?new Set([id]):new Set(); renderAll(); }
+function toggleMultiSelect(id){
+  if(multiSelected.has(id)) multiSelected.delete(id); else multiSelected.add(id);
+  selectedNodeId=multiSelected.size===1?[...multiSelected][0]:null;
+  renderAll();
+}
+function selectAll(){
+  if(!nodes.length) return;
+  multiSelected=new Set(nodes.map(n=>n.id));
+  selectedNodeId=multiSelected.size===1?[...multiSelected][0]:null;
+  renderAll();
+}
+function clearSelection(){ selectedNodeId=null; multiSelected=new Set(); renderAll(); }
+function deleteSelectedNodes(){
+  const ids=multiSelected.size?new Set(multiSelected):(selectedNodeId?new Set([selectedNodeId]):new Set());
+  if(!ids.size) return;
+  if(!confirm(ids.size>1?`Удалить ${ids.size} узлов? Ссылки на них из других переходов тоже уберутся.`:'Удалить узел? Ссылки на него из других переходов тоже уберутся.')) return;
+  nodes=nodes.filter(n=>!ids.has(n.id));
+  nodes.forEach(n=>{ n.choices=n.choices.filter(c=>!ids.has(c.target)); });
+  if(ids.has(selectedNodeId)) selectedNodeId=null;
+  multiSelected=new Set();
+  pushHistory(); renderAll();
+}
+// Копирует выделенные узлы; переходы, ведущие ЗА пределы скопированного набора, при вставке
+// отбрасываются (вставленная копия не должна тайно тянуть невидимые нити к оригиналу) — переходы
+// между узлами ВНУТРИ набора сохраняются и переиндексируются на новые id.
+function copySelection(){
+  const ids=multiSelected.size?multiSelected:(selectedNodeId?new Set([selectedNodeId]):new Set());
+  if(!ids.size) return;
+  clipboard=[...ids].map(id=>JSON.parse(JSON.stringify(findNode(id)))).filter(Boolean);
+}
+function pasteClipboard(){
+  if(!clipboard||!clipboard.length) return;
+  const idMap={};
+  clipboard.forEach(n=>{ idMap[n.id]=uid('n'); });
+  const pasted=clipboard.map(n=>({
+    ...n,
+    id:idMap[n.id],
+    x:n.x+40,y:n.y+40,
+    trigger:n.trigger.kind==='start'?{kind:'conditions',all:[]}:n.trigger,
+    choices:n.choices.filter(c=>idMap[c.target]).map(c=>({...c,id:uid('c'),target:idMap[c.target]}))
+  }));
+  nodes.push(...pasted);
+  multiSelected=new Set(pasted.map(n=>n.id));
+  selectedNodeId=pasted.length===1?pasted[0].id:null;
+  pushHistory(); renderAll();
+}
 
 function addChoice(nodeId,targetId){
   const n=findNode(nodeId); if(!n) return;

@@ -23,7 +23,7 @@
     <button id="btnFitAll" title="Показать весь граф целиком">⛶ Fit all</button>
   </div>
   <div class="spacer"></div>
-  <span class="hint">Ctrl+Z/Ctrl+Shift+Z — отменить/вернуть · Ctrl+S — сохранить · перетаскивание пустого места — сдвиг · колёсико — масштаб</span>
+  <span class="hint">Ctrl/Shift+клик — выбрать несколько · Shift+тяни пустое место — рамка · Ctrl+A/C/V — всё/копировать/вставить · Ctrl+S — сохранить</span>
 </header>
 
 <div class="side-left" id="sideLeft">
@@ -67,6 +67,7 @@
     <marker id="arrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 Z"></path></marker>
   </defs></svg>
   <div id="world"></div>
+  <div id="minimap"><canvas id="minimapCanvas" width="180" height="120" title="Клик — перейти сюда"></canvas></div>
 </div>
 
 <div class="side-right" id="inspector">

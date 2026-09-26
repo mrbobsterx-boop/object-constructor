@@ -22,7 +22,10 @@ window.addEventListener('keydown',e=>{
   if(tag==='input'||tag==='textarea'||tag==='select') return;
   if((e.ctrlKey||e.metaKey)&&e.code==='KeyZ'){ e.preventDefault(); if(e.shiftKey) redo(); else undo(); return; }
   if((e.ctrlKey||e.metaKey)&&e.code==='KeyY'){ e.preventDefault(); redo(); return; }
-  if((e.code==='Delete'||e.code==='Backspace')&&selectedNodeId){ e.preventDefault(); deleteNode(selectedNodeId); return; }
+  if((e.ctrlKey||e.metaKey)&&e.code==='KeyA'){ e.preventDefault(); selectAll(); return; }
+  if((e.ctrlKey||e.metaKey)&&e.code==='KeyC'){ e.preventDefault(); copySelection(); return; }
+  if((e.ctrlKey||e.metaKey)&&e.code==='KeyV'){ e.preventDefault(); pasteClipboard(); return; }
+  if((e.code==='Delete'||e.code==='Backspace')&&(multiSelected.size||selectedNodeId)){ e.preventDefault(); deleteSelectedNodes(); return; }
 });
 window.addEventListener('beforeunload',e=>{ if(dirty){ e.preventDefault(); e.returnValue=''; } });
 
