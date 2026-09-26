@@ -12,6 +12,8 @@
 | [06-Shelter-Architecture-Map.md](06-Shelter-Architecture-Map.md) | **Shelter Architecture Map** (`Shelter-Architecture-Map/`) | Чек-лист Godot-стороны: системы, UI-компоненты, игровые объекты, Resource-классы данных + чек-лист сцен комнат/зданий из проекта. Сверяется с `data/rooms`, `data/buildings`, `project.godot` и `*.tscn`. Пишет только `data/scene_plan.json` |
 | [07-Image-Prep-Tool.md](07-Image-Prep-Tool.md) | **Image Prep Tool** (`ipt/image-prep-tool/`) | Вырезает объекты из фотографий/сканов в отдельные слои (вручную рамкой или авто по альфа-каналу), обрезает, стирает лишнее, называет по каталогу Object Plan → `assets/refs/<id>_<вариация>.png` |
 | [08-Asset-Renamer.md](08-Asset-Renamer.md) | **Asset Renamer** (`asset-renamer/`) | Массово разбирает и переименовывает сырые картинки (раздел/объект/вариация + состояние хороший/сломано/иконка), переносит из папки-источника в `assets/refs/` под итоговым именем `..._idle/_broken/_icon.png` |
+| [09-Story-Map.md](09-Story-Map.md) | **Story Map** (`story-map/`) | Визуальный конструктор сюжета: узлы-события/выборы/фоновые события, условия и эффекты на мировые переменные (фракции, опасность…), переходы-ветвления. Пишет только `data/story.json` |
+| [10-Story-Bot.md](10-Story-Bot.md) | **Story Bot** (`story-bot/`) | Симулятор прохождения по `data/story.json`: жадный «игрок», подробный лог одного прогона + пакетная статистика (концовки, где чаще умирают/застревают). Пишет только `data/story_playtest.json` |
 | [UNITS.md](UNITS.md) | — | Единицы измерения, формат блоков, формулы для Godot |
 
 ## 1. Поток данных
@@ -29,6 +31,8 @@
             Shelter Architecture Map  ◄── читает data/rooms, data/buildings, project.godot, *.tscn; пишет только data/scene_plan.json
 
    Image Prep Tool ──► assets/refs/<id>_<вариация>.png ──► Asset Renamer ──► assets/refs/..._idle|broken|icon.png ──► Object Plan (превью вариации)
+
+   Story Map ──► data/story.json ──► Story Bot ──► data/story_playtest.json (отчёт о прохождении, читает только сам Story Bot)
 ```
 
 Каждый следующий редактор **читает** результат предыдущего (каталог объектов → библиотека комнаты; каталог комнат → план здания), но не меняет его. Редакторы пишут только свои файлы; служебные исключения: ОС пишет ещё `data/categories.json` и `data/locale/*.json`, Room Editor — `data/project_settings.json`, `data/room_recipes.json`, `data/sets/*`.
@@ -50,6 +54,8 @@
 │   ├── room_recipes.json          ← Room Editor: рецепты генерации
 │   ├── object_plan.json           ← Object Plan: отметки о выполнении (необязательный)
 │   ├── scene_plan.json            ← Shelter Architecture Map: отметки о выполнении (необязательный)
+│   ├── story.json                 ← Story Map: узлы сюжета, мировые переменные, переходы
+│   ├── story_playtest.json        ← Story Bot: отчёт о симуляции прохождения (необязательный)
 │   ├── characters/, rigs/, parts/ ← Character Assembler (ОС и реестр только читают)
 ├── assets/
 │   ├── sprites/
@@ -154,6 +160,8 @@
 | Список объектов для создания, порядок, отметки | Object Plan `03…05-data-*.js` (каталог), `06-model.js`, `07-store.js` |
 | Превью вариации по состояниям (idle/broken/icon) | Object Plan `07-store.js`: `refStateThumbs()`; проставляет суффиксы Asset Renamer `05-actions.js`: `confirmMove()` |
 | Разбор имени файла на раздел/объект/вариацию | Asset Renamer `02-grouping.js`: `parseFileName()`, `buildFamilies()` |
+| Узлы сюжета, ветвления, мировые переменные | Story Map `02-graph-state.js` (данные), `03-canvas.js` (холст/связи), `04-inspector.js` (редактор узла) |
+| Симуляция прохождения, стратегия выбора | Story Bot `02-engine.js`: `runOnce()`, `scoreChoice()`, `checkBackground()` (фоновые события) |
 
 ## 8. Что сейчас требует внимания
 

@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Story Map</title>
+<link rel="stylesheet" href="css/app.css">
+</head>
+<body>
+<div class="app">
+<header>
+  <h1>Story Map</h1>
+  <button id="btnConnect" class="primary">📁 Подключить папку проекта</button>
+  <button id="btnRegrant" style="display:none">Разрешить доступ</button>
+  <span id="folderStatus" class="status">Папка не подключена</span>
+  <button id="btnSave" title="Записать в data/story.json">💾 Сохранить</button>
+  <div class="zoombar">
+    <button id="btnZoomOut" title="Уменьшить">－</button>
+    <span id="zoomLabel">100%</span>
+    <button id="btnZoomIn" title="Увеличить">＋</button>
+    <button id="btnZoomReset" title="Сбросить масштаб и сдвиг">1:1</button>
+  </div>
+  <div class="spacer"></div>
+  <span class="hint">Ctrl+Z/Ctrl+Shift+Z — отменить/вернуть · перетаскивание пустого места — сдвиг · колёсико — масштаб</span>
+</header>
+
+<div class="side-left">
+  <div class="group">
+    <h3>Мировые переменные</h3>
+    <div id="varList" class="varlist"></div>
+    <button class="full" id="btnAddVar" style="margin-top:8px">+ переменная</button>
+  </div>
+  <div class="group">
+    <h3>Узлы (<span id="nodeCount">0</span>)</h3>
+    <div class="row" style="margin-bottom:6px">
+      <button id="btnAddEvent">+ Событие</button>
+      <button id="btnAddChoice">+ Выбор</button>
+      <button id="btnAddBackground">+ Фоновое</button>
+    </div>
+    <div id="nodeList" class="nodelist"></div>
+  </div>
+  <div class="group">
+    <h3>Проверки</h3>
+    <div id="checksList"></div>
+  </div>
+</div>
+
+<div class="canvas-outer" id="canvasOuter">
+  <svg id="edgeLayer"><defs>
+    <marker id="arrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 Z"></path></marker>
+  </defs></svg>
+  <div id="world"></div>
+</div>
+
+<div class="side-right" id="inspector">
+  <div class="hint">Выбери узел на холсте или в списке слева, чтобы редактировать его.</div>
+</div>
+</div>
+
+<script src="js/01-core-utils.js"></script>
+<script src="js/02-graph-state.js"></script>
+<script src="js/03-canvas.js"></script>
+<script src="js/04-inspector.js"></script>
+<script src="js/05-checks.js"></script>
+<script src="js/06-save-load.js"></script>
+<script src="js/07-init.js"></script>
+</body>
+</html>

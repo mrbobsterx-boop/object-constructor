@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Story Bot</title>
+<link rel="stylesheet" href="css/app.css">
+</head>
+<body>
+<div class="app">
+<header>
+  <h1>Story Bot</h1>
+  <button id="btnConnect" class="primary">📁 Подключить папку проекта</button>
+  <button id="btnRegrant" style="display:none">Разрешить доступ</button>
+  <span id="folderStatus" class="status">Папка не подключена</span>
+  <span id="storyStatus" class="status"></span>
+  <div class="spacer"></div>
+</header>
+
+<div class="side-left">
+  <div class="group">
+    <h3>Параметры симуляции</h3>
+    <label class="small">Голод: расход/час</label><input type="number" step="0.1" class="full" id="pFoodRate" value="1">
+    <label class="small" style="margin-top:6px">Жажда: расход/час</label><input type="number" step="0.1" class="full" id="pWaterRate" value="1.5">
+    <label class="small" style="margin-top:6px">Критический порог (0…100)</label><input type="number" class="full" id="pCritical" value="15">
+    <label class="small" style="margin-top:6px">Множитель опасности от world_danger</label><input type="number" step="0.1" class="full" id="pDangerMul" value="1">
+    <label class="small" style="margin-top:6px">Зерно случайности (для повтора)</label><input type="number" class="full" id="pSeed" value="1">
+    <label class="small" style="margin-top:6px">Предел шагов на прогон</label><input type="number" class="full" id="pMaxSteps" value="500">
+  </div>
+  <div class="group">
+    <h3>Один прогон</h3>
+    <button class="full primary" id="btnRunOne">▶ Подробный прогон</button>
+  </div>
+  <div class="group">
+    <h3>Пакетный прогон</h3>
+    <label class="small">Сколько прогонов</label><input type="number" class="full" id="pBatchN" value="200">
+    <button class="full primary" id="btnRunBatch" style="margin-top:8px">▶▶ Прогнать пакет</button>
+  </div>
+  <div class="hint">Сюжет читается из <code>data/story.json</code> (пишет Story Map). Этот инструмент ничего в него не пишет — только сохраняет свой отчёт в <code>data/story_playtest.json</code>.</div>
+</div>
+
+<main>
+  <div class="tabs">
+    <button id="tabSingleBtn" class="active">Подробный лог</button>
+    <button id="tabBatchBtn">Пакетная статистика</button>
+  </div>
+  <div id="viewSingle"><div class="hint">Подключи папку проекта и нажми «Подробный прогон».</div></div>
+  <div id="viewBatch" style="display:none"><div class="hint">Подключи папку проекта и нажми «Прогнать пакет».</div></div>
+</main>
+</div>
+
+<script src="js/01-core-utils.js"></script>
+<script src="js/02-engine.js"></script>
+<script src="js/03-single-run-view.js"></script>
+<script src="js/04-batch-view.js"></script>
+<script src="js/05-save-report.js"></script>
+<script src="js/06-init.js"></script>
+</body>
+</html>
