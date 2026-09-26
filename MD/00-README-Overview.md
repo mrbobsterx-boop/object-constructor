@@ -10,6 +10,8 @@
 | [04-Project-Registry.md](04-Project-Registry.md) | **Project Registry** | Реестр всего проекта: списки, связи, проверки. Только читает |
 | [05-Object-Plan.md](05-Object-Plan.md) | **Object Plan** | Чек-лист объектов для создания в ОС: зачем нужен, функция, вариации, параметры, связи, порядок создания; автоматические отметки по проекту. Пишет только `data/object_plan.json` |
 | [06-Shelter-Architecture-Map.md](06-Shelter-Architecture-Map.md) | **Shelter Architecture Map** (`Shelter-Architecture-Map/`) | Чек-лист Godot-стороны: системы, UI-компоненты, игровые объекты, Resource-классы данных + чек-лист сцен комнат/зданий из проекта. Сверяется с `data/rooms`, `data/buildings`, `project.godot` и `*.tscn`. Пишет только `data/scene_plan.json` |
+| [07-Image-Prep-Tool.md](07-Image-Prep-Tool.md) | **Image Prep Tool** (`ipt/image-prep-tool/`) | Вырезает объекты из фотографий/сканов в отдельные слои (вручную рамкой или авто по альфа-каналу), обрезает, стирает лишнее, называет по каталогу Object Plan → `assets/refs/<id>_<вариация>.png` |
+| [08-Asset-Renamer.md](08-Asset-Renamer.md) | **Asset Renamer** (`asset-renamer/`) | Массово разбирает и переименовывает сырые картинки (раздел/объект/вариация + состояние хороший/сломано/иконка), переносит из папки-источника в `assets/refs/` под итоговым именем `..._idle/_broken/_icon.png` |
 | [UNITS.md](UNITS.md) | — | Единицы измерения, формат блоков, формулы для Godot |
 
 ## 1. Поток данных
@@ -23,8 +25,10 @@
  assets/sprites     assets/sprites/rooms       assets/sprites/rooms/building_backgrounds
 
             Project Registry  ◄── читает всё: data/**, assets/** (ничего не пишет)
-            Object Plan  ◄── читает data/objects, data/rooms, assets/sprites; пишет только data/object_plan.json
+            Object Plan  ◄── читает data/objects, data/rooms, assets/sprites, assets/refs; пишет только data/object_plan.json
             Shelter Architecture Map  ◄── читает data/rooms, data/buildings, project.godot, *.tscn; пишет только data/scene_plan.json
+
+   Image Prep Tool ──► assets/refs/<id>_<вариация>.png ──► Asset Renamer ──► assets/refs/..._idle|broken|icon.png ──► Object Plan (превью вариации)
 ```
 
 Каждый следующий редактор **читает** результат предыдущего (каталог объектов → библиотека комнаты; каталог комнат → план здания), но не меняет его. Редакторы пишут только свои файлы; служебные исключения: ОС пишет ещё `data/categories.json` и `data/locale/*.json`, Room Editor — `data/project_settings.json`, `data/room_recipes.json`, `data/sets/*`.
@@ -52,6 +56,7 @@
 │   │   ├── <категория>/…png       ← ОС: картинки, листы анимаций, состояния
 │   │   └── rooms/…png             ← Room Editor: фоны комнат
 │   │       └── building_backgrounds/…  ← Building Editor: фоны зданий
+│   ├── refs/<id>_<вариация>[_idle|_broken|_icon].png  ← Image Prep Tool / Asset Renamer: превью для Object Plan
 │   └── sounds/…                   ← ОС
 ```
 
@@ -147,6 +152,8 @@
 | Перетаскивание, привязка комнат, сетка блоков 1 м | Building `06-building-canvas.js` |
 | Проверки проекта, ссылки, «неиспользуемое» | Registry `03-relations.js`, `04-checks.js` |
 | Список объектов для создания, порядок, отметки | Object Plan `03…05-data-*.js` (каталог), `06-model.js`, `07-store.js` |
+| Превью вариации по состояниям (idle/broken/icon) | Object Plan `07-store.js`: `refStateThumbs()`; проставляет суффиксы Asset Renamer `05-actions.js`: `confirmMove()` |
+| Разбор имени файла на раздел/объект/вариацию | Asset Renamer `02-grouping.js`: `parseFileName()`, `buildFamilies()` |
 
 ## 8. Что сейчас требует внимания
 

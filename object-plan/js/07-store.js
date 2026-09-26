@@ -92,6 +92,24 @@ function refThumbFor(item,v){
   }
   return null;
 }
+// Состояния превью по суффиксу (их проставляет Asset Renamer при переносе файлов в assets/refs):
+// <id>_<вариация>_idle — обычный вид, _broken — повреждённый, _icon — иконка для инвентаря.
+// Файл без суффикса (старые превью, сохранённые до появления Asset Renamer) считается idle.
+function refStateThumbs(item,v){
+  const prefix=(item.id+'_'+variationEn(v)).toLowerCase();
+  const out={idle:null,broken:null,icon:null,any:null};
+  for(const [relPath,url] of PROJECT.refs){
+    const base=relPath.split('/').pop().replace(/\.[a-z0-9]+$/i,'').toLowerCase();
+    if(base.indexOf(prefix)!==0) continue;
+    if(!out.any) out.any=url;
+    const rest=base.slice(prefix.length);
+    if(/^_idle(_\d+)?$/.test(rest)){ if(!out.idle) out.idle=url; }
+    else if(/^_broken(_\d+)?$/.test(rest)){ if(!out.broken) out.broken=url; }
+    else if(/^_icon(_\d+)?$/.test(rest)){ if(!out.icon) out.icon=url; }
+    else if(rest===''&&!out.idle) out.idle=url;
+  }
+  return out;
+}
 
 /* ---------- шаги и статусы ---------- */
 function stepList(item){ return STEP_DEFS.filter(s=>s.when(item)); }

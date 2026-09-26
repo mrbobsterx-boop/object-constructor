@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Asset Renamer</title>
+<link rel="stylesheet" href="css/app.css">
+</head>
+<body>
+<div class="app">
+<header>
+  <h1>Asset Renamer</h1>
+  <button id="btnConnectSource" class="primary">📂 Папка-источник</button>
+  <button id="btnRegrantSource" style="display:none">Разрешить доступ (источник)</button>
+  <span id="sourceStatus" class="status">Источник не подключён</span>
+  <button id="btnConnectDest">💾 Папка назначения</button>
+  <button id="btnRegrantDest" style="display:none">Разрешить доступ (назначение)</button>
+  <span id="destStatus" class="status">Назначение не подключено</span>
+  <div class="spacer"></div>
+  <span class="hint">Ctrl+Z/Ctrl+Shift+Z — отменить/вернуть · Enter — подтвердить</span>
+</header>
+
+<div class="side-left">
+  <div class="hint" style="margin-bottom:10px">
+    Клик по файлу — выбрать всю его группу (файлы с одинаковым названием, различающиеся только номером). Ctrl+клик по файлу той же группы — сузить набор для полей раздела/объекта/вариации. Ctrl+клик по файлу другой группы — не даст добавить (группы не смешиваются).
+  </div>
+  <div id="sourceList"></div>
+</div>
+
+<div class="side-center" id="editPanel">
+  <div class="hint">Выбери файл слева, чтобы начать редактирование.</div>
+</div>
+
+<div class="side-right">
+  <div class="group">
+    <h3>Журнал переноса</h3>
+    <div id="destLog" class="hint">Здесь появится список перенесённых файлов.</div>
+  </div>
+</div>
+</div>
+
+<!-- Порядок менять нельзя: скрипты делят одну глобальную область, номер = порядок загрузки, INIT — последний -->
+<script src="js/01-core-utils.js"></script>
+<script src="js/02-grouping.js"></script>
+<script src="js/03-state.js"></script>
+<script src="js/04-render.js"></script>
+<script src="js/05-actions.js"></script>
+<script src="js/06-init.js"></script>
+</body>
+</html>
