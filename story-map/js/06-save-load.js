@@ -30,6 +30,7 @@ async function saveStoryToProject(){
   try{
     await writeFileToProject('data/story.json',JSON.stringify(collectStoryJSON(),null,2));
     setFolderStatus('Сохранено в data/story.json · '+new Date().toLocaleTimeString());
+    markClean();
   }catch(e){ console.error(e); alert('Не удалось сохранить: '+e.message); }
 }
 async function loadStoryFromProject(){
@@ -54,5 +55,6 @@ async function loadStoryFromProject(){
   }
   selectedNodeId=null;
   resetHistory();
+  markClean();
   renderAll();
 }

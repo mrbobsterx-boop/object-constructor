@@ -13,10 +13,41 @@ let ideaLog=[];
 
 function nextIdeaY(){ return nodes.length?Math.max(...nodes.map(n=>n.y))+150:80; }
 
+// Раскладка по «слоям»: глубина узла = длина кратчайшего пути от узла-корня бандла (без входящих
+// target_ref внутри самого бандла) по target_ref-связям. Слева направо, по глубине — почти всегда
+// вперёд, поэтому edgePath не приходится огибать петлёй большинство связей сразу после импорта.
+function layoutIdeaEntries(entries){
+  const idxByRef={};
+  entries.forEach((e,i)=>{ if(e.ref) idxByRef[e.ref]=i; });
+  const indeg=new Array(entries.length).fill(0);
+  entries.forEach(e=>(e.choices||[]).forEach(c=>{
+    if(c.target_ref&&idxByRef[c.target_ref]!==undefined) indeg[idxByRef[c.target_ref]]++;
+  }));
+  const depth=new Array(entries.length).fill(-1);
+  const queue=[];
+  entries.forEach((e,i)=>{ if(indeg[i]===0){ depth[i]=0; queue.push(i); } });
+  let qi=0;
+  while(qi<queue.length){
+    const i=queue[qi++];
+    (entries[i].choices||[]).forEach(c=>{
+      const j=c.target_ref?idxByRef[c.target_ref]:undefined;
+      if(j!==undefined&&depth[j]<depth[i]+1){ depth[j]=depth[i]+1; queue.push(j); }
+    });
+  }
+  const colCount=[];
+  return entries.map((e,i)=>{
+    const d=depth[i]<0?0:depth[i];
+    const row=colCount[d]=(colCount[d]||0);
+    colCount[d]++;
+    return {col:d,row};
+  });
+}
+
 function importIdea(data){
   if(!data||!Array.isArray(data.nodes)) throw new Error('Файл не похож на шаблон идеи: нет массива "nodes".');
   const refMap={};
   const startY=nextIdeaY();
+  const positions=layoutIdeaEntries(data.nodes);
 
   (data.variables||[]).forEach(v=>{
     if(v&&v.id&&!findVariable(v.id)) variables.push({id:v.id,name:v.name||v.id,type:v.type||'counter',start:num(v.start,0),min:num(v.min,0),max:num(v.max,100)});
@@ -31,7 +62,7 @@ function importIdea(data){
       id:refMap[entry.ref]||uid('n'),
       title:entry.title||'(из идеи)',text:entry.text||'',
       type:entry.type||'event',category:entry.category||'story',tags:Array.isArray(entry.tags)?entry.tags:[],samSystem:entry.samSystem||'',
-      x:120+(i%4)*220,y:startY+Math.floor(i/4)*130,
+      x:120+positions[i].col*240,y:startY+positions[i].row*140,
       trigger:entry.trigger||{kind:'conditions',all:[]},
       effects:Array.isArray(entry.effects)?entry.effects:[],
       sim,
@@ -48,19 +79,28 @@ function importIdea(data){
   });
   nodes.push(...newNodes);
 
+  // Ограничение веера: по умолчанию "all" (все совпадения) — но с защитой от дублей (одна и та же
+  // пара from→target не создаётся дважды, даже при повторном импорте того же файла) и жёстким
+  // потолком LINK_FANOUT_CAP на один link — если тег общий для полусотни узлов, один импорт не
+  // должен молча породить полсотни новых переходов. mode:"first" — только первое совпадение.
+  const LINK_FANOUT_CAP=30;
   let linkCount=0;
   (data.links||[]).forEach(link=>{
     const fromId=link.from_ref?refMap[link.from_ref]:link.from;
     const from=findNode(fromId); if(!from) return;
-    nodes.forEach(target=>{
-      if(target.id===from.id) return;
+    const mode=link.mode==='first'?'first':'all';
+    const existingTargets=new Set(from.choices.map(c=>c.target));
+    for(const target of nodes){
+      if(target.id===from.id||existingTargets.has(target.id)) continue;
       const catMatch=link.match_category&&target.category===link.match_category;
       const tagMatch=link.match_tag&&(target.tags||[]).includes(link.match_tag);
-      if(catMatch||tagMatch){
-        from.choices.push({id:uid('c'),label:link.label||'(связано по тегу)',target:target.id,requires:[],effects:[],sim:{}});
-        linkCount++;
-      }
-    });
+      if(!catMatch&&!tagMatch) continue;
+      from.choices.push({id:uid('c'),label:link.label||'(связано по тегу)',target:target.id,requires:[],effects:[],sim:{}});
+      existingTargets.add(target.id);
+      linkCount++;
+      if(mode==='first') break;
+      if(linkCount>=LINK_FANOUT_CAP){ console.warn('Story Map: авто-связей по "'+(link.match_tag||link.match_category)+'" больше '+LINK_FANOUT_CAP+', остальные пропущены — сузь тег или используй mode:"first".'); break; }
+    }
   });
 
   ideaLog.unshift({title:data.title||data.idea_id||'(без названия)',at:new Date(),nodeCount:newNodes.length,varCount:(data.variables||[]).length,linkCount});

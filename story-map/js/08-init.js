@@ -14,15 +14,19 @@ document.getElementById('btnAddBackground').onclick=()=>addNode('background');
 document.getElementById('btnZoomIn').onclick=()=>setZoom(zoom*1.15);
 document.getElementById('btnZoomOut').onclick=()=>setZoom(zoom*0.87);
 document.getElementById('btnZoomReset').onclick=()=>{ zoom=1; pan={x:60,y:60}; applyWorldTransform(); };
+document.getElementById('btnFitAll').onclick=fitAll;
 
 window.addEventListener('keydown',e=>{
   const tag=(e.target.tagName||'').toLowerCase();
+  if((e.ctrlKey||e.metaKey)&&e.code==='KeyS'){ e.preventDefault(); saveStoryToProject(); return; }
   if(tag==='input'||tag==='textarea'||tag==='select') return;
   if((e.ctrlKey||e.metaKey)&&e.code==='KeyZ'){ e.preventDefault(); if(e.shiftKey) redo(); else undo(); return; }
   if((e.ctrlKey||e.metaKey)&&e.code==='KeyY'){ e.preventDefault(); redo(); return; }
   if((e.code==='Delete'||e.code==='Backspace')&&selectedNodeId){ e.preventDefault(); deleteNode(selectedNodeId); return; }
 });
+window.addEventListener('beforeunload',e=>{ if(dirty){ e.preventDefault(); e.returnValue=''; } });
 
 resetHistory();
 renderAll();
+renderDirtyStatus();
 tryRestoreProjectFolder();

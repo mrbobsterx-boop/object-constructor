@@ -13,18 +13,21 @@
   <button id="btnConnect" class="primary">📁 Подключить папку проекта</button>
   <button id="btnRegrant" style="display:none">Разрешить доступ</button>
   <span id="folderStatus" class="status">Папка не подключена</span>
-  <button id="btnSave" title="Записать в data/story.json">💾 Сохранить</button>
+  <button id="btnSave" title="Ctrl+S">💾 Сохранить</button>
+  <span id="dirtyStatus" class="status"></span>
   <div class="zoombar">
     <button id="btnZoomOut" title="Уменьшить">－</button>
     <span id="zoomLabel">100%</span>
     <button id="btnZoomIn" title="Увеличить">＋</button>
     <button id="btnZoomReset" title="Сбросить масштаб и сдвиг">1:1</button>
+    <button id="btnFitAll" title="Показать весь граф целиком">⛶ Fit all</button>
   </div>
   <div class="spacer"></div>
-  <span class="hint">Ctrl+Z/Ctrl+Shift+Z — отменить/вернуть · перетаскивание пустого места — сдвиг · колёсико — масштаб</span>
+  <span class="hint">Ctrl+Z/Ctrl+Shift+Z — отменить/вернуть · Ctrl+S — сохранить · перетаскивание пустого места — сдвиг · колёсико — масштаб</span>
 </header>
 
-<div class="side-left">
+<div class="side-left" id="sideLeft">
+  <div class="col-resizer" id="leftResizer"></div>
   <div class="group">
     <h3>Мировые переменные</h3>
     <div id="varList" class="varlist"></div>
@@ -36,6 +39,11 @@
       <button id="btnAddEvent">+ Событие</button>
       <button id="btnAddChoice">+ Выбор</button>
       <button id="btnAddBackground">+ Фоновое</button>
+    </div>
+    <input type="text" id="nodeSearch" class="full" placeholder="🔎 Найти узел — название, текст, тег, id, переменная…" style="margin-bottom:6px">
+    <div class="row" id="nodeFilterRow" style="margin-bottom:6px">
+      <select id="filterType"><option value="">Тип: все</option><option value="event">Событие</option><option value="choice">Выбор</option><option value="background">Фоновое</option></select>
+      <select id="filterStatus"><option value="">Статус: все</option><option value="deadend">Тупики</option><option value="ending">Концовки</option><option value="unreachable">Недостижимые</option></select>
     </div>
     <div id="nodeList" class="nodelist"></div>
   </div>

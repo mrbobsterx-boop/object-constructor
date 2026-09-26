@@ -91,6 +91,10 @@ function addCondRow(list){ list.push({var:(variables[0]&&variables[0].id)||'',op
 function addEffRow(list){ list.push({var:(variables[0]&&variables[0].id)||'',op:'add',value:0}); }
 
 /* ---------- история ---------- */
+let dirty=false;
+function markDirty(){ dirty=true; if(typeof renderDirtyStatus==='function') renderDirtyStatus(); }
+function markClean(){ dirty=false; if(typeof renderDirtyStatus==='function') renderDirtyStatus(); }
+
 let history=[], historyIndex=-1;
 function snapshot(){ return JSON.stringify({variables,nodes,selectedNodeId}); }
 function restoreSnapshot(s){
@@ -102,9 +106,10 @@ function pushHistory(){
   history.push(snapshot());
   historyIndex=history.length-1;
   if(history.length>200){ history.shift(); historyIndex--; }
+  markDirty();
 }
-function undo(){ if(historyIndex<=0) return; historyIndex--; restoreSnapshot(history[historyIndex]); renderAll(); }
-function redo(){ if(historyIndex>=history.length-1) return; historyIndex++; restoreSnapshot(history[historyIndex]); renderAll(); }
+function undo(){ if(historyIndex<=0) return; historyIndex--; restoreSnapshot(history[historyIndex]); markDirty(); renderAll(); }
+function redo(){ if(historyIndex>=history.length-1) return; historyIndex++; restoreSnapshot(history[historyIndex]); markDirty(); renderAll(); }
 function resetHistory(){ history=[snapshot()]; historyIndex=0; }
 
 function renderAll(){ renderLeft(); renderCanvas(); renderInspector(); renderChecks(); }
