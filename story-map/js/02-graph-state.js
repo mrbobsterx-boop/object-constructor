@@ -145,10 +145,14 @@ function markDirty(){ dirty=true; if(typeof renderDirtyStatus==='function') rend
 function markClean(){ dirty=false; if(typeof renderDirtyStatus==='function') renderDirtyStatus(); }
 
 let history=[], historyIndex=-1;
-function snapshot(){ return JSON.stringify({variables,nodes,selectedNodeId}); }
+// entities/relationTypes/relations/proposals — слой мира (модуль 09), но переиспользуют ту же
+// историю отмены/возврата, что и сюжетный граф: пользователю не нужны два разных Ctrl+Z.
+function snapshot(){ return JSON.stringify({variables,nodes,selectedNodeId,entities,relationTypes,relations,proposals,selectedEntityId}); }
 function restoreSnapshot(s){
   const d=JSON.parse(s);
   variables=d.variables; nodes=d.nodes; selectedNodeId=d.selectedNodeId;
+  entities=d.entities||[]; relationTypes=d.relationTypes||[]; relations=d.relations||[]; proposals=d.proposals||[];
+  selectedEntityId=d.selectedEntityId||null;
 }
 function pushHistory(){
   history=history.slice(0,historyIndex+1);
@@ -161,4 +165,10 @@ function undo(){ if(historyIndex<=0) return; historyIndex--; restoreSnapshot(his
 function redo(){ if(historyIndex>=history.length-1) return; historyIndex++; restoreSnapshot(history[historyIndex]); markDirty(); renderAll(); }
 function resetHistory(){ history=[snapshot()]; historyIndex=0; }
 
-function renderAll(){ renderLeft(); renderCanvas(); renderInspector(); renderChecks(); }
+function renderAll(){
+  renderLeft(); renderCanvas(); renderChecks();
+  if(typeof renderWorldLeft==='function') renderWorldLeft();
+  if(typeof renderWorldCanvas==='function') renderWorldCanvas();
+  if(typeof viewMode!=='undefined'&&viewMode==='world'&&typeof renderWorldInspector==='function') renderWorldInspector();
+  else renderInspector();
+}

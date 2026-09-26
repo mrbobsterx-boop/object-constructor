@@ -43,6 +43,54 @@ function layoutIdeaEntries(entries){
   });
 }
 
+// Сопоставление "не дублировать": авторская сущность считается той же при совпадении kind+name
+// (без учёта регистра), каталожная — при совпадении kind+ref.refId. mutate=false — для превью
+// (analyzeIdea), mutate=true — для реального слияния (importIdea). entry.ref (если есть) — локальный
+// id внутри бандла идеи, тот же приём, что и node.ref/target_ref у узлов.
+function resolveOrCreateEntity(entry,refMap,mutate){
+  const kind=entityKindDef(entry.kind);
+  let existing=null;
+  if(kind.catalog&&entry.refId) existing=entities.find(e=>e.kind===kind.id&&e.ref&&e.ref.refId===entry.refId);
+  else if(!kind.catalog&&entry.name) existing=entities.find(e=>e.kind===kind.id&&(e.name||'').trim().toLowerCase()===entry.name.trim().toLowerCase());
+  if(existing){ if(entry.ref) refMap[entry.ref]=existing.id; return {entity:existing,isNew:false}; }
+  const e={id:uid('e'),kind:kind.id,name:kind.catalog?'':(entry.name||'Без имени'),ref:kind.catalog?{catalog:kind.catalog,refId:entry.refId||''}:null,note:entry.note||''};
+  if(mutate) entities.push(e);
+  if(entry.ref) refMap[entry.ref]=e.id;
+  return {entity:e,isNew:true};
+}
+
+// Не мутирующий разбор — считает "что будет добавлено / что совпадёт с уже существующим", чтобы
+// показать это пользователю ДО реального importIdea(). Логика сопоставления та же самая
+// (resolveOrCreateEntity с mutate=false), поэтому цифры превью гарантированно совпадают с реальным
+// слиянием — не отдельная, потенциально расходящаяся оценка "на глаз".
+function analyzeIdea(data){
+  data=data||{};
+  const existingVarIds=new Set(variables.map(v=>v.id));
+  const varList=data.variables||[];
+  const newVarCount=varList.filter(v=>v&&v.id&&!existingVarIds.has(v.id)).length;
+
+  const refMap={};
+  let newEntityCount=0, existingEntityCount=0;
+  (data.entities||[]).forEach(entry=>{
+    const {isNew}=resolveOrCreateEntity(entry,refMap,false);
+    if(isNew) newEntityCount++; else existingEntityCount++;
+  });
+
+  const existingTypeNames=new Set(relationTypes.map(t=>t.name));
+  const typeNamesInBundle=new Set((data.relations||[]).map(r=>r&&r.type).filter(Boolean));
+  const newRelationTypeNames=[...typeNamesInBundle].filter(n=>!existingTypeNames.has(n));
+
+  return {
+    title:data.title||data.idea_id||'(без названия)',
+    nodeCount:Array.isArray(data.nodes)?data.nodes.length:0,
+    newVarCount, existingVarCount:varList.length-newVarCount,
+    newEntityCount, existingEntityCount,
+    relationCount:Array.isArray(data.relations)?data.relations.length:0,
+    newRelationTypeCount:newRelationTypeNames.length, newRelationTypeNames,
+    proposalCount:Array.isArray(data.proposals)?data.proposals.length:0
+  };
+}
+
 function importIdea(data){
   if(!data||!Array.isArray(data.nodes)) throw new Error('Файл не похож на шаблон идеи: нет массива "nodes".');
   const refMap={};
@@ -103,14 +151,39 @@ function importIdea(data){
     }
   });
 
-  ideaLog.unshift({title:data.title||data.idea_id||'(без названия)',at:new Date(),nodeCount:newNodes.length,varCount:(data.variables||[]).length,linkCount});
+  // Сущности/связи/идеи-предложения — тот же принцип "только добавляем", что и у узлов/переменных:
+  // resolveOrCreateEntity сам решает "это уже есть" vs "это новое" (см. analyzeIdea выше — числа
+  // в превью и то, что реально будет добавлено здесь, посчитаны одной и той же функцией).
+  const entityRefMap={};
+  (data.entities||[]).forEach(entry=>{ resolveOrCreateEntity(entry,entityRefMap,true); });
+
+  let addedRelationCount=0;
+  (data.relations||[]).forEach(rel=>{
+    if(!rel) return;
+    let typeObj=relationTypes.find(t=>t.name===rel.type);
+    if(!typeObj&&rel.type){ typeObj={id:uid('rt'),name:rel.type}; relationTypes.push(typeObj); }
+    const fromId=rel.from_ref?entityRefMap[rel.from_ref]:rel.from;
+    const toId=rel.to_ref?entityRefMap[rel.to_ref]:rel.to;
+    if(!fromId||!toId||!typeObj) return;
+    relations.push({id:uid('rel'),type:typeObj.id,from:fromId,to:toId,status:rel.status||'confirmed',source:rel.source||('idea:'+(data.idea_id||data.title||'')),comment:rel.comment||'',conditions:Array.isArray(rel.conditions)?rel.conditions:[],effects:Array.isArray(rel.effects)?rel.effects:[]});
+    addedRelationCount++;
+  });
+
+  let addedProposalCount=0;
+  (data.proposals||[]).forEach(p=>{
+    if(!p||!p.title) return;
+    proposals.push({id:uid('pr'),title:p.title,text:p.text||'',status:'idea',relatedEntities:[],relatedSystems:[]});
+    addedProposalCount++;
+  });
+
+  ideaLog.unshift({title:data.title||data.idea_id||'(без названия)',at:new Date(),nodeCount:newNodes.length,varCount:(data.variables||[]).length,linkCount,entityCount:(data.entities||[]).length,relationCount:addedRelationCount,proposalCount:addedProposalCount});
   pushHistory(); renderAll(); renderIdeaLog();
-  return {nodeCount:newNodes.length,linkCount};
+  return {nodeCount:newNodes.length,linkCount,entityCount:(data.entities||[]).length,relationCount:addedRelationCount,proposalCount:addedProposalCount};
 }
 
 function renderIdeaLog(){
   const el=document.getElementById('ideaLogList');
-  el.innerHTML=ideaLog.length?ideaLog.map(l=>`<div class="idea-entry">«${esc(l.title)}» — ${l.nodeCount} узлов, ${l.varCount} переменных, ${l.linkCount} автосвязей <span class="muted small">(${l.at.toLocaleTimeString()})</span></div>`).join(''):'Импортированных идей пока нет.';
+  el.innerHTML=ideaLog.length?ideaLog.map(l=>`<div class="idea-entry">«${esc(l.title)}» — ${l.nodeCount} узлов, ${l.varCount} переменных, ${l.linkCount} автосвязей${l.entityCount?`, ${l.entityCount} сущностей`:''}${l.relationCount?`, ${l.relationCount} связей`:''}${l.proposalCount?`, ${l.proposalCount} идей`:''} <span class="muted small">(${l.at.toLocaleTimeString()})</span></div>`).join(''):'Импортированных идей пока нет.';
 }
 
 const IDEA_TEMPLATE={
@@ -139,6 +212,22 @@ const IDEA_TEMPLATE={
   ],
   links:[
     {from_ref:'n2',match_tag:'energy',label:'(связано: тоже про энергию)'}
+  ],
+  // Сущности мира + типизированные связи между ними — отдельный слой, показывает пример из
+  // обсуждения: DRINK (действие из Object Plan) → производит эффект → тот утоляет жажду, которая
+  // тратит воду. ref — локальный id внутри бандла, как и у узлов выше; refId — реальный id/строка
+  // из каталога Object Plan (для kind без каталога — просто free-typed name).
+  entities:[
+    {ref:'e_ivan',kind:'character',name:'Иван'},
+    {ref:'e_drink',kind:'action',refId:'DRINK'},
+    {ref:'e_thirstfix',kind:'effect',name:'Восстановление жажды'}
+  ],
+  relations:[
+    {from_ref:'e_ivan',type:'can_perform',to_ref:'e_drink',status:'confirmed',comment:'Иван может пить'},
+    {from_ref:'e_drink',type:'produces',to_ref:'e_thirstfix',status:'confirmed'}
+  ],
+  proposals:[
+    {title:'Завести Need-сущность "Голод" по аналогии с жаждой',text:'Симметрично текущей связке DRINK→восстановление жажды — стоит явно завести сущность-потребность и связать её с EAT.'}
   ]
 };
 
@@ -146,12 +235,42 @@ document.getElementById('btnDownloadTemplate').onclick=()=>{
   downloadText('story-map-idea-template.json',JSON.stringify(IDEA_TEMPLATE,null,2));
 };
 document.getElementById('btnImportIdea').onclick=()=>document.getElementById('ideaFileInput').click();
+
+// Импорт → Анализ (не мутирует граф) → Превью (эта карточка) → Слияние (только по кнопке
+// "Добавить в граф") — чтобы файл с идеей нельзя было случайно "впаять" в граф одним кликом мимо.
+let pendingIdeaData=null;
 document.getElementById('ideaFileInput').addEventListener('change',async e=>{
   const file=e.target.files[0]; e.target.value='';
   if(!file) return;
   try{
     const data=JSON.parse(await file.text());
-    const r=importIdea(data);
-    alert(`Готово: добавлено ${r.nodeCount} узлов и ${r.linkCount} автосвязей.`);
-  }catch(err){ alert('Не удалось импортировать идею: '+err.message); }
+    if(!data||!Array.isArray(data.nodes)) throw new Error('Файл не похож на шаблон идеи: нет массива "nodes".');
+    pendingIdeaData=data;
+    showImportPreview(analyzeIdea(data));
+  }catch(err){ alert('Не удалось прочитать идею: '+err.message); }
 });
+function showImportPreview(summary){
+  document.getElementById('importPreviewBody').innerHTML=`
+    <div class="hint">«${esc(summary.title)}»</div>
+    <ul style="margin:8px 0;padding-left:18px;font-size:12.5px;line-height:1.6">
+      <li>Узлов: ${summary.nodeCount}</li>
+      <li>Переменных: новых ${summary.newVarCount}, уже существующих ${summary.existingVarCount}</li>
+      <li>Сущностей: новых ${summary.newEntityCount}, совпало с существующими ${summary.existingEntityCount}</li>
+      <li>Связей: ${summary.relationCount}${summary.newRelationTypeCount?` (новых типов связи: ${summary.newRelationTypeCount} — ${esc(summary.newRelationTypeNames.join(', '))})`:''}</li>
+      <li>Идей/предложений: ${summary.proposalCount}</li>
+    </ul>`;
+  document.getElementById('importPreviewModal').style.display='flex';
+}
+document.getElementById('btnImportCancel').onclick=()=>{
+  pendingIdeaData=null;
+  document.getElementById('importPreviewModal').style.display='none';
+};
+document.getElementById('btnImportConfirm').onclick=()=>{
+  const data=pendingIdeaData; pendingIdeaData=null;
+  document.getElementById('importPreviewModal').style.display='none';
+  if(!data) return;
+  try{
+    const r=importIdea(data);
+    alert(`Готово: добавлено ${r.nodeCount} узлов, ${r.linkCount} автосвязей, ${r.entityCount} сущностей, ${r.relationCount} связей, ${r.proposalCount} идей.`);
+  }catch(err){ alert('Не удалось импортировать идею: '+err.message); }
+};

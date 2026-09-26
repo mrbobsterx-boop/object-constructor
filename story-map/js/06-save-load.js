@@ -15,7 +15,11 @@ function collectStoryJSON(){
       trigger:n.trigger,effects:n.effects,sim:n.sim,
       choices:n.choices.map(c=>({id:c.id,label:c.label,target:c.target,requires:c.requires,effects:c.effects,sim:c.sim||{}})),
       ending:n.ending||''
-    }))
+    })),
+    entities:entities.map(e=>({id:e.id,kind:e.kind,name:e.name||'',ref:e.ref?{catalog:e.ref.catalog,refId:e.ref.refId||''}:null,note:e.note||''})),
+    relationTypes:relationTypes.map(t=>({id:t.id,name:t.name})),
+    relations:relations.map(r=>({id:r.id,type:r.type,from:r.from,to:r.to,status:r.status||'confirmed',source:r.source||'',comment:r.comment||'',conditions:r.conditions||[],effects:r.effects||[]})),
+    proposals:proposals.map(p=>({id:p.id,title:p.title,text:p.text||'',status:p.status||'idea',relatedEntities:p.relatedEntities||[],relatedSystems:p.relatedSystems||[]}))
   };
 }
 // Разбор старого свободного текста ("предмет1, предмет2") в массив — ничего не теряем при переходе
@@ -52,8 +56,13 @@ async function loadStoryFromProject(){
         ending:n.ending||''
       };
     });
+    entities=Array.isArray(data.entities)?data.entities.map(e=>({id:e.id||uid('e'),kind:e.kind||'concept',name:e.name||'',ref:e.ref?{catalog:e.ref.catalog||'',refId:e.ref.refId||''}:null,note:e.note||''})):[];
+    relationTypes=Array.isArray(data.relationTypes)?data.relationTypes.map(t=>({id:t.id||uid('rt'),name:t.name||''})):[];
+    seedRelationTypesIfEmpty();
+    relations=Array.isArray(data.relations)?data.relations.map(r=>({id:r.id||uid('rel'),type:r.type||'',from:r.from||'',to:r.to||'',status:r.status||'confirmed',source:r.source||'',comment:r.comment||'',conditions:Array.isArray(r.conditions)?r.conditions:[],effects:Array.isArray(r.effects)?r.effects:[]})):[];
+    proposals=Array.isArray(data.proposals)?data.proposals.map(p=>({id:p.id||uid('pr'),title:p.title||'',text:p.text||'',status:p.status||'idea',relatedEntities:Array.isArray(p.relatedEntities)?p.relatedEntities:[],relatedSystems:Array.isArray(p.relatedSystems)?p.relatedSystems:[]})):[];
   }
-  selectedNodeId=null;
+  selectedNodeId=null; selectedEntityId=null; selectedRelationId=null;
   resetHistory();
   markClean();
   renderAll();

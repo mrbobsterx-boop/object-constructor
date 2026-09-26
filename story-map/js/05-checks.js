@@ -57,7 +57,25 @@ function runChecks(){
 
   const endingCount=nodes.filter(n=>n.ending).length;
   const unreachableCount=nodes.filter(n=>n.trigger.kind==='conditions'&&!reachable.has(n.id)).length;
-  out.unshift({level:'summary',text:`Узлов: ${nodes.length} · переменных: ${variables.length} · концовок: ${endingCount} · без входящих переходов: ${unreachableCount}`});
+
+  // Слой мира: сущности/связи — отдельный граф, но проверяем его тем же списком, чтобы дырки
+  // (сущность удалили вручную из JSON, тип связи переименовали) не оставались незамеченными.
+  const entityIds=new Set(entities.map(e=>e.id));
+  const relationTypeIds=new Set(relationTypes.map(t=>t.id));
+  entities.forEach(e=>{
+    const kind=entityKindDef(e.kind);
+    if(kind.catalog&&e.ref&&e.ref.refId&&!catalogOptionsFor(kind.catalog).some(o=>o.id===e.ref.refId)){
+      out.push({level:'warn',text:`Сущность «${entityDisplayName(e)}»: ссылка на «${e.ref.refId}» в каталоге ${kind.catalog} больше не найдена (переименовано/удалено в Object Plan?).`});
+    }
+  });
+  relations.forEach(r=>{
+    const fromOk=entityIds.has(r.from), toOk=entityIds.has(r.to);
+    if(!fromOk) out.push({level:'err',text:`Связь «${relationTypeLabel(r.type)}»: сторона «от» ссылается на несуществующую сущность.`});
+    if(!toOk) out.push({level:'err',text:`Связь «${relationTypeLabel(r.type)}»: сторона «к» ссылается на несуществующую сущность.`});
+    if(!relationTypeIds.has(r.type)) out.push({level:'err',text:`Связь (${fromOk?entityDisplayName(findEntity(r.from)):'?'} → ${toOk?entityDisplayName(findEntity(r.to)):'?'}): неизвестный тип связи.`});
+  });
+
+  out.unshift({level:'summary',text:`Узлов: ${nodes.length} · переменных: ${variables.length} · концовок: ${endingCount} · без входящих переходов: ${unreachableCount} · сущностей: ${entities.length} · связей: ${relations.length}`});
 
   return out;
 }

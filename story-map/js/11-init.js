@@ -22,6 +22,9 @@ window.addEventListener('keydown',e=>{
   if(tag==='input'||tag==='textarea'||tag==='select') return;
   if((e.ctrlKey||e.metaKey)&&e.code==='KeyZ'){ e.preventDefault(); if(e.shiftKey) redo(); else undo(); return; }
   if((e.ctrlKey||e.metaKey)&&e.code==='KeyY'){ e.preventDefault(); redo(); return; }
+  // мультивыбор/копирование/удаление клавишами — только для сюжетного графа на холсте, чтобы
+  // случайная клавиша в режиме "Мир" не трогала узлы сюжета через устаревшее выделение.
+  if(typeof viewMode!=='undefined'&&viewMode!=='story') return;
   if((e.ctrlKey||e.metaKey)&&e.code==='KeyA'){ e.preventDefault(); selectAll(); return; }
   if((e.ctrlKey||e.metaKey)&&e.code==='KeyC'){ e.preventDefault(); copySelection(); return; }
   if((e.ctrlKey||e.metaKey)&&e.code==='KeyV'){ e.preventDefault(); pasteClipboard(); return; }
@@ -29,6 +32,7 @@ window.addEventListener('keydown',e=>{
 });
 window.addEventListener('beforeunload',e=>{ if(dirty){ e.preventDefault(); e.returnValue=''; } });
 
+seedRelationTypesIfEmpty();
 resetHistory();
 renderAll();
 renderDirtyStatus();
