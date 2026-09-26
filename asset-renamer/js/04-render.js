@@ -33,11 +33,11 @@ function renderLeft(){
       <div class="family-files">`;
     for(const file of fam.files){
       const sel=isActive&&selection.has(file.fileName);
-      const st=isActive&&pending.has(file.fileName)?pending.get(file.fileName).state:null;
-      html+=`<div class="file-chip ${sel?'selected':''} ${st?('st-'+st):''}" data-file="${esc(file.fileName)}" title="${esc(file.fileName)}">
+      const states=isActive&&pending.has(file.fileName)?STATE_ORDER.filter(s=>pending.get(file.fileName).states.has(s)):[];
+      html+=`<div class="file-chip ${sel?'selected':''}" data-file="${esc(file.fileName)}" title="${esc(file.fileName)}">
         <img src="${esc(fileUrls.get(file.fileName)||'')}" alt="" loading="lazy">
         <div class="file-name">${esc(file.fileName)}</div>
-        ${st?`<span class="state-tag">${st}</span>`:''}
+        ${states.length?`<div class="state-tags">${states.map(s=>`<span class="state-tag st-${s}">${s}</span>`).join('')}</div>`:''}
       </div>`;
     }
     html+='</div></div>';
@@ -78,17 +78,18 @@ function renderCenter(){
         <button class="state-slider ${brush==='broken'?'on':''}" id="sliderBroken">Сломано<span class="kbd">Num0</span></button>
         <button class="state-slider ${brush==='icon'?'on':''}" id="sliderIcon">Иконка<span class="kbd">Num3</span></button>
       </div>
-      <div class="hint">По умолчанию у всех файлов группы — «хороший» (idle). Включи переключатель и кликни по файлу слева (без Ctrl) — файлу присвоится это состояние; новый выбор слева всё сбрасывает на «хороший».</div>
+      <div class="hint">Клик по файлу слева (без Ctrl) ДОБАВЛЯЕТ или УБИРАЕТ отмеченное переключателем состояние у этого файла — состояния не заменяют друг друга. Один и тот же снимок можно отметить сразу и «айдл», и «иконкой» (кликни по нему без переключателя — добавится/уберётся айдл, включи «Иконка» и кликни ещё раз — добавится и иконка): при подтверждении из него получится два (или три) отдельных файла. Новый выбор слева сбрасывает все файлы группы на «хороший» (idle).</div>
     </div>
     <div class="group">
-      <h3>Файлы этой группы и их итоговое имя</h3>
+      <h3>Файлы этой группы и их итоговые имена</h3>
       <div class="filechips">${fam.files.map(f=>{
         const p=pending.get(f.fileName);
-        const finalName=computeFinalName(p,f.ext);
+        const finalNames=computeFinalNames(p,f.ext);
+        const tags=STATE_ORDER.filter(s=>p.states.has(s)).map(s=>`<span class="state-tag st-${s}">${s}</span>`).join('');
         return `<div class="preview-row ${selection.has(f.fileName)?'selected':''}">
           <img src="${esc(fileUrls.get(f.fileName)||'')}" alt="">
-          <div class="preview-names"><div>${esc(f.fileName)}</div><div>${esc(finalName)}</div></div>
-          <span class="state-tag st-${p.state}">${p.state}</span>
+          <div class="preview-names"><div>${esc(f.fileName)}</div>${finalNames.map(n=>`<div>${esc(n)}</div>`).join('')}</div>
+          <div class="state-tags">${tags}</div>
         </div>`;
       }).join('')}</div>
     </div>

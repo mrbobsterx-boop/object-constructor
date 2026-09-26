@@ -12,7 +12,7 @@ button.primary{background:var(--accent);border-color:var(--accent-hi);color:#0d1
 button.primary:hover{background:var(--accent-hi)}
 button.danger{border-color:var(--danger);color:#ffb3ad}
 input[type=text]{font:inherit;background:#0e1217;color:var(--text);border:1px solid var(--line2);border-radius:6px;padding:6px 9px}
-.app{display:grid;grid-template-columns:1.5fr 1fr 300px;grid-template-rows:52px 1fr;height:100vh}
+.app{display:grid;grid-template-columns:1fr 1fr 1fr;grid-template-rows:52px 1fr;height:100vh}
 header{grid-column:1/-1;display:flex;align-items:center;gap:8px;padding:0 12px;background:var(--panel);border-bottom:1px solid var(--line);flex-wrap:wrap}
 header h1{font-size:14px;font-weight:600;margin:0 14px 0 0;white-space:nowrap}
 header .spacer{flex:1}
@@ -44,10 +44,7 @@ header .spacer{flex:1}
 .file-chip.selected{transform:translateX(6px);border-color:var(--accent-hi);box-shadow:2px 2px 0 rgba(0,0,0,.25)}
 .file-chip img{width:100%;height:96px;object-fit:contain;background:#181d24;border-radius:4px;display:block;image-rendering:pixelated}
 .file-chip .file-name{font-size:10.5px;color:var(--muted);margin-top:5px;white-space:normal;word-break:break-word;line-height:1.3}
-.file-chip .state-tag{display:inline-block;margin-top:4px;font-size:9.5px;padding:1px 5px;border-radius:8px;border:1px solid var(--line2)}
-.file-chip.st-idle .state-tag{color:var(--accent-hi);border-color:var(--accent)}
-.file-chip.st-broken .state-tag{color:#ff9a88;border-color:var(--danger)}
-.file-chip.st-icon .state-tag{color:#9dc2ff;border-color:var(--info)}
+.state-tags{display:flex;flex-wrap:wrap;gap:3px;margin-top:4px}
 .file-chip.reject-flash{animation:rejectFlash .4s ease}
 @keyframes rejectFlash{0%,100%{box-shadow:none}50%{box-shadow:0 0 0 2px var(--danger)}}
 
@@ -65,11 +62,12 @@ header .spacer{flex:1}
 .preview-row img{width:44px;height:44px;object-fit:contain;background:#0e1217;border-radius:4px;flex:none}
 .preview-names{flex:1;min-width:0;font-size:12px}
 .preview-names div:first-child{color:var(--muted);font-size:10.5px}
-.preview-names div:last-child{word-break:break-word}
+.preview-names div:not(:first-child){word-break:break-word}
 .state-tag{flex:none;font-size:10px;padding:2px 7px;border-radius:9px;border:1px solid var(--line2)}
 .state-tag.st-idle{color:var(--accent-hi);border-color:var(--accent)}
 .state-tag.st-broken{color:#ff9a88;border-color:var(--danger)}
 .state-tag.st-icon{color:#9dc2ff;border-color:var(--info)}
+.preview-row .state-tags{flex:none;margin-top:0}
 
 /* ---- назначение / журнал ---- */
 .log-item{font-size:11.5px;padding:5px 7px;border-radius:5px;margin-bottom:4px;border:1px solid var(--line2);background:var(--panel2);word-break:break-word}

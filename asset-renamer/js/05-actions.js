@@ -37,22 +37,26 @@ async function confirmMove(){
   const results=[];
   for(const file of fam.files){
     const p=pending.get(file.fileName);
-    if(!p) continue;
+    if(!p||!p.states.size) continue;
     try{
       const srcHandle=await sourceDirHandle.getFileHandle(file.fileName);
       const blob=await srcHandle.getFile();
-      const finalStem=[slug(p.razdel),slug(p.obj),slug(p.variation)].filter(Boolean).join('_')+'_'+p.state;
-      let finalName=`${finalStem}.${file.ext}`;
-      if(existing.has(finalName.toLowerCase())){
-        let n=2;
-        while(existing.has(`${finalStem}_${n}.${file.ext}`.toLowerCase())) n++;
-        finalName=`${finalStem}_${n}.${file.ext}`;
+      // Один снимок может быть отмечен сразу несколькими состояниями (айдл + иконка, и т.п.) —
+      // тогда из него получается несколько итоговых файлов, все — копии одних и тех же байтов.
+      for(const wantedName of computeFinalNames(p,file.ext)){
+        let finalName=wantedName;
+        if(existing.has(finalName.toLowerCase())){
+          const dot=finalName.lastIndexOf('.'); const stem=finalName.slice(0,dot); const fext=finalName.slice(dot+1);
+          let n=2;
+          while(existing.has(`${stem}_${n}.${fext}`.toLowerCase())) n++;
+          finalName=`${stem}_${n}.${fext}`;
+        }
+        existing.add(finalName.toLowerCase());
+        const destHandle=await destDirHandle.getFileHandle(finalName,{create:true});
+        const w=await destHandle.createWritable(); await w.write(blob); await w.close();
+        results.push({from:file.fileName,to:finalName,ok:true});
       }
-      existing.add(finalName.toLowerCase());
-      const destHandle=await destDirHandle.getFileHandle(finalName,{create:true});
-      const w=await destHandle.createWritable(); await w.write(blob); await w.close();
       await sourceDirHandle.removeEntry(file.fileName);
-      results.push({from:file.fileName,to:finalName,ok:true});
     }catch(e){ results.push({from:file.fileName,to:null,ok:false,error:e.message}); }
   }
   logMoves(results);

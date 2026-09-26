@@ -3,10 +3,15 @@
    activeFamilyKey — какая «семья» файлов сейчас редактируется (одна за раз, смешивать нельзя).
    selection — подмножество файлов ВНУТРИ активной семьи, к которому применяются правки полей
    раздел/объект/вариация (по умолчанию — вся семья; Ctrl+клик сужает/расширяет).
-   pending — Map(имя файла → {razdel,obj,variation,state}) для ВСЕХ файлов активной семьи — при
+   pending — Map(имя файла → {razdel,obj,variation,states}) для ВСЕХ файлов активной семьи — при
    подтверждении переносится вся семья целиком, каждый файл — со своими накопленными значениями.
-   brush — какое состояние ставится простым кликом по файлу той же семьи: 'idle'|'broken'|'icon'.
+   states — МНОЖЕСТВО состояний одного файла (не одно значение): один и тот же снимок может стать
+   сразу и «айдл», и «иконкой» (и иногда ещё и «сломано») — при подтверждении из него получится
+   несколько выходных файлов, по одному на каждое отмеченное состояние.
+   brush — какое состояние переключается кликом по файлу той же семьи: 'idle'|'broken'|'icon'.
    ============================================================ */
+
+const STATE_ORDER=['idle','broken','icon'];
 
 let families=[];
 let fileUrls=new Map(); // имя файла → object URL превью
@@ -20,14 +25,14 @@ function snapshot(){
   return {
     activeFamilyKey,
     selection:[...selection],
-    pending:[...pending.entries()].map(([k,v])=>[k,{...v}]),
+    pending:[...pending.entries()].map(([k,v])=>[k,{razdel:v.razdel,obj:v.obj,variation:v.variation,states:[...v.states]}]),
     brush
   };
 }
 function restoreSnapshot(s){
   activeFamilyKey=s.activeFamilyKey;
   selection=new Set(s.selection);
-  pending=new Map(s.pending.map(([k,v])=>[k,{...v}]));
+  pending=new Map(s.pending.map(([k,v])=>[k,{razdel:v.razdel,obj:v.obj,variation:v.variation,states:new Set(v.states)}]));
   brush=s.brush;
 }
 function pushHistory(){
@@ -48,7 +53,7 @@ function selectFamily(fileName){
   if(!fam) return;
   activeFamilyKey=fam.key;
   selection=new Set(fam.files.map(f=>f.fileName));
-  pending=new Map(fam.files.map(f=>[f.fileName,{razdel:fam.razdel,obj:fam.obj,variation:fam.variation,state:'idle'}]));
+  pending=new Map(fam.files.map(f=>[f.fileName,{razdel:fam.razdel,obj:fam.obj,variation:fam.variation,states:new Set(['idle'])}]));
   brush='idle';
   pushHistory();
   render();
@@ -59,10 +64,18 @@ function toggleSelectionMember(fileName){
   if(selection.has(fileName)) selection.delete(fileName); else selection.add(fileName);
   pushHistory(); render();
 }
+// Клик по файлу не ЗАМЕНЯЕТ его состояние, а ДОБАВЛЯЕТ/УБИРАЕТ отмеченный переключателем —
+// так один и тот же снимок можно отметить сразу и «айдл», и «иконкой» (кликнуть дважды, разными
+// переключателями), и получить из него два (или три) итоговых файла при подтверждении.
 function applyBrushToFile(fileName){
   const parsed=parseFileName(fileName);
   if(parsed.stem!==activeFamilyKey||!pending.has(fileName)) return;
-  pending.get(fileName).state=brush;
+  const rec=pending.get(fileName);
+  if(rec.states.has(brush)){
+    if(rec.states.size>1) rec.states.delete(brush); // у файла должно остаться хотя бы одно состояние
+  } else {
+    rec.states.add(brush);
+  }
   pushHistory(); render();
 }
 function toggleBrush(kind){ brush=(brush===kind)?'idle':kind; render(); }
@@ -92,7 +105,7 @@ function appendToVariation(text){
 }
 
 function slug(s){ return sanitizeSlug(s||''); }
-function computeFinalName(p,ext){
+function computeFinalNames(p,ext){
   const stem=[slug(p.razdel),slug(p.obj),slug(p.variation)].filter(Boolean).join('_');
-  return `${stem}${stem?'_':''}${p.state}.${ext}`;
+  return STATE_ORDER.filter(s=>p.states.has(s)).map(s=>`${stem}${stem?'_':''}${s}.${ext}`);
 }
