@@ -77,9 +77,11 @@ VIEW_RENDERERS.card=function(id){
   const variantRow=v=>{
     const ru=variationRu(v), en=variationEn(v), th=refStateThumbs(i,v);
     const stateBadge=(has,label,cls)=>`<span class="badge ${has?cls:''}" title="${has?label+' есть в assets/refs':label+' не найден'}">${has?'✓':'—'} ${label}</span>`;
-    return `<li>${th.any?`<img class="vthumb" src="${esc(th.any)}" alt="">`:''}${esc(ru)} <span class="muted small">(${esc(en)})</span>
-      ${stateBadge(th.idle,'idle','ok')} ${stateBadge(th.broken,'broken','warn')} ${stateBadge(th.icon,'icon','info')}
-      ${th.any?'':' <span class="muted small">· нет превью в assets/refs</span>'}</li>`;
+    return `<li class="variant-row">${th.any?`<img class="vthumb" src="${esc(th.any)}" alt="">`:''}<div class="variant-info">
+      <div>${esc(ru)} <span class="muted small">(${esc(en)})</span></div>
+      <div class="row" style="margin:3px 0 0">${stateBadge(th.idle,'idle','ok')} ${stateBadge(th.broken,'broken','warn')} ${stateBadge(th.icon,'icon','info')}</div>
+      ${th.any?'':'<div class="muted small">нет превью в assets/refs</div>'}
+      </div></li>`;
   };
   const variants=card('Вариации ('+i.v.length+')',i.v.length?`<ul class="clean">${i.v.map(variantRow).join('')}</ul>`+(i.vg?`<div class="muted small" style="margin-top:6px">Группа взаимозаменяемости для генератора комнат: <b>${esc(i.vg)}</b> (поле «Группа» в ОС)</div>`:''):'<span class="muted">Нет.</span>');
 
