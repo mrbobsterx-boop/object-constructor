@@ -410,11 +410,15 @@ document.getElementById('btnImportCancel').onclick=()=>{
   pendingIdeaData=null;
   document.getElementById('importPreviewModal').style.display='none';
 };
-document.getElementById('btnImportConfirm').onclick=()=>{
+document.getElementById('btnImportConfirm').onclick=async ()=>{
   const data=pendingIdeaData, overrides=pendingOverrides; pendingIdeaData=null; pendingOverrides={entities:{},variables:{}};
   document.getElementById('importPreviewModal').style.display='none';
   if(!data) return;
   try{
+    // Бэкап ТЕКУЩЕГО (пока ещё не слитого с идеей) состояния — отдельно от бэкапа-перед-сохранением
+    // (§9/§23): импорт сам на диск не пишет, поэтому без этого «до импорта» на диске неотличимо от
+    // «после последнего обычного сохранения», если между ними были ещё не сохранённые правки.
+    await backupCurrentStateBeforeImport();
     const r=importIdea(data,overrides);
     alert(`Готово: добавлено ${r.nodeCount} узлов, ${r.linkCount} автосвязей, ${r.entityCount} сущностей, ${r.relationCount} связей, ${r.proposalCount} идей.`);
   }catch(err){ alert('Не удалось импортировать идею: '+err.message); }
