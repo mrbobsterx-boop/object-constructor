@@ -26,17 +26,20 @@ function findNode(id){ return nodes.find(n=>n.id===id); }
 function findVariable(id){ return variables.find(v=>v.id===id); }
 
 function addVariable(){
+  if(blockIfReadOnly()) return;
   const v={id:uid('v'),name:'Новая переменная',type:'counter',start:0,min:0,max:100};
   variables.push(v);
   pushHistory(); renderAll();
   return v;
 }
 function updateVariable(id,patch){
+  if(blockIfReadOnly()) return;
   const v=findVariable(id); if(!v) return;
   Object.assign(v,patch);
   pushHistory(); renderAll();
 }
 function deleteVariable(id){
+  if(blockIfReadOnly()) return;
   variables=variables.filter(v=>v.id!==id);
   pushHistory(); renderAll();
 }
@@ -53,6 +56,7 @@ function nextNodeSpawnPos(){
   return {x:anchor.x+NODE_W+60,y:anchor.y};
 }
 function addNode(type,x,y){
+  if(blockIfReadOnly()) return;
   const isFirst=nodes.length===0;
   const pos=(x===undefined||y===undefined)?nextNodeSpawnPos():{x,y};
   const n={
@@ -68,17 +72,20 @@ function addNode(type,x,y){
   return n;
 }
 function updateNode(id,patch){
+  if(blockIfReadOnly()) return;
   const n=findNode(id); if(!n) return;
   Object.assign(n,patch);
   pushHistory(); renderAll();
 }
 function moveNode(id,x,y){
+  if(readOnlyMode) return;
   const n=findNode(id); if(!n) return;
   n.x=x; n.y=y;
   renderCanvas(); // движение мышкой не должно засорять историю на каждый пиксель
 }
-function commitMove(){ pushHistory(); }
+function commitMove(){ if(readOnlyMode) return; pushHistory(); }
 function deleteNode(id){
+  if(blockIfReadOnly()) return;
   nodes=nodes.filter(n=>n.id!==id);
   nodes.forEach(n=>{ n.choices=n.choices.filter(c=>c.target!==id); });
   if(selectedNodeId===id) selectedNodeId=null;
@@ -99,6 +106,7 @@ function selectAll(){
 }
 function clearSelection(){ selectedNodeId=null; multiSelected=new Set(); renderAll(); }
 function deleteSelectedNodes(){
+  if(blockIfReadOnly()) return;
   const ids=multiSelected.size?new Set(multiSelected):(selectedNodeId?new Set([selectedNodeId]):new Set());
   if(!ids.size) return;
   if(!confirm(ids.size>1?`Удалить ${ids.size} узлов? Ссылки на них из других переходов тоже уберутся.`:'Удалить узел? Ссылки на него из других переходов тоже уберутся.')) return;
@@ -117,6 +125,7 @@ function copySelection(){
   clipboard=[...ids].map(id=>JSON.parse(JSON.stringify(findNode(id)))).filter(Boolean);
 }
 function pasteClipboard(){
+  if(blockIfReadOnly()) return;
   if(!clipboard||!clipboard.length) return;
   const idMap={};
   clipboard.forEach(n=>{ idMap[n.id]=uid('n'); });
@@ -134,17 +143,20 @@ function pasteClipboard(){
 }
 
 function addChoice(nodeId,targetId){
+  if(blockIfReadOnly()) return;
   const n=findNode(nodeId); if(!n) return;
   n.choices.push({id:uid('c'),label:'Вариант',target:targetId||'',requires:[],effects:[],sim:{}});
   pushHistory(); renderAll();
 }
 function updateChoice(nodeId,choiceId,patch){
+  if(blockIfReadOnly()) return;
   const n=findNode(nodeId); if(!n) return;
   const c=n.choices.find(x=>x.id===choiceId); if(!c) return;
   Object.assign(c,patch);
   pushHistory(); renderAll();
 }
 function deleteChoice(nodeId,choiceId){
+  if(blockIfReadOnly()) return;
   const n=findNode(nodeId); if(!n) return;
   n.choices=n.choices.filter(c=>c.id!==choiceId);
   pushHistory(); renderAll();
@@ -152,29 +164,62 @@ function deleteChoice(nodeId,choiceId){
 
 const STICKY_COLORS=['yellow','pink','blue','green'];
 function addStickyNote(x,y){
+  if(blockIfReadOnly()) return;
   const n={id:uid('note'),x:num(x,0),y:num(y,0),text:'',color:STICKY_COLORS[0]};
   stickyNotes.push(n);
   pushHistory(); renderAll();
   return n;
 }
 function updateStickyNote(id,patch){
+  if(blockIfReadOnly()) return;
   const n=stickyNotes.find(s=>s.id===id); if(!n) return;
   Object.assign(n,patch);
   pushHistory(); renderAll();
 }
 function moveStickyNote(id,x,y){
+  if(readOnlyMode) return;
   const n=stickyNotes.find(s=>s.id===id); if(!n) return;
   n.x=x; n.y=y;
   renderCanvas(); // как moveNode — перетаскивание не должно засорять историю на каждый пиксель
 }
-function commitStickyMove(){ pushHistory(); }
+function commitStickyMove(){ if(readOnlyMode) return; pushHistory(); }
 function deleteStickyNote(id){
+  if(blockIfReadOnly()) return;
   stickyNotes=stickyNotes.filter(s=>s.id!==id);
   pushHistory(); renderAll();
 }
 
-function addCondRow(list){ list.push({var:(variables[0]&&variables[0].id)||'',op:'>=',value:0}); }
-function addEffRow(list){ list.push({var:(variables[0]&&variables[0].id)||'',op:'add',value:0}); }
+function addCondRow(list){ if(blockIfReadOnly()) return; list.push({var:(variables[0]&&variables[0].id)||'',op:'>=',value:0}); }
+function addEffRow(list){ if(blockIfReadOnly()) return; list.push({var:(variables[0]&&variables[0].id)||'',op:'add',value:0}); }
+
+/* ---------- групповые действия (выделено несколько узлов) и переименование тега/раздела по всему графу ---------- */
+function bulkAddTagToSelected(tag){
+  if(blockIfReadOnly()) return;
+  tag=(tag||'').trim(); if(!tag||!multiSelected.size) return;
+  multiSelected.forEach(id=>{ const n=findNode(id); if(n&&!n.tags.includes(tag)) n.tags.push(tag); });
+  pushHistory(); renderAll();
+}
+function bulkSetCategoryForSelected(cat){
+  if(blockIfReadOnly()) return;
+  if(!cat||!multiSelected.size) return;
+  multiSelected.forEach(id=>{ const n=findNode(id); if(n) n.category=cat; });
+  pushHistory(); renderAll();
+}
+// Переименование тега/раздела СРАЗУ во всём графе (не только у выделенных) — напр. заменить "raider"
+// на "raiders" везде разом, вместо того чтобы искать и править каждый узел вручную.
+function renameTagEverywhere(from,to){
+  if(blockIfReadOnly()) return 0;
+  from=(from||'').trim(); to=(to||'').trim();
+  if(!from||!to||from===to) return 0;
+  let count=0;
+  nodes.forEach(n=>{
+    const i=n.tags.indexOf(from);
+    if(i>=0){ if(n.tags.includes(to)) n.tags.splice(i,1); else n.tags[i]=to; count++; }
+    if(n.category===from){ n.category=to; count++; }
+  });
+  if(count){ pushHistory(); renderAll(); }
+  return count;
+}
 
 /* ---------- история ---------- */
 let dirty=false;

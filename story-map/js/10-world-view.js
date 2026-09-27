@@ -45,12 +45,15 @@ function renderEntityListHtml(q){
   const order=[...byKind.keys()].sort((a,b)=>entityKindLabel(a).localeCompare(entityKindLabel(b),'ru'));
   return order.map(kindId=>{
     const list=byKind.get(kindId);
-    const rows=list.map(e=>`
-      <div class="noderow ${selectedEntityId===e.id?'active':''}" data-entity="${esc(e.id)}">
+    const rows=list.map(e=>{
+      const deprecated=e.status==='deprecated';
+      return `
+      <div class="noderow ${selectedEntityId===e.id?'active':''} ${deprecated?'deprecated':''}" data-entity="${esc(e.id)}">
         <span class="tag entity">${esc(kindId)}</span>
-        <div class="nm-wrap"><span class="nm">${esc(entityDisplayName(e))}</span></div>
-        <button class="del-x" data-delentity="${esc(e.id)}">✕</button>
-      </div>`).join('');
+        <div class="nm-wrap"><span class="nm">${esc(entityDisplayName(e))}${deprecated?' <span class="muted small">(устарело)</span>':''}</span></div>
+        <button class="del-x" data-delentity="${esc(e.id)}" title="${deprecated?'Удалить навсегда':'Архивировать (устарело)'}">✕</button>
+      </div>`;
+    }).join('');
     return `<div class="cat-header"><span class="arrow">▾</span>${esc(entityKindLabel(kindId))} <span class="muted small">(${list.length})</span></div>${rows}`;
   }).join('');
 }
@@ -90,7 +93,13 @@ document.getElementById('entitySearch').addEventListener('input',()=>{
 });
 document.getElementById('entityList').addEventListener('click',e=>{
   const del=e.target.closest('[data-delentity]');
-  if(del){ if(confirm('Удалить сущность? Связи с ней тоже удалятся.')) deleteEntity(del.dataset.delentity); return; }
+  if(del){
+    if(readOnlyMode) return;
+    const ent=findEntity(del.dataset.delentity);
+    if(ent&&ent.status==='deprecated'){ if(confirm('Удалить сущность НАВСЕГДА? Связи с ней тоже удалятся. Отменить будет нельзя (кроме Ctrl+Z).')) deleteEntity(del.dataset.delentity); }
+    else if(confirm('Архивировать сущность («устарело»)? Существующие ссылки на неё не сломаются, но она перестанет предлагаться для новых. Удалить насовсем можно будет потом отдельной кнопкой.')) deprecateEntity(del.dataset.delentity);
+    return;
+  }
   const row=e.target.closest('[data-entity]');
   if(row){ selectedEntityId=row.dataset.entity; selectedRelationId=null; renderAll(); }
 });
@@ -103,6 +112,7 @@ document.getElementById('proposalList').addEventListener('click',e=>{
   if(del){ deleteProposal(del.dataset.delproposal); return; }
   const row=e.target.closest('[data-proposal]');
   if(row){
+    if(readOnlyMode) return;
     const p=proposals.find(x=>x.id===row.dataset.proposal); if(!p) return;
     const kindId=(document.getElementById('newEntityKind')||{}).value||'concept';
     if(confirm(`Сделать сущностью «${p.title}» (тип: ${entityKindLabel(kindId)})? Тип берётся из выбора над кнопкой «+ добавить» слева.`)) promoteProposalToEntity(p.id,kindId);
@@ -113,11 +123,13 @@ document.getElementById('btnAddRelType').onclick=()=>{
   addRelationType(input.value); input.value='';
 };
 document.getElementById('relationTypeList').addEventListener('input',e=>{
+  if(readOnlyMode) return;
   const row=e.target.closest('[data-reltype]'); if(!row) return;
   const t=findRelationType(row.dataset.reltype); if(!t) return;
   if(e.target.dataset.rtfield==='name') t.name=e.target.value;
 });
 document.getElementById('relationTypeList').addEventListener('change',e=>{
+  if(readOnlyMode) return;
   if(e.target.closest('[data-reltype]')){ pushHistory(); renderAll(); }
 });
 document.getElementById('relationTypeList').addEventListener('click',e=>{
@@ -143,9 +155,11 @@ function renderWorldCanvas(){
   const kind=entityKindDef(e.kind);
   const rels=relationsForEntity(e.id);
   const refNodes=nodesReferencingEntity(e.id);
+  const deprecated=e.status==='deprecated';
+  const mergeCandidates=entities.filter(x=>x.id!==e.id&&x.kind===e.kind&&x.status!=='deprecated');
   el.innerHTML=`
     <div class="group">
-      <h3>${esc(entityKindLabel(e.kind))}</h3>
+      <h3>${esc(entityKindLabel(e.kind))}${deprecated?' <span class="tag deprecated">устарело</span>':''}</h3>
       ${kind.catalog?`
         <label class="small">Из каталога Object Plan (${esc(kind.catalog)})</label>
         <select id="entityRefSelect"><option value="">— выбери —</option>${catalogOptionsFor(kind.catalog).map(o=>`<option value="${esc(o.id)}" ${e.ref&&e.ref.refId===o.id?'selected':''}>${esc(o.label)}</option>`).join('')}</select>`
@@ -154,8 +168,19 @@ function renderWorldCanvas(){
         <input type="text" class="full" id="entityNameInput" value="${esc(e.name)}">`}
       <label class="small" style="margin-top:6px">Заметка</label>
       <textarea id="entityNoteInput">${esc(e.note||'')}</textarea>
-      <button class="full danger" id="btnDeleteEntity" style="margin-top:8px">🗑 Удалить сущность</button>
+      ${deprecated?`
+      <div class="row" style="margin-top:8px">
+        <button class="full" id="btnRestoreEntity">♻ Восстановить</button>
+        <button class="full danger" id="btnDeleteEntityForever">🗑 Удалить навсегда</button>
+      </div>`:`
+      <button class="full danger" id="btnDeleteEntity" style="margin-top:8px">🗑 Архивировать («устарело»)</button>`}
     </div>
+    ${mergeCandidates.length?`
+    <div class="group">
+      <h3>Слить с дубликатом</h3>
+      <div class="hint" style="margin-bottom:6px">Если это дубликат другой сущности — перенести на неё все ссылки (из узлов сюжета и связей) и заархивировать эту.</div>
+      <div class="row"><select id="entityMergeTarget"><option value="">— выбери сущность —</option>${mergeCandidates.map(x=>`<option value="${esc(x.id)}">${esc(entityDisplayName(x))}</option>`).join('')}</select><button id="btnMergeEntity">Слить</button></div>
+    </div>`:''}
     <div class="group">
       <h3>Связи (${rels.length})</h3>
       ${rels.map(r=>relationRowHtml(r,e.id)).join('')||'<div class="hint">Пока нет связей.</div>'}
@@ -168,20 +193,35 @@ function renderWorldCanvas(){
   `;
 }
 document.getElementById('entityDetail').addEventListener('input',e=>{
+  if(readOnlyMode) return;
   const ent=findEntity(selectedEntityId); if(!ent) return;
   if(e.target.id==='entityNameInput') ent.name=e.target.value;
   if(e.target.id==='entityNoteInput') ent.note=e.target.value;
 });
 document.getElementById('entityDetail').addEventListener('change',e=>{
+  if(readOnlyMode) return;
   const ent=findEntity(selectedEntityId); if(!ent) return;
   if(e.target.id==='entityRefSelect'){ ent.ref={catalog:ent.ref.catalog,refId:e.target.value}; pushHistory(); renderAll(); return; }
   if(e.target.id==='entityNameInput'||e.target.id==='entityNoteInput'){ pushHistory(); renderAll(); }
 });
 document.getElementById('entityDetail').addEventListener('click',e=>{
-  if(e.target.id==='btnDeleteEntity'){ if(confirm('Удалить сущность? Связи с ней тоже удалятся.')) deleteEntity(selectedEntityId); return; }
+  if(e.target.id==='btnDeleteEntity'){ if(!readOnlyMode&&confirm('Архивировать сущность («устарело»)? Существующие ссылки не сломаются, но она перестанет предлагаться для новых.')) deprecateEntity(selectedEntityId); return; }
+  if(e.target.id==='btnRestoreEntity'){ restoreEntity(selectedEntityId); return; }
+  if(e.target.id==='btnDeleteEntityForever'){ if(!readOnlyMode&&confirm('Удалить сущность НАВСЕГДА? Связи с ней тоже удалятся. Отменить будет нельзя (кроме Ctrl+Z).')) deleteEntity(selectedEntityId); return; }
+  if(e.target.id==='btnMergeEntity'){
+    if(readOnlyMode) return;
+    const sel=document.getElementById('entityMergeTarget'); const targetId=sel&&sel.value;
+    if(!targetId) return;
+    const fromName=entityDisplayName(findEntity(selectedEntityId)), toName=entityDisplayName(findEntity(targetId));
+    if(confirm(`Слить «${fromName}» в «${toName}»? Все ссылки на «${fromName}» (из узлов сюжета и связей) переедут на «${toName}», а «${fromName}» станет «устарело».`)){
+      const count=mergeEntities(selectedEntityId,targetId);
+      alert(count?`Готово: перенесено ссылок — ${count}.`:'Готово: ссылок для переноса не нашлось.');
+    }
+    return;
+  }
   if(e.target.id==='btnAddRelationHere'){
     const r=addRelation(selectedEntityId,'',(relationTypes[0]&&relationTypes[0].id)||'');
-    selectedRelationId=r.id; renderAll(); return;
+    if(r){ selectedRelationId=r.id; renderAll(); } return;
   }
   const del=e.target.closest('[data-delrelation]');
   if(del){ deleteRelation(del.dataset.delrelation); return; }
@@ -196,6 +236,13 @@ document.getElementById('entityDetail').addEventListener('click',e=>{
 /* ---------- редактор связи — рендерится в общую правую панель #inspector, только когда
    viewMode==='world' (в режиме "Сюжет" эту же панель занимает renderInspector() из 04-inspector.js).
    getByPath/setByPath/condRowsHtml/addCondRow/addEffRow переиспользуются из существующих модулей. ---------- */
+// Для <select>: скрывает "устаревшие" сущности из выбора для НОВОЙ связи, но никогда не прячет ту,
+// что уже стоит в currentId — иначе выпадающий список молча показал бы другую сущность вместо
+// реальной (сама связь при этом осталась бы прежней, просто выглядело бы как будто она изменилась).
+function entitySelectOptionsHtml(currentId){
+  const list=entities.filter(x=>x.status!=='deprecated'||x.id===currentId);
+  return list.map(x=>`<option value="${esc(x.id)}" ${currentId===x.id?'selected':''}>${esc(entityDisplayName(x))}${x.status==='deprecated'?' (устарело)':''}</option>`).join('')||'<option value="">(нет сущностей)</option>';
+}
 function renderWorldInspector(){
   const el=document.getElementById('inspector');
   const r=findRelation(selectedRelationId);
@@ -205,11 +252,11 @@ function renderWorldInspector(){
       <h3>Связь</h3>
       <div class="row">
         <div style="flex:1"><label class="small">От</label>
-          <select data-relpath="from">${entities.map(x=>`<option value="${esc(x.id)}" ${r.from===x.id?'selected':''}>${esc(entityDisplayName(x))}</option>`).join('')||'<option value="">(нет сущностей)</option>'}</select></div>
+          <select data-relpath="from">${entitySelectOptionsHtml(r.from)}</select></div>
         <div style="flex:1"><label class="small">Тип</label>
           <select data-relpath="type">${relationTypes.map(t=>`<option value="${esc(t.id)}" ${r.type===t.id?'selected':''}>${esc(t.name)}</option>`).join('')||'<option value="">(нет типов)</option>'}</select></div>
         <div style="flex:1"><label class="small">К</label>
-          <select data-relpath="to">${entities.map(x=>`<option value="${esc(x.id)}" ${r.to===x.id?'selected':''}>${esc(entityDisplayName(x))}</option>`).join('')||'<option value="">(нет сущностей)</option>'}</select></div>
+          <select data-relpath="to">${entitySelectOptionsHtml(r.to)}</select></div>
       </div>
       <div class="row" style="margin-top:6px">
         <div><label class="small">Статус</label>
@@ -233,7 +280,7 @@ function renderWorldInspector(){
 }
 const worldInspectorEl=document.getElementById('inspector');
 worldInspectorEl.addEventListener('input',e=>{
-  if(viewMode!=='world') return;
+  if(viewMode!=='world'||readOnlyMode) return;
   const r=findRelation(selectedRelationId); if(!r) return;
   if(e.target.dataset.relpath){ r[e.target.dataset.relpath]=e.target.value; return; }
   const path=e.target.dataset.path; if(!path) return;
@@ -241,7 +288,7 @@ worldInspectorEl.addEventListener('input',e=>{
   setByPath(r,path,val);
 });
 worldInspectorEl.addEventListener('change',e=>{
-  if(viewMode!=='world') return;
+  if(viewMode!=='world'||readOnlyMode) return;
   const r=findRelation(selectedRelationId); if(!r) return;
   if(e.target.dataset.relpath||e.target.dataset.path){ pushHistory(); renderAll(); }
 });
@@ -250,16 +297,18 @@ worldInspectorEl.addEventListener('click',e=>{
   const r=findRelation(selectedRelationId); if(!r) return;
   const addRow=e.target.closest('[data-addrow]');
   if(addRow){
+    if(readOnlyMode) return;
     const path=addRow.dataset.addrow, arr=getByPath(r,path);
     if(path.endsWith('effects')) addEffRow(arr); else addCondRow(arr);
     pushHistory(); renderAll(); return;
   }
   const delRow=e.target.closest('[data-delrow]');
   if(delRow){
+    if(readOnlyMode) return;
     const path=delRow.dataset.delrow, idx=path.lastIndexOf('.');
     const arr=getByPath(r,path.slice(0,idx));
     arr.splice(Number(path.slice(idx+1)),1);
     pushHistory(); renderAll(); return;
   }
-  if(e.target.id==='btnDeleteRelationHere'){ if(confirm('Удалить связь?')) deleteRelation(r.id); return; }
+  if(e.target.id==='btnDeleteRelationHere'){ if(!readOnlyMode&&confirm('Удалить связь?')) deleteRelation(r.id); return; }
 });

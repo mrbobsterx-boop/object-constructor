@@ -19,6 +19,7 @@
   <span id="folderStatus" class="status">Папка не подключена</span>
   <button id="btnSave" title="Ctrl+S">💾 Сохранить</button>
   <span id="dirtyStatus" class="status"></span>
+  <button id="btnReadOnly" title="Открыть как документацию — отключает добавление/удаление/перетаскивание/редактирование, оставляет навигацию (выбор, поиск, Проверки, Dependency Explorer)">👁 Только чтение</button>
   <div class="zoombar" id="storyZoombar">
     <button id="btnZoomOut" title="Уменьшить">－</button>
     <span id="zoomLabel">100%</span>
@@ -53,6 +54,15 @@
         <select id="filterStatus"><option value="">Статус: все</option><option value="deadend">Тупики</option><option value="ending">Концовки</option><option value="unreachable">Недостижимые</option></select>
       </div>
       <div id="nodeList" class="nodelist"></div>
+    </div>
+    <div class="group">
+      <h3>Переименовать тег/раздел везде в графе</h3>
+      <div class="hint" style="margin-bottom:6px">Заменяет ВО ВСЕХ узлах, не только в выбранных — например, «raider» → «raiders».</div>
+      <div class="row">
+        <input type="text" id="renameTagFrom" placeholder="было" style="flex:1">
+        <input type="text" id="renameTagTo" placeholder="стало" style="flex:1">
+        <button id="btnRenameTagEverywhere">Заменить</button>
+      </div>
     </div>
     <div class="group">
       <h3>Импорт идей</h3>

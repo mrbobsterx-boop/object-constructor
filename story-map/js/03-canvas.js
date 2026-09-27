@@ -195,12 +195,14 @@ function fitAll(){
 }
 
 document.getElementById('varList').addEventListener('input',e=>{
+  if(readOnlyMode) return;
   const row=e.target.closest('[data-var]'); if(!row) return;
   const field=e.target.dataset.vfield; if(!field) return;
   const v=findVariable(row.dataset.var); if(!v) return;
   v[field]=field==='start'?num(e.target.value):e.target.value;
 });
 document.getElementById('varList').addEventListener('change',e=>{
+  if(readOnlyMode) return;
   const row=e.target.closest('[data-var]'); if(!row) return;
   if(e.target.dataset.vfield){ pushHistory(); renderChecks(); }
 });
@@ -216,7 +218,7 @@ document.getElementById('varList').addEventListener('click',e=>{
 });
 document.getElementById('nodeList').addEventListener('click',e=>{
   const del=e.target.closest('[data-delnode]');
-  if(del){ if(confirm('Удалить узел? Ссылки на него из других переходов тоже уберутся.')) deleteNode(del.dataset.delnode); return; }
+  if(del){ if(!readOnlyMode&&confirm('Удалить узел? Ссылки на него из других переходов тоже уберутся.')) deleteNode(del.dataset.delnode); return; }
   const catHeader=e.target.closest('[data-cat]');
   if(catHeader){
     const cat=catHeader.dataset.cat;
@@ -349,7 +351,12 @@ worldEl.addEventListener('pointerdown',e=>{
   const stickyEl=e.target.closest('.sticky-note');
   // Перетаскивание заметки — но не когда целятся в её текст (иначе клик по textarea двигал бы
   // заметку вместо того, чтобы поставить туда курсор) и не по кнопкам её мини-панели.
+  // Только чтение блокирует сам ЗАПУСК жестов перетаскивания/соединения (не только их результат) —
+  // иначе пользователь тянет заметку/узел/связь и она просто не двигается на глазах, что выглядит
+  // как баг, а не как явное "изменения выключены". Клик-выбор узла (навигация, не мутация) ниже
+  // по-прежнему работает даже в этом режиме.
   if(stickyEl&&!e.target.closest('textarea')&&!e.target.closest('button')){
+    if(readOnlyMode) return;
     const id=stickyEl.dataset.note;
     const n=stickyNotes.find(s=>s.id===id); if(!n) return;
     stickyDrag={id,startPt:screenToWorld(e.clientX,e.clientY),baseX:n.x,baseY:n.y};
@@ -360,6 +367,7 @@ worldEl.addEventListener('pointerdown',e=>{
   const box=e.target.closest('.node-box');
   const worldPt=screenToWorld(e.clientX,e.clientY);
   if(handle){
+    if(readOnlyMode) return;
     tempConnectFrom=handle.dataset.handle; tempConnectPt=worldPt; connectHoverId=null;
     e.stopPropagation(); canvasOuter.setPointerCapture(e.pointerId);
     return;
@@ -369,9 +377,11 @@ worldEl.addEventListener('pointerdown',e=>{
     const additive=e.ctrlKey||e.metaKey||e.shiftKey;
     if(additive){ toggleMultiSelect(id); e.stopPropagation(); return; }
     if(!multiSelected.has(id)) selectNode(id); // клик по узлу вне текущего выделения — начать выделение заново
-    const ids=multiSelected.size?[...multiSelected]:[id];
-    dragIds=ids;
-    dragStart={pt:worldPt,positions:new Map(ids.map(nid=>{ const nn=findNode(nid); return [nid,{x:nn.x,y:nn.y}]; }))};
+    if(!readOnlyMode){
+      const ids=multiSelected.size?[...multiSelected]:[id];
+      dragIds=ids;
+      dragStart={pt:worldPt,positions:new Map(ids.map(nid=>{ const nn=findNode(nid); return [nid,{x:nn.x,y:nn.y}]; }))};
+    }
     e.stopPropagation(); canvasOuter.setPointerCapture(e.pointerId);
   }
 });
@@ -419,7 +429,7 @@ canvasOuter.addEventListener('pointerup',e=>{
     const worldPt=screenToWorld(e.clientX,e.clientY);
     const targetId=connectTargetIdAt(worldPt);
     if(targetId) addChoice(tempConnectFrom,targetId);
-    else { const created=addNode('event',worldPt.x,worldPt.y); addChoice(tempConnectFrom,created.id); }
+    else { const created=addNode('event',worldPt.x,worldPt.y); if(created) addChoice(tempConnectFrom,created.id); }
     tempConnectFrom=null; tempConnectPt=null; connectHoverId=null; renderCanvas();
   }
   if(boxSelectStart){
@@ -448,11 +458,13 @@ canvasOuter.addEventListener('dblclick',e=>{
 });
 
 worldEl.addEventListener('input',e=>{
+  if(readOnlyMode) return;
   const ta=e.target.closest('[data-notetext]'); if(!ta) return;
   const n=stickyNotes.find(s=>s.id===ta.dataset.notetext); if(!n) return;
   n.text=ta.value; // не грузим историю на каждую букву — коммит на blur (см. 'change' ниже)
 });
 worldEl.addEventListener('change',e=>{
+  if(readOnlyMode) return;
   if(e.target.closest('[data-notetext]')) pushHistory();
 });
 worldEl.addEventListener('click',e=>{

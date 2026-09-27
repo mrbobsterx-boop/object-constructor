@@ -62,8 +62,9 @@ function entityDisplayName(ent){
 }
 
 function addEntity(kindId){
+  if(blockIfReadOnly()) return;
   const kind=entityKindDef(kindId);
-  const e={id:uid('e'),kind:kind.id,name:kind.catalog?'':'Новая сущность',ref:kind.catalog?{catalog:kind.catalog,refId:''}:null,note:''};
+  const e={id:uid('e'),kind:kind.id,name:kind.catalog?'':'Новая сущность',ref:kind.catalog?{catalog:kind.catalog,refId:''}:null,note:'',status:'active'};
   if(kind.catalog){
     const opts=catalogOptionsFor(kind.catalog);
     const used=new Set(entities.filter(x=>x.kind===kind.id).map(x=>x.ref&&x.ref.refId));
@@ -76,48 +77,95 @@ function addEntity(kindId){
   return e;
 }
 function updateEntity(id,patch){
+  if(blockIfReadOnly()) return;
   const e=findEntity(id); if(!e) return;
   Object.assign(e,patch);
   pushHistory(); renderAll();
 }
+// "Устарело" вместо немедленного удаления — старые ссылки (node.refs, relations) не рвутся сразу,
+// сущность просто перестаёт предлагаться для НОВЫХ ссылок (см. entityPickerOptions) и помечается
+// значком там, где показывается. Настоящее удаление — отдельное явное действие (deleteEntity).
+function deprecateEntity(id){
+  if(blockIfReadOnly()) return;
+  const e=findEntity(id); if(!e) return;
+  e.status='deprecated';
+  pushHistory(); renderAll();
+}
+function restoreEntity(id){
+  if(blockIfReadOnly()) return;
+  const e=findEntity(id); if(!e) return;
+  e.status='active';
+  pushHistory(); renderAll();
+}
 // Каскад — как у deleteNode со связанными choices: удалённая сущность не должна оставлять
-// "висящие" связи, которые потом checks будет вечно ругать как ошибку.
+// "висящие" связи, которые потом checks будет вечно ругать как ошибку. Это НЕ трогает node.refs
+// узлов сюжета (они живут в отдельном модуле) — та дыра уже отдельно ловится проверками (§5).
 function deleteEntity(id){
+  if(blockIfReadOnly()) return;
   entities=entities.filter(e=>e.id!==id);
   relations=relations.filter(r=>r.from!==id&&r.to!==id);
   if(selectedEntityId===id) selectedEntityId=null;
   pushHistory(); renderAll();
 }
+// Миграция при задвоении/переименовании: переносит ВСЕ ссылки (node.refs узлов сюжета и relations
+// слоя "Мир") с одной сущности на другую, затем архивирует исходную — а не удаляет её вслепую,
+// оставляя источник восстановимым, если слияние оказалось ошибкой.
+function mergeEntities(fromId,toId){
+  if(blockIfReadOnly()) return 0;
+  if(!fromId||!toId||fromId===toId) return 0;
+  if(!findEntity(fromId)||!findEntity(toId)) return 0;
+  let count=0;
+  nodes.forEach(n=>{
+    if(!Array.isArray(n.refs)) return;
+    const i=n.refs.indexOf(fromId);
+    if(i>=0){ if(n.refs.includes(toId)) n.refs.splice(i,1); else n.refs[i]=toId; count++; }
+  });
+  relations.forEach(r=>{
+    if(r.from===fromId){ r.from=toId; count++; }
+    if(r.to===fromId){ r.to=toId; count++; }
+  });
+  const from=findEntity(fromId);
+  from.status='deprecated';
+  if(selectedEntityId===fromId) selectedEntityId=toId;
+  pushHistory(); renderAll();
+  return count;
+}
 
 function addRelationType(name){
+  if(blockIfReadOnly()) return;
   name=(name||'').trim(); if(!name) return;
   if(relationTypes.some(t=>t.name===name)) return;
   relationTypes.push({id:uid('rt'),name});
   pushHistory(); renderAll();
 }
 function deleteRelationType(id){
+  if(blockIfReadOnly()) return;
   relationTypes=relationTypes.filter(t=>t.id!==id);
   pushHistory(); renderAll();
 }
 
 function addRelation(fromId,toId,typeId){
+  if(blockIfReadOnly()) return;
   const r={id:uid('rel'),type:typeId||(relationTypes[0]&&relationTypes[0].id)||'',from:fromId||'',to:toId||'',status:'confirmed',source:'',comment:'',conditions:[],effects:[]};
   relations.push(r);
   pushHistory(); renderAll();
   return r;
 }
 function updateRelation(id,patch){
+  if(blockIfReadOnly()) return;
   const r=findRelation(id); if(!r) return;
   Object.assign(r,patch);
   pushHistory(); renderAll();
 }
 function deleteRelation(id){
+  if(blockIfReadOnly()) return;
   relations=relations.filter(r=>r.id!==id);
   if(selectedRelationId===id) selectedRelationId=null;
   pushHistory(); renderAll();
 }
 
 function addProposal(title){
+  if(blockIfReadOnly()) return;
   title=(title||'').trim(); if(!title) return;
   const p={id:uid('pr'),title,text:'',status:'idea',relatedEntities:[],relatedSystems:[]};
   proposals.unshift(p);
@@ -125,18 +173,21 @@ function addProposal(title){
   return p;
 }
 function updateProposal(id,patch){
+  if(blockIfReadOnly()) return;
   const p=proposals.find(x=>x.id===id); if(!p) return;
   Object.assign(p,patch);
   pushHistory(); renderAll();
 }
 function deleteProposal(id){
+  if(blockIfReadOnly()) return;
   proposals=proposals.filter(p=>p.id!==id);
   pushHistory(); renderAll();
 }
 function promoteProposalToEntity(id,kindId){
+  if(blockIfReadOnly()) return null;
   const p=proposals.find(x=>x.id===id); if(!p) return null;
   const kind=entityKindDef(kindId||'concept');
-  const e={id:uid('e'),kind:kind.id,name:kind.catalog?'':p.title,ref:kind.catalog?{catalog:kind.catalog,refId:''}:null,note:p.text||''};
+  const e={id:uid('e'),kind:kind.id,name:kind.catalog?'':p.title,ref:kind.catalog?{catalog:kind.catalog,refId:''}:null,note:p.text||'',status:'active'};
   entities.push(e);
   p.status='accepted';
   p.relatedEntities=[...new Set([...(p.relatedEntities||[]),e.id])];

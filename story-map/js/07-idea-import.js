@@ -92,6 +92,10 @@ function analyzeIdea(data){
 }
 
 function importIdea(data){
+  // Импорт — явное, высокоинтентное действие (пользователь уже прошёл превью и нажал "Добавить в
+  // граф"), поэтому в отличие от тихих no-op у mutators выше — здесь честная ошибка с понятным
+  // текстом, а не молчаливое "ничего не произошло".
+  if(readOnlyMode) throw new Error('Включён режим «только чтение» — импорт отключён. Выключи его в шапке.');
   if(!data||!Array.isArray(data.nodes)) throw new Error('Файл не похож на шаблон идеи: нет массива "nodes".');
   const refMap={};
   const startY=nextIdeaY();

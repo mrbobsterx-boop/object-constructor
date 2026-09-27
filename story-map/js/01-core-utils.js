@@ -14,6 +14,16 @@ function uid(prefix){ return prefix+'_'+Date.now().toString(36)+Math.random().to
 
 const OP_LIST=[['>=','≥'],['<=','≤'],['==','='],['!=','≠'],['>','>'],['<','<']];
 function opSymbol(op){ const p=OP_LIST.find(x=>x[0]===op); return p?p[1]:op; }
+
+// Режим "только чтение" — открыть карту как документацию без риска случайно что-то изменить.
+// Единая точка проверки в каждой из уже централизованных функций-мутаторов (addNode/updateEntity/
+// deleteRelation/…) вместо блокировки каждой отдельной кнопки/поля в разметке — то же самое
+// разделение, что уже даёт pushHistory()+renderAll() во всех этих функциях. Тихо (без alert):
+// moveNode/moveStickyNote вызываются десятки раз за одно перетаскивание, всплывающее окно на
+// каждый вызов сделало бы жест перетаскивания неюзабельным — вместо этого состояние видно
+// постоянным бейджем в шапке (см. renderReadOnlyStatus в 11-init.js).
+let readOnlyMode=false;
+function blockIfReadOnly(){ return readOnlyMode; }
 function opTest(a,op,b){
   a=Number(a)||0; b=Number(b)||0;
   if(op==='>=')return a>=b; if(op==='<=')return a<=b; if(op==='==')return a===b;

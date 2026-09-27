@@ -6,6 +6,21 @@ document.getElementById('btnConnect').onclick=connectProjectFolder;
 document.getElementById('btnRegrant').onclick=regrantProjectFolder;
 document.getElementById('btnSave').onclick=saveStoryToProject;
 
+// Режим "только чтение" — постоянный видимый бейдж вместо alert()'ов на каждый клик (см. 01-core-
+// utils.js): пользователь должен понимать ПОЧЕМУ кнопки не работают, а не гадать.
+function renderReadOnlyStatus(){
+  document.getElementById('btnReadOnly').classList.toggle('active',readOnlyMode);
+  document.body.classList.toggle('read-only',readOnlyMode);
+}
+document.getElementById('btnReadOnly').onclick=()=>{ readOnlyMode=!readOnlyMode; renderReadOnlyStatus(); };
+document.getElementById('btnRenameTagEverywhere').onclick=()=>{
+  const from=document.getElementById('renameTagFrom'), to=document.getElementById('renameTagTo');
+  const count=renameTagEverywhere(from.value,to.value);
+  if(readOnlyMode){ alert('Включён режим «только чтение» — изменения отключены.'); return; }
+  alert(count?`Готово: заменено в ${count} местах.`:'Ничего не найдено для замены.');
+  from.value=''; to.value='';
+};
+
 document.getElementById('btnAddVar').onclick=addVariable;
 document.getElementById('btnAddEvent').onclick=()=>addNode('event');
 document.getElementById('btnAddChoice').onclick=()=>addNode('choice');
@@ -46,4 +61,5 @@ seedRelationTypesIfEmpty();
 resetHistory();
 renderAll();
 renderDirtyStatus();
+renderReadOnlyStatus();
 tryRestoreProjectFolder();

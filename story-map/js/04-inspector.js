@@ -55,13 +55,16 @@ function chipPickerHtml(fieldPath,values,src,jumpable){
     const labelHtml=jumpable?`<span class="chip-label" data-jumpref="${esc(v)}" title="Перейти к сущности в «Мир»">${label}</span>`:label;
     return `<span class="chip">${labelHtml}<button data-delchip="${fieldPath}" data-delchipidx="${i}">✕</button></span>`;
   }).join('')||'<span class="muted small">пусто</span>';
+  // "Устарело" сущности не предлагаются для НОВЫХ ссылок (см. 09-world-model.js) — но уже
+  // выбранные чипы выше по-прежнему резолвятся через полный `options` (label не пропадает).
+  const suggestOptions=src==='worldEntities'?options.filter(o=>{ const ent=findEntity(o.id); return !ent||ent.status!=='deprecated'; }):options;
   const inputId='chipin_'+fieldPath.replace(/[^a-zA-Z0-9]/g,'_');
   return `<div class="chiprow">${chips}</div>
     <div class="row" style="margin-top:4px">
       <input type="text" list="${inputId}_dl" id="${inputId}" placeholder="начни печатать…" style="flex:1">
       <button data-addchip="${fieldPath}" data-chipinput="${inputId}">+</button>
     </div>
-    <datalist id="${inputId}_dl">${options.map(o=>`<option value="${esc(o.label)}">`).join('')}</datalist>`;
+    <datalist id="${inputId}_dl">${suggestOptions.map(o=>`<option value="${esc(o.label)}">`).join('')}</datalist>`;
 }
 
 function choiceCardHtml(c,i){
@@ -170,8 +173,34 @@ function inspectorTabBody(tab,n){
     </div>`;
 }
 
+// Групповые действия — выбрано больше одного узла: массово добавить тег/задать раздел вместо
+// правки каждого узла по отдельности. Занимает ту же правую панель, что и обычный инспектор узла
+// (панели взаимоисключающие — как и одиночный/множественный выбор).
+function renderBulkActionsInspector(){
+  const el=document.getElementById('inspector');
+  const count=multiSelected.size;
+  const sysOptions=(typeof SYSTEMS!=='undefined'?SYSTEMS:[]).map(s=>`<option value="${esc(s.id)}">${esc(s.name)}</option>`).join('');
+  el.innerHTML=`
+    <div class="group">
+      <h3>Групповые действия (${count} узлов выбрано)</h3>
+      <label class="small">Добавить тег всем выбранным</label>
+      <div class="row"><select id="bulkTagSelect">${sysOptions}</select><button id="btnBulkAddTag">Добавить</button></div>
+      <label class="small" style="margin-top:8px">Задать раздел всем выбранным</label>
+      <div class="row"><select id="bulkCategorySelect">${sysOptions}</select><button id="btnBulkSetCategory">Применить</button></div>
+      <button class="full danger" id="btnBulkDelete" style="margin-top:10px">🗑 Удалить ${count} узлов</button>
+    </div>
+  `;
+}
+document.getElementById('inspector').addEventListener('click',e=>{
+  if(multiSelected.size<=1) return;
+  if(e.target.id==='btnBulkAddTag'){ bulkAddTagToSelected(document.getElementById('bulkTagSelect').value); return; }
+  if(e.target.id==='btnBulkSetCategory'){ bulkSetCategoryForSelected(document.getElementById('bulkCategorySelect').value); return; }
+  if(e.target.id==='btnBulkDelete'){ deleteSelectedNodes(); return; }
+});
+
 function renderInspector(){
   const el=document.getElementById('inspector');
+  if(multiSelected.size>1){ renderBulkActionsInspector(); return; }
   const n=findNode(selectedNodeId);
   if(!n){ el.innerHTML='<div class="hint">Выбери узел на холсте или в списке слева, чтобы редактировать его.</div>'; return; }
   const tabBar=`<div class="insp-tabs">${INSPECTOR_TABS.map(([id,label])=>`<button class="insp-tab ${inspectorTab===id?'active':''}" data-tab="${id}">${esc(label)}${id==='choices'?` (${n.choices.length})`:''}</button>`).join('')}</div>`;
@@ -180,6 +209,7 @@ function renderInspector(){
 
 const inspectorEl=document.getElementById('inspector');
 inspectorEl.addEventListener('input',e=>{
+  if(readOnlyMode) return;
   const path=e.target.dataset.path; if(!path) return;
   const n=findNode(selectedNodeId); if(!n) return;
   let val=e.target.value;
@@ -187,6 +217,7 @@ inspectorEl.addEventListener('input',e=>{
   setByPath(n,path,val);
 });
 inspectorEl.addEventListener('change',e=>{
+  if(readOnlyMode) return;
   const n=findNode(selectedNodeId); if(!n) return;
   if(e.target.id==='triggerKind'){ changeTriggerKind(n,e.target.value); pushHistory(); renderAll(); return; }
   const path=e.target.dataset.path;
@@ -210,6 +241,7 @@ inspectorEl.addEventListener('click',e=>{
   if(jumpChip){ if(typeof jumpToWorldEntity==='function') jumpToWorldEntity(jumpChip.dataset.jumpref); return; }
   const addChip=e.target.closest('[data-addchip]');
   if(addChip){
+    if(readOnlyMode) return;
     const fieldPath=addChip.dataset.addchip, input=document.getElementById(addChip.dataset.chipinput);
     const typed=input.value.trim(); if(!typed) return;
     const options=chipOptionsFor(srcForField(fieldPath));
@@ -222,6 +254,7 @@ inspectorEl.addEventListener('click',e=>{
   }
   const delChip=e.target.closest('[data-delchip]');
   if(delChip){
+    if(readOnlyMode) return;
     const arr=getByPath(n,delChip.dataset.delchip);
     arr.splice(Number(delChip.dataset.delchipidx),1);
     pushHistory(); renderAll(); return;
@@ -234,6 +267,7 @@ inspectorEl.addEventListener('click',e=>{
   }
   const delRow=e.target.closest('[data-delrow]');
   if(delRow){
+    if(readOnlyMode) return;
     const path=delRow.dataset.delrow, idx=path.lastIndexOf('.');
     const arr=getByPath(n,path.slice(0,idx));
     arr.splice(Number(path.slice(idx+1)),1);
@@ -242,5 +276,5 @@ inspectorEl.addEventListener('click',e=>{
   const delChoice=e.target.closest('[data-delchoice]');
   if(delChoice){ deleteChoice(n.id,n.choices[Number(delChoice.dataset.delchoice)].id); return; }
   if(e.target.id==='btnAddChoiceHere'){ addChoice(n.id,''); return; }
-  if(e.target.id==='btnDeleteNode'){ if(confirm('Удалить узел? Ссылки на него из других переходов тоже уберутся.')) deleteNode(n.id); return; }
+  if(e.target.id==='btnDeleteNode'){ if(!readOnlyMode&&confirm('Удалить узел? Ссылки на него из других переходов тоже уберутся.')) deleteNode(n.id); return; }
 });
