@@ -4,6 +4,7 @@
 
 document.getElementById('btnConnect').onclick=connectProjectFolder;
 document.getElementById('btnRegrant').onclick=regrantProjectFolder;
+document.getElementById('btnRefreshObjectPlan').onclick=refreshObjectPlanData;
 document.getElementById('btnSave').onclick=saveStoryToProject;
 
 // Режим "только чтение" — постоянный видимый бейдж вместо alert()'ов на каждый клик (см. 01-core-

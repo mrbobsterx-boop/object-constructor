@@ -64,6 +64,16 @@ function resourceTypeLabel(id){ return RESOURCE_TYPE_LABELS[id]||id||''; }
 // не воспроизводим. Тот же файл несёт и store.custom (см. allPlanItems() выше) — одно чтение на оба.
 let objectPlanStatusData=null;
 async function loadObjectPlanStatus(){ objectPlanStatusData=await readJsonFromProject('data/object_plan.json'); }
+// loadObjectPlanStatus() сама по себе вызывается только при подключении/загрузке папки проекта
+// (06-save-load.js) — без этой кнопки узнать про новый "свой объект", добавленный в Object Plan уже
+// ПОСЛЕ того как Story Map открыт, можно было бы только переподключением папки. Кнопка "🔄 Object
+// Plan" перечитывает тот же файл на месте, без потери текущего несохранённого состояния сюжета/мира.
+async function refreshObjectPlanData(){
+  if(!projectDirHandle){ alert('Сначала подключи папку проекта.'); return; }
+  await loadObjectPlanStatus();
+  renderAll();
+  setFolderStatus('Object Plan обновлён · '+new Date().toLocaleTimeString());
+}
 const OP_STATUS_LABELS={todo:'Не начато',wip:'В работе',done:'Готово',skip:'Отложено'};
 function objectPlanManualStatus(itemId){ return objectPlanStatusData&&objectPlanStatusData.status?objectPlanStatusData.status[itemId]:undefined; }
 function objectPlanStatusLabel(id){ return OP_STATUS_LABELS[id]||id; }

@@ -10,6 +10,7 @@ document.getElementById('btnRegrant').onclick=regrantProjectFolder;
 document.getElementById('btnScan').onclick=()=>{ if(!projectDirHandle){ alert('Сначала подключи папку проекта.'); return; } scanProjectObjects(); };
 document.getElementById('btnSaveProject').onclick=saveStoreToProject;
 document.getElementById('btnLoadProject').onclick=loadStoreFromProject;
+document.getElementById('btnExportAllItems').onclick=exportAllItemsToProject;
 document.getElementById('btnExport').onclick=exportMarkdown;
 render();
 tryRestoreProjectFolder();

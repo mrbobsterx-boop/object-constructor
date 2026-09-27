@@ -103,3 +103,5 @@ ul.clean li.variant-row{display:flex;align-items:flex-start;gap:10px;list-style:
 .variant-info{min-width:0}
 .grp-new-row{display:none;margin-top:6px}
 .grp-new-row.show{display:block}
+.dropzone{border:2px dashed #37414e;border-radius:8px;padding:22px;text-align:center;color:#778391;font-size:12px}
+.dropzone.drag{border-color:#7fe9a0;color:#83d59a;background:#151f18}

@@ -23,6 +23,19 @@ async function saveStoreToProject(){
     setFolderStatus('Прогресс записан в data/object_plan.json · '+new Date().toLocaleTimeString());
   }catch(e){ console.error(e); alert('Не удалось записать: '+e.message); }
 }
+// Полный каталог (встроенные PLAN_ITEMS + свои объекты) — отдельно от отметок прогресса (не пишется
+// каждым "💾 Прогресс в проект", чтобы не раздувать этот файл сотнями встроенных объектов на каждое
+// сохранение статуса). Формат {items:[...]} совпадает с тем, что принимает drag-and-drop импорт "своих
+// объектов" (см. 14-view-dictionaries.js) — файл, выгруженный этой кнопкой, можно скачать, отредактировать
+// и утащить обратно; встроенные объекты просто будут пропущены как "уже есть в каталоге".
+async function exportAllItemsToProject(){
+  if(!projectDirHandle){ alert('Сначала подключи папку проекта.'); return; }
+  try{
+    const data={schema_version:1,saved_at:new Date().toISOString(),items:PLAN_ITEMS.concat(store.custom||[])};
+    await writeFileToProject('data/object_plan_items.json',new TextEncoder().encode(JSON.stringify(data,null,2)));
+    setFolderStatus('Весь каталог записан в data/object_plan_items.json · '+new Date().toLocaleTimeString());
+  }catch(e){ console.error(e); alert('Не удалось записать: '+e.message); }
+}
 async function loadStoreFromProject(){
   if(!projectDirHandle){ alert('Сначала подключи папку проекта.'); return; }
   try{

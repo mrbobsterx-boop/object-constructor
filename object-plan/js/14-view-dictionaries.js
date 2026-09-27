@@ -40,9 +40,79 @@ const NEW_GROUP_OPT='__new__';
 function groupSelectHtml(id,selected){
   return `<select id="${id}">${effectiveGroups().map(g=>`<option value="${g.id}"${g.id===selected?' selected':''}>${esc(g.name)}</option>`).join('')}<option value="${NEW_GROUP_OPT}">+ новый раздел…</option></select>`;
 }
+// Пример объекта со всеми полями схемы (см. комментарий над PLAN_ITEMS в 02-vocab.js) — качай, меняй
+// значения и тащи файл обратно в #customDropZone. {items:[...]} — тот же формат, что пишет
+// "📥 Все объекты → файл" (exportAllItemsToProject, 07-store.js), так что выгруженный оттуда файл
+// тоже можно перетащить обратно: встроенные объекты в нём просто пропустятся как "уже есть в каталоге".
+const CUSTOM_ITEM_TEMPLATE={items:[
+  {id:'sleeping_bag',n:'Спальник',c:'furniture',s:'bed',g:'home',p:1,sz:[80,180],wt:2,vg:'bed',
+   why:'Дешёвая переносная альтернатива кровати — можно взять в вылазку или постелить где угодно.',
+   fn:'Место сна: персонаж ложится (lie_down), спит и восстанавливает энергию, как кровать, но без требования к комнате.',
+   v:['Военный','Туристический лёгкий','Драный'],
+   os:{hp:20,collision:'RECT'},
+   cf:[['sleep_energy_per_hour',8,'Сколько энергии восстанавливает час сна (меньше, чем у кровати)']],
+   pn:['Это пример — скопируй объект, поменяй все поля под свой и удали ненужные'],
+   act:['SLEEP','TAKE','DROP'],req:['mat_cloth'],w:['bed_single'],
+   use:'Альтернатива кровати вне убежища — стоянки, вылазки.',
+   rooms:[],vis:['idle','rolled'],sys:['needs'],rc:'',
+   note:'Замени значения на свои и перетащи файл в «Свои объекты» (или выбери его кнопкой).'}
+]};
+// rawItems — уже распарсенный JSON, в любой из трёх форм, которые понимает дроп-зона.
+function itemsFromImportPayload(parsed){
+  if(Array.isArray(parsed)) return parsed;
+  if(parsed&&Array.isArray(parsed.items)) return parsed.items;
+  if(parsed&&typeof parsed==='object'&&parsed.id) return [parsed];
+  return null;
+}
+function normalizeImportedItem(raw){
+  if(!raw||typeof raw!=='object') return null;
+  const id=String(raw.id||'').trim(), n=String(raw.n||'').trim();
+  if(!/^[a-z0-9_\-]+$/.test(id)||!n) return null;
+  return Object.assign({},raw,{id,n});
+}
+// Совпадающий id со СВОИМ уже добавленным объектом — обновляет его (повторный импорт того же файла
+// безопасен); совпадающий со ВСТРОЕННЫМ объектом каталога — пропускается, как и ручная форма ниже
+// не даёт завести дубль (см. "Такой id уже есть в плане.").
+function mergeCustomItemsFromParsed(rawItems){
+  let added=0,updated=0; const skipped=[];
+  rawItems.forEach(raw=>{
+    const it=normalizeImportedItem(raw);
+    if(!it){ skipped.push(((raw&&raw.id)||'?')+' — нет id/названия или id не в формате a-z0-9_-'); return; }
+    const idx=(store.custom||[]).findIndex(c=>c.id===it.id);
+    if(idx===-1&&BY_ID.has(it.id)){ skipped.push(it.id+' — такой id уже есть в каталоге'); return; }
+    if(idx>=0) store.custom[idx]=it; else store.custom.push(it);
+    if(idx>=0) updated++; else added++;
+  });
+  return {added,updated,skipped};
+}
+async function importCustomItemFiles(files){
+  let added=0,updated=0; const skipped=[],badFiles=[];
+  for(const file of files){
+    let text; try{ text=await file.text(); }catch(e){ badFiles.push(file.name+' — не удалось прочитать'); continue; }
+    let parsed; try{ parsed=JSON.parse(text); }catch(e){ badFiles.push(file.name+' — не читается как JSON'); continue; }
+    const rawItems=itemsFromImportPayload(parsed);
+    if(!rawItems){ badFiles.push(file.name+' — ожидается объект, массив объектов или {"items":[...]}'); continue; }
+    const r=mergeCustomItemsFromParsed(rawItems);
+    added+=r.added; updated+=r.updated; skipped.push(...r.skipped);
+  }
+  saveStore(); buildModel(); if(PROJECT.scanned) PROJECT.extra=[...PROJECT.found.values()].filter(o=>!BY_ID.has(o.id)); render();
+  const parts=['Добавлено: '+added,'обновлено: '+updated];
+  if(skipped.length) parts.push('пропущено: '+skipped.length+' ('+skipped.join('; ')+')');
+  if(badFiles.length) parts.push('не обработаны файлы: '+badFiles.join('; '));
+  alert(parts.join(', ')+'.');
+}
 VIEW_RENDERERS.custom=function(){
   const rows=(store.custom||[]).map(c=>`<tr><td>${lnk(c.id)} <span class="muted small">${esc(c.id)}</span></td><td>${esc(catName(c.c))}</td><td>${esc(groupName(c.g))}</td><td>${prioBadge(c.p)}</td><td>${(c.v||[]).length}</td><td><button data-act="del-custom" data-id="${esc(c.id)}">Удалить</button></td></tr>`);
   return `<div class="toolbar"><div><h2>Свои объекты</h2><div class="muted">Добавь объект, которого нет в каталоге: он появится в чек-листе, порядке создания и сверке</div></div></div>
+  ${card('Импорт объектов через JSON',`
+    <div class="muted small" style="margin-bottom:8px">Быстрее формы ниже, если нужно сразу задать поля ОС, вариации и т. п. — один объект, массив объектов или {"items":[...]}, поля — как в каталоге (см. комментарий над <code>PLAN_ITEMS</code> в <code>js/02-vocab.js</code>).</div>
+    <div class="row" style="margin-bottom:8px">
+      <button data-act="download-item-template">⬇ Пример .json</button>
+      <label class="lnk" for="customFileInput">или выбери файл(ы)…</label>
+      <input type="file" id="customFileInput" accept=".json" multiple style="display:none">
+    </div>
+    <div class="dropzone" id="customDropZone">Перетащи .json файл(ы) сюда</div>
+    <div class="muted small" style="margin-top:6px">id как у встроенного объекта каталога — пропускается; id как у уже добавленного своего объекта — обновляет его.</div>`)}
   ${card('Новый объект',`<div class="filters">
     <div><label>id (a-z, 0-9, _)</label><input id="cId" placeholder="например: bed_wide"></div>
     <div><label>Название</label><input id="cName" placeholder="Кровать широкая"></div>
@@ -59,9 +129,28 @@ VIEW_RENDERERS.custom=function(){
 };
 document.addEventListener('change',e=>{
   if(e.target.id==='cGroup') document.getElementById('cGroupNewRow').classList.toggle('show',e.target.value===NEW_GROUP_OPT);
+  if(e.target.id==='customFileInput'){
+    const files=[...e.target.files]; e.target.value='';
+    if(files.length) importCustomItemFiles(files);
+  }
+});
+document.addEventListener('dragover',e=>{
+  e.preventDefault();
+  const z=e.target.closest('#customDropZone'); if(z) z.classList.add('drag');
+});
+document.addEventListener('dragleave',e=>{ const z=e.target.closest('#customDropZone'); if(z) z.classList.remove('drag'); });
+document.addEventListener('drop',e=>{
+  e.preventDefault();
+  document.querySelectorAll('#customDropZone.drag').forEach(el=>el.classList.remove('drag'));
+  const z=e.target.closest('#customDropZone'); if(!z) return;
+  const files=[...(e.dataTransfer&&e.dataTransfer.files||[])].filter(f=>/\.json$/i.test(f.name));
+  if(files.length) importCustomItemFiles(files);
 });
 document.addEventListener('click',e=>{
-  const a=e.target.closest('[data-act="add-custom"],[data-act="del-custom"]'); if(!a) return;
+  const a=e.target.closest('[data-act="add-custom"],[data-act="del-custom"],[data-act="download-item-template"]'); if(!a) return;
+  if(a.dataset.act==='download-item-template'){
+    downloadText('object-plan-item-template.json',JSON.stringify(CUSTOM_ITEM_TEMPLATE,null,2)); return;
+  }
   if(a.dataset.act==='del-custom'){
     if(!confirm('Удалить свой объект «'+a.dataset.id+'» из плана? Его отметки тоже пропадут.')) return;
     store.custom=store.custom.filter(c=>c.id!==a.dataset.id); delete store.status[a.dataset.id]; delete store.steps[a.dataset.id]; delete store.notes[a.dataset.id];
