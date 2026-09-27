@@ -287,11 +287,11 @@ function markClean(){ dirty=false; if(typeof renderDirtyStatus==='function') ren
 let history=[], historyIndex=-1;
 // entities/relationTypes/relations/proposals — слой мира (модуль 09), но переиспользуют ту же
 // историю отмены/возврата, что и сюжетный граф: пользователю не нужны два разных Ctrl+Z.
-function snapshot(){ return JSON.stringify({variables,nodes,selectedNodeId,entities,relationTypes,relations,proposals,selectedEntityId,stickyNotes}); }
+function snapshot(){ return JSON.stringify({variables,nodes,selectedNodeId,entities,relationTypes,relations,proposals,worldEvents,selectedEntityId,stickyNotes}); }
 function restoreSnapshot(s){
   const d=JSON.parse(s);
   variables=d.variables; nodes=d.nodes; selectedNodeId=d.selectedNodeId;
-  entities=d.entities||[]; relationTypes=d.relationTypes||[]; relations=d.relations||[]; proposals=d.proposals||[];
+  entities=d.entities||[]; relationTypes=d.relationTypes||[]; relations=d.relations||[]; proposals=d.proposals||[]; worldEvents=d.worldEvents||[];
   selectedEntityId=d.selectedEntityId||null;
   stickyNotes=d.stickyNotes||[];
 }
