@@ -110,6 +110,7 @@ function importIdea(data){
       id:refMap[entry.ref]||uid('n'),
       title:entry.title||'(из идеи)',text:entry.text||'',
       type:entry.type||'event',category:entry.category||'story',tags:Array.isArray(entry.tags)?entry.tags:[],samSystem:entry.samSystem||'',
+      refs:Array.isArray(entry.refs)?entry.refs.slice():[], // пока локальные bundle-ref'ы сущностей — резолвятся ниже, после entityRefMap
       x:120+positions[i].col*240,y:startY+positions[i].row*140,
       trigger:entry.trigger||{kind:'conditions',all:[]},
       effects:Array.isArray(entry.effects)?entry.effects:[],
@@ -156,6 +157,10 @@ function importIdea(data){
   // в превью и то, что реально будет добавлено здесь, посчитаны одной и той же функцией).
   const entityRefMap={};
   (data.entities||[]).forEach(entry=>{ resolveOrCreateEntity(entry,entityRefMap,true); });
+
+  // Теперь, когда entityRefMap заполнена, можно превратить локальные bundle-ref'ы в node.refs
+  // (проставленные выше как временные "сырые" значения) в настоящие id сущностей.
+  newNodes.forEach(n=>{ n.refs=n.refs.map(r=>entityRefMap[r]).filter(Boolean); });
 
   let addedRelationCount=0;
   (data.relations||[]).forEach(rel=>{
@@ -206,6 +211,7 @@ const IDEA_TEMPLATE={
     {
       ref:'n2',title:'Свет в доме включён',text:'NPC радуется — теперь можно работать и ночью.',
       type:'event',category:'energy',tags:['ai'],
+      refs:['e_ivan'], // ссылка на сущность мира (см. entities ниже) — bundle-local ref, резолвится при импорте
       trigger:{kind:'conditions',all:[]},effects:[],sim:{durationHours:1,dangerChance:0,foodCost:0,waterCost:0},
       ending:'',choices:[]
     }

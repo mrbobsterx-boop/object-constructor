@@ -57,7 +57,7 @@ function addNode(type,x,y){
   const pos=(x===undefined||y===undefined)?nextNodeSpawnPos():{x,y};
   const n={
     id:uid('n'),title:type==='background'?'Новое фоновое событие':(type==='choice'?'Новый выбор':'Новое событие'),
-    text:'',type:type||'event',category:'story',tags:[],samSystem:'',
+    text:'',type:type||'event',category:'story',tags:[],samSystem:'',refs:[],
     x:pos.x, y:pos.y,
     trigger:isFirst?{kind:'start'}:defaultTrigger(type),
     effects:[], sim:defaultSim(), choices:[], ending:''

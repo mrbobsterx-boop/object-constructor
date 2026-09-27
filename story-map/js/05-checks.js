@@ -74,6 +74,12 @@ function runChecks(){
     if(!toOk) out.push({level:'err',text:`Связь «${relationTypeLabel(r.type)}»: сторона «к» ссылается на несуществующую сущность.`});
     if(!relationTypeIds.has(r.type)) out.push({level:'err',text:`Связь (${fromOk?entityDisplayName(findEntity(r.from)):'?'} → ${toOk?entityDisplayName(findEntity(r.to)):'?'}): неизвестный тип связи.`});
   });
+  // Story ↔ World: узел ссылается (node.refs) на сущность, которую с тех пор удалили из "Мира".
+  nodes.forEach(n=>{
+    (n.refs||[]).forEach(rid=>{
+      if(rid&&!entityIds.has(rid)) out.push({level:'warn',text:`«${n.title}»: ссылается на сущность мира, которой больше нет (удалена в режиме «Мир»?).`,nodeId:n.id});
+    });
+  });
 
   out.unshift({level:'summary',text:`Узлов: ${nodes.length} · переменных: ${variables.length} · концовок: ${endingCount} · без входящих переходов: ${unreachableCount} · сущностей: ${entities.length} · связей: ${relations.length}`});
 

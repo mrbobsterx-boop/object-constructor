@@ -23,6 +23,17 @@ function setViewMode(mode){
 document.getElementById('viewStoryBtn').onclick=()=>setViewMode('story');
 document.getElementById('viewWorldBtn').onclick=()=>setViewMode('world');
 
+// Story → World: вызывается из инспектора узла (04-inspector.js) кликом по фишке-ссылке на сущность.
+function jumpToWorldEntity(id){
+  selectedEntityId=id; selectedRelationId=null;
+  setViewMode('world');
+}
+// World → Story (обратное направление той же связи): какие узлы сюжета ссылаются на эту сущность
+// через node.refs — без этого связь была бы дорогой в один конец.
+function nodesReferencingEntity(entityId){
+  return nodes.filter(n=>(n.refs||[]).includes(entityId));
+}
+
 /* ---------- левая панель режима «Мир»: сущности / идеи-предложения / типы связей ---------- */
 function renderEntityListHtml(q){
   if(!entities.length) return '<div class="hint">Пока нет сущностей — добавь персонажа, локацию, или сошлись на предмет/навык/действие из Object Plan.</div>';
@@ -131,6 +142,7 @@ function renderWorldCanvas(){
   if(!e){ el.innerHTML='<div class="hint">Выбери сущность слева — или добавь новую.</div>'; return; }
   const kind=entityKindDef(e.kind);
   const rels=relationsForEntity(e.id);
+  const refNodes=nodesReferencingEntity(e.id);
   el.innerHTML=`
     <div class="group">
       <h3>${esc(entityKindLabel(e.kind))}</h3>
@@ -148,6 +160,10 @@ function renderWorldCanvas(){
       <h3>Связи (${rels.length})</h3>
       ${rels.map(r=>relationRowHtml(r,e.id)).join('')||'<div class="hint">Пока нет связей.</div>'}
       <button class="full" id="btnAddRelationHere" style="margin-top:8px">+ добавить связь</button>
+    </div>
+    <div class="group">
+      <h3>Упоминается в сюжете (${refNodes.length})</h3>
+      ${refNodes.map(n=>`<div class="noderow" data-jumpstory="${esc(n.id)}"><span class="tag ${esc(n.type)}">${esc(n.type)}</span><div class="nm-wrap"><span class="nm">${esc(n.title||'(без названия)')}</span></div></div>`).join('')||'<div class="hint">Пока ни один узел сюжета не ссылается на эту сущность (вкладка «Ссылки» в инспекторе узла).</div>'}
     </div>
   `;
 }
@@ -173,6 +189,8 @@ document.getElementById('entityDetail').addEventListener('click',e=>{
   if(jump&&jump.dataset.jumpentity){ selectedEntityId=jump.dataset.jumpentity; selectedRelationId=null; renderAll(); return; }
   const row=e.target.closest('[data-relation]');
   if(row){ selectedRelationId=row.dataset.relation; renderAll(); }
+  const jumpStory=e.target.closest('[data-jumpstory]');
+  if(jumpStory){ setViewMode('story'); selectNode(jumpStory.dataset.jumpstory); focusNode(jumpStory.dataset.jumpstory); }
 });
 
 /* ---------- редактор связи — рендерится в общую правую панель #inspector, только когда

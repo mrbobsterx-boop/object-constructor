@@ -38,13 +38,22 @@ function chipOptionsFor(src){
   if(src==='items') return (typeof PLAN_ITEMS!=='undefined'?PLAN_ITEMS:[]).map(i=>({id:i.id,label:i.n}));
   if(src==='skills') return (typeof OS_SKILLS!=='undefined'?OS_SKILLS:[]).map(s=>({id:s,label:s}));
   if(src==='systems') return (typeof SYSTEMS!=='undefined'?SYSTEMS:[]).map(s=>({id:s.id,label:s.name}));
+  // Сущности слоя "Мир" (персонажи/локации/фракции/предметы/…) — тот же список, что и в режиме "Мир",
+  // entityKindLabel/entityDisplayName определены в 09-world-model.js (грузится позже, но вызывается
+  // только после полной загрузки страницы — см. договорённость про общую область имён classic-скриптов).
+  if(src==='worldEntities') return (typeof entities!=='undefined'?entities:[]).map(e=>({id:e.id,label:entityKindLabel(e.kind)+': '+entityDisplayName(e)}));
   return [];
 }
-function chipPickerHtml(fieldPath,values,src){
+// jumpable — только для сущностей "Мира": клик по самому имени фишки (не по "✕") переходит к
+// сущности в режиме "Мир", а не просто снимает/добавляет фишку — единственный источник значений
+// для сюжетного node.refs (§7 Story ↔ World).
+function chipPickerHtml(fieldPath,values,src,jumpable){
   const options=chipOptionsFor(src);
   const chips=values.map((v,i)=>{
     const opt=options.find(o=>o.id===v);
-    return `<span class="chip">${esc(opt?opt.label:v)}<button data-delchip="${fieldPath}" data-delchipidx="${i}">✕</button></span>`;
+    const label=esc(opt?opt.label:v);
+    const labelHtml=jumpable?`<span class="chip-label" data-jumpref="${esc(v)}" title="Перейти к сущности в «Мир»">${label}</span>`:label;
+    return `<span class="chip">${labelHtml}<button data-delchip="${fieldPath}" data-delchipidx="${i}">✕</button></span>`;
   }).join('')||'<span class="muted small">пусто</span>';
   const inputId='chipin_'+fieldPath.replace(/[^a-zA-Z0-9]/g,'_');
   return `<div class="chiprow">${chips}</div>
@@ -76,7 +85,7 @@ function choiceCardHtml(c,i){
 // показывают одну группу за раз; какая вкладка открыта — чисто локальное состояние UI (не данные
 // узла), поэтому живёт в обычной переменной модуля, а не в истории отмены/возврата.
 let inspectorTab='main';
-const INSPECTOR_TABS=[['main','Основное'],['trigger','Доступность'],['effects','Эффекты'],['sim','Симулятор'],['choices','Переходы']];
+const INSPECTOR_TABS=[['main','Основное'],['trigger','Доступность'],['effects','Эффекты'],['sim','Симулятор'],['choices','Переходы'],['links','Ссылки']];
 
 function inspectorTabBody(tab,n){
   if(tab==='trigger') return `
@@ -123,6 +132,12 @@ function inspectorTabBody(tab,n){
       <h3>Переходы (${n.choices.length})</h3>
       ${n.choices.map((c,i)=>choiceCardHtml(c,i)).join('')||'<div class="hint">Нет переходов — потяни за кружок на холсте на другой узел, или добавь вручную.</div>'}
       <button class="full" id="btnAddChoiceHere" style="margin-top:6px">+ добавить переход</button>
+    </div>`;
+  if(tab==='links') return `
+    <div class="group">
+      <h3>Связано с миром</h3>
+      <div class="hint" style="margin-bottom:6px">Персонажи, локации, фракции, предметы и т. п. из режима «Мир», которых касается это событие — событие на них ссылается, а не хранит копию данных. Клик по имени фишки переходит к сущности.</div>
+      ${chipPickerHtml('refs',n.refs||[],'worldEntities',true)}
     </div>`;
   return `
     <div class="group">
@@ -184,12 +199,15 @@ function srcForField(fieldPath){
   if(fieldPath==='tags') return 'systems';
   if(fieldPath==='sim.requiresItems') return 'items';
   if(fieldPath==='sim.requiresSkills') return 'skills';
+  if(fieldPath==='refs') return 'worldEntities';
   return '';
 }
 inspectorEl.addEventListener('click',e=>{
   const n=findNode(selectedNodeId); if(!n) return;
   const tabBtn=e.target.closest('[data-tab]');
   if(tabBtn){ inspectorTab=tabBtn.dataset.tab; renderInspector(); return; }
+  const jumpChip=e.target.closest('[data-jumpref]');
+  if(jumpChip){ if(typeof jumpToWorldEntity==='function') jumpToWorldEntity(jumpChip.dataset.jumpref); return; }
   const addChip=e.target.closest('[data-addchip]');
   if(addChip){
     const fieldPath=addChip.dataset.addchip, input=document.getElementById(addChip.dataset.chipinput);
