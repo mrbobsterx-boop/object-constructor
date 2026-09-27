@@ -114,6 +114,15 @@ function renderWorldLeft(){
     </div>`;
   }).join(''):'<div class="hint">Пока нет автономных событий мира.</div>';
 
+  const decCountEl=document.getElementById('decisionCount'); if(decCountEl) decCountEl.textContent=decisions.length;
+  const decListEl=document.getElementById('decisionList');
+  if(decListEl) decListEl.innerHTML=decisions.length?decisions.map(d=>`
+    <div class="noderow ${selectedDecisionId===d.id?'active':''}" data-decision="${esc(d.id)}">
+      <span class="tag ${esc(d.status)}">${esc(decisionStatusLabel(d.status))}</span>
+      <div class="nm-wrap"><span class="nm">${esc(d.title)}</span><span class="affects muted small">${esc(decisionSourceLabel(d.source))}</span></div>
+      <button class="del-x" data-deldecision="${esc(d.id)}">✕</button>
+    </div>`).join(''):'<div class="hint">Пока нет решений в Decision Log.</div>';
+
   const rtEl=document.getElementById('relationTypeList');
   if(rtEl) rtEl.innerHTML=relationTypes.map(t=>`
     <div class="varrow" data-reltype="${esc(t.id)}">
@@ -163,14 +172,24 @@ document.getElementById('entityList').addEventListener('click',e=>{
     return;
   }
   const row=e.target.closest('[data-entity]');
-  if(row){ selectedEntityId=row.dataset.entity; selectedRelationId=null; selectedProposalId=null; selectedWorldEventId=null; renderAll(); }
+  if(row){ selectedEntityId=row.dataset.entity; selectedRelationId=null; selectedProposalId=null; selectedWorldEventId=null; selectedDecisionId=null; renderAll(); }
 });
 document.getElementById('btnAddWorldEvent').onclick=()=>{ addWorldEvent(); };
 document.getElementById('worldEventList').addEventListener('click',e=>{
   const del=e.target.closest('[data-delworldevent]');
   if(del){ if(!readOnlyMode&&confirm('Удалить событие мира?')) deleteWorldEvent(del.dataset.delworldevent); return; }
   const row=e.target.closest('[data-worldevent]');
-  if(row){ selectedWorldEventId=row.dataset.worldevent; selectedEntityId=null; selectedProposalId=null; selectedRelationId=null; renderAll(); }
+  if(row){ selectedWorldEventId=row.dataset.worldevent; selectedEntityId=null; selectedProposalId=null; selectedRelationId=null; selectedDecisionId=null; renderAll(); }
+});
+document.getElementById('btnAddDecision').onclick=()=>{
+  const input=document.getElementById('newDecisionTitle');
+  addDecision(input.value); input.value='';
+};
+document.getElementById('decisionList').addEventListener('click',e=>{
+  const del=e.target.closest('[data-deldecision]');
+  if(del){ if(!readOnlyMode&&confirm('Удалить решение из Decision Log?')) deleteDecision(del.dataset.deldecision); return; }
+  const row=e.target.closest('[data-decision]');
+  if(row){ selectedDecisionId=row.dataset.decision; selectedEntityId=null; selectedProposalId=null; selectedRelationId=null; selectedWorldEventId=null; renderAll(); }
 });
 document.getElementById('btnAddProposal').onclick=()=>{
   const input=document.getElementById('newProposalTitle');
@@ -183,7 +202,7 @@ document.getElementById('proposalList').addEventListener('click',e=>{
   const del=e.target.closest('[data-delproposal]');
   if(del){ if(confirm('Удалить идею?')) deleteProposal(del.dataset.delproposal); return; }
   const row=e.target.closest('[data-proposal]');
-  if(row){ selectedProposalId=row.dataset.proposal; selectedEntityId=null; selectedRelationId=null; selectedWorldEventId=null; renderAll(); }
+  if(row){ selectedProposalId=row.dataset.proposal; selectedEntityId=null; selectedRelationId=null; selectedWorldEventId=null; selectedDecisionId=null; renderAll(); }
 });
 document.getElementById('btnAddRelType').onclick=()=>{
   const input=document.getElementById('newRelTypeName');
@@ -325,10 +344,50 @@ function renderWorldEventDetail(){
     </div>
   `;
 }
+// Decision Log — запись о решении по архитектуре/дизайну (§28), та же центральная панель
+// #entityDetail, что и у сущности/идеи/события мира, взаимоисключающе через selectedDecisionId.
+function renderDecisionDetail(){
+  const el=document.getElementById('entityDetail'); if(!el) return;
+  const d=findDecision(selectedDecisionId);
+  if(!d){ selectedDecisionId=null; renderWorldCanvas(); return; }
+  const impact=decisionChangeImpact(d);
+  el.innerHTML=`
+    <div class="group">
+      <h3>Решение (Decision Log)</h3>
+      <label class="small">Заголовок</label>
+      <input type="text" class="full" id="decTitleInput" value="${esc(d.title)}">
+      <label class="small" style="margin-top:6px">Текст</label>
+      <textarea id="decTextInput">${esc(d.text||'')}</textarea>
+      <div class="row" style="margin-top:6px">
+        <div><label class="small">Статус</label>
+          <select id="decStatusSelect">${DECISION_STATUS.map(([id,label])=>`<option value="${id}" ${d.status===id?'selected':''}>${label}</option>`).join('')}</select></div>
+        <div><label class="small">Источник</label>
+          <select id="decSourceSelect">${DECISION_SOURCE.map(([id,label])=>`<option value="${id}" ${d.source===id?'selected':''}>${label}</option>`).join('')}</select></div>
+      </div>
+      <label class="small" style="margin-top:6px">Комментарий</label>
+      <textarea id="decCommentInput">${esc(d.comment||'')}</textarea>
+      ${d.createdAt?`<div class="hint small" style="margin-top:4px">Создано: ${esc(new Date(d.createdAt).toLocaleString())}</div>`:''}
+      <button class="full danger" id="btnDeleteDecisionHere" style="margin-top:8px">🗑 Удалить решение</button>
+    </div>
+    <div class="group">
+      <h3>Change Impact</h3>
+      <div class="hint">Затрагивает (по связанным сущностям ниже): узлов сюжета — ${impact.nodeCount}, связей — ${impact.relationCount}, событий мира — ${impact.eventCount}.</div>
+    </div>
+    <div class="group">
+      <h3>Связанные системы (Object Plan)</h3>
+      ${chipPickerHtml('relatedSystems',d.relatedSystems||[],'systems',false)}
+    </div>
+    <div class="group">
+      <h3>Связанные сущности</h3>
+      ${chipPickerHtml('relatedEntities',d.relatedEntities||[],'worldEntities',true)}
+    </div>
+  `;
+}
 function renderWorldCanvas(){
   const el=document.getElementById('entityDetail'); if(!el) return;
   if(selectedProposalId){ renderProposalDetail(); return; }
   if(selectedWorldEventId){ renderWorldEventDetail(); return; }
+  if(selectedDecisionId){ renderDecisionDetail(); return; }
   const e=findEntity(selectedEntityId);
   if(!e){ el.innerHTML='<div class="hint">Выбери сущность или идею слева — или добавь новую.</div>'; return; }
   const kind=entityKindDef(e.kind);
@@ -379,6 +438,14 @@ function renderWorldCanvas(){
         <div class="nm-wrap"><span class="nm">${esc(ev.title||'(без названия)')}</span><span class="affects muted small">${ev.actor===e.id?'actor':''}${ev.actor===e.id&&ev.target===e.id?' · ':''}${ev.target===e.id?'target':''}</span></div>
       </div>`).join(''):'<div class="hint">Пока не участвует ни в одном автономном событии мира.</div>'}
     </div>`; })()}
+    ${(()=>{ const decs=decisions.filter(d=>(d.relatedEntities||[]).includes(e.id)); return `
+    <div class="group">
+      <h3>Затронуто решениями (${decs.length})</h3>
+      ${decs.length?decs.map(d=>`<div class="noderow" data-jumpdecision="${esc(d.id)}">
+        <span class="tag ${esc(d.status)}">${esc(decisionStatusLabel(d.status))}</span>
+        <div class="nm-wrap"><span class="nm">${esc(d.title)}</span></div>
+      </div>`).join(''):'<div class="hint">Пока не упомянуто ни в одном решении Decision Log.</div>'}
+    </div>`; })()}
     ${kind.catalog?`
     <div class="group">
       <h3>Используется в сюжете (${usedNodes.length})</h3>
@@ -414,6 +481,13 @@ document.getElementById('entityDetail').addEventListener('input',e=>{
     if(path) setByPath(ev,path,e.target.type==='number'?num(e.target.value):e.target.value);
     return;
   }
+  if(selectedDecisionId){
+    const d=findDecision(selectedDecisionId); if(!d) return;
+    if(e.target.id==='decTitleInput') d.title=e.target.value;
+    if(e.target.id==='decTextInput') d.text=e.target.value;
+    if(e.target.id==='decCommentInput') d.comment=e.target.value;
+    return;
+  }
   const ent=findEntity(selectedEntityId); if(!ent) return;
   if(e.target.id==='entityNameInput') ent.name=e.target.value;
   if(e.target.id==='entityNoteInput') ent.note=e.target.value;
@@ -433,6 +507,13 @@ document.getElementById('entityDetail').addEventListener('change',e=>{
     if(e.target.id==='weTargetSelect'){ ev.target=e.target.value; pushHistory(); renderAll(); return; }
     if(e.target.id==='weResultLifecycleSelect'){ ev.resultLifecycle=e.target.value; pushHistory(); renderAll(); return; }
     if(['weTitleInput','weActionInput','weCommentInput'].includes(e.target.id)||e.target.dataset.path){ pushHistory(); renderAll(); return; }
+    return;
+  }
+  if(selectedDecisionId){
+    const d=findDecision(selectedDecisionId); if(!d) return;
+    if(e.target.id==='decStatusSelect'){ d.status=e.target.value; pushHistory(); renderAll(); return; }
+    if(e.target.id==='decSourceSelect'){ d.source=e.target.value; pushHistory(); renderAll(); return; }
+    if(['decTitleInput','decTextInput','decCommentInput'].includes(e.target.id)){ pushHistory(); renderAll(); return; }
     return;
   }
   const ent=findEntity(selectedEntityId); if(!ent) return;
@@ -498,8 +579,37 @@ document.getElementById('entityDetail').addEventListener('click',e=>{
     }
     return;
   }
+  if(selectedDecisionId){
+    const d=findDecision(selectedDecisionId); if(!d) return;
+    if(e.target.id==='btnDeleteDecisionHere'){ if(!readOnlyMode&&confirm('Удалить решение из Decision Log?')) deleteDecision(d.id); return; }
+    const jumpChip=e.target.closest('[data-jumpref]');
+    if(jumpChip){ selectedEntityId=jumpChip.dataset.jumpref; selectedDecisionId=null; setViewMode('world'); return; }
+    const addChip=e.target.closest('[data-addchip]');
+    if(addChip){
+      if(readOnlyMode) return;
+      const fieldPath=addChip.dataset.addchip, input=document.getElementById(addChip.dataset.chipinput);
+      const typed=input.value.trim(); if(!typed) return;
+      const options=chipOptionsFor(fieldPath==='relatedSystems'?'systems':'worldEntities');
+      const match=options.find(o=>o.label===typed||o.id===typed);
+      const value=match?match.id:typed;
+      const arr=d[fieldPath]||(d[fieldPath]=[]);
+      if(!arr.includes(value)) arr.push(value);
+      input.value='';
+      pushHistory(); renderAll(); return;
+    }
+    const delChip=e.target.closest('[data-delchip]');
+    if(delChip){
+      if(readOnlyMode) return;
+      const arr=d[delChip.dataset.delchip];
+      if(arr) arr.splice(Number(delChip.dataset.delchipidx),1);
+      pushHistory(); renderAll(); return;
+    }
+    return;
+  }
   const jumpWorldEvent=e.target.closest('[data-jumpworldevent]');
   if(jumpWorldEvent){ selectedWorldEventId=jumpWorldEvent.dataset.jumpworldevent; selectedEntityId=null; selectedProposalId=null; renderAll(); return; }
+  const jumpDecision=e.target.closest('[data-jumpdecision]');
+  if(jumpDecision){ selectedDecisionId=jumpDecision.dataset.jumpdecision; selectedEntityId=null; selectedProposalId=null; selectedWorldEventId=null; renderAll(); return; }
   if(e.target.id==='btnDeleteEntity'){ if(!readOnlyMode&&confirm('Архивировать сущность («устарело»)? Существующие ссылки не сломаются, но она перестанет предлагаться для новых.')) deprecateEntity(selectedEntityId); return; }
   if(e.target.id==='btnRestoreEntity'){ restoreEntity(selectedEntityId); return; }
   if(e.target.id==='btnDeleteEntityForever'){ if(!readOnlyMode&&confirm('Удалить сущность НАВСЕГДА? Связи с ней тоже удалятся. Отменить будет нельзя (кроме Ctrl+Z).')) deleteEntity(selectedEntityId); return; }

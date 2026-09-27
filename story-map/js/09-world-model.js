@@ -80,8 +80,8 @@ const DEFAULT_RELATION_TYPES=[
 ];
 const RELATION_STATUS=[['confirmed','подтверждено'],['proposed','предположение'],['deprecated','устарело']];
 
-let entities=[], relationTypes=[], relations=[], proposals=[], worldEvents=[];
-let selectedEntityId=null, selectedRelationId=null, selectedProposalId=null, selectedWorldEventId=null;
+let entities=[], relationTypes=[], relations=[], proposals=[], worldEvents=[], decisions=[];
+let selectedEntityId=null, selectedRelationId=null, selectedProposalId=null, selectedWorldEventId=null, selectedDecisionId=null;
 const PROPOSAL_STATUS=[['idea','идея'],['planned','запланировано'],['accepted','принято'],['implemented','реализовано'],['rejected','отклонено']];
 const PROPOSAL_PRIORITY=[['low','низкий'],['normal','обычный'],['high','высокий']];
 function proposalStatusLabel(status){ const e=PROPOSAL_STATUS.find(([id])=>id===status); return e?e[1]:status; }
@@ -115,6 +115,52 @@ function deleteWorldEvent(id){
   worldEvents=worldEvents.filter(x=>x.id!==id);
   if(selectedWorldEventId===id) selectedWorldEventId=null;
   pushHistory(); renderAll();
+}
+
+// Decision Log (§28) — записи о РЕШЕНИЯХ по архитектуре/дизайну ("почему раздел работает именно так"),
+// а не о содержимом сюжета (это уже proposals) и не о конкретной вещи в мире (это entities). `source` —
+// откуда взялось решение (Master Design/Object Plan/сам Story Map/прототип/отдельное решение), `status`
+// — насколько оно устоялось: 'unknown' — ОСОЗНАННО не решено ещё (Master Design сам оставляет это
+// открытым, и Story Map не должен заставлять фиксировать раньше времени), а не "забыли заполнить".
+const DECISION_STATUS=[['defined','Зафиксировано'],['tentative','Предварительно'],['unknown','Не определено (осознанно)'],['deprecated','Устарело']];
+const DECISION_SOURCE=[['master-design','Master Design'],['object-plan','Object Plan'],['story','Story Map'],['prototype','Прототип'],['decision','Отдельное решение']];
+function decisionStatusLabel(id){ const e=DECISION_STATUS.find(([x])=>x===id); return e?e[1]:id; }
+function decisionSourceLabel(id){ const e=DECISION_SOURCE.find(([x])=>x===id); return e?e[1]:id; }
+function findDecision(id){ return decisions.find(d=>d.id===id); }
+function addDecision(title){
+  if(blockIfReadOnly()) return;
+  title=(title||'').trim(); if(!title) return;
+  const d={id:uid('dec'),title,text:'',status:'tentative',source:'decision',relatedSystems:[],relatedEntities:[],comment:'',createdAt:new Date().toISOString()};
+  decisions.unshift(d);
+  selectedDecisionId=d.id; selectedEntityId=null; selectedProposalId=null; selectedWorldEventId=null;
+  pushHistory(); renderAll();
+  return d;
+}
+function updateDecision(id,patch){
+  if(blockIfReadOnly()) return;
+  const d=findDecision(id); if(!d) return;
+  Object.assign(d,patch);
+  pushHistory(); renderAll();
+}
+function deleteDecision(id){
+  if(blockIfReadOnly()) return;
+  decisions=decisions.filter(d=>d.id!==id);
+  if(selectedDecisionId===id) selectedDecisionId=null;
+  pushHistory(); renderAll();
+}
+// Change Impact — синтез уже существующих кросс-ссылок (§14/§26), а не отдельный расчёт с нуля:
+// сколько узлов сюжета/связей/событий мира трогают сущности, связанные с этим решением, суммарно.
+function decisionChangeImpact(d){
+  const seenNodes=new Set();
+  let relationCount=0, eventCount=0;
+  (d.relatedEntities||[]).forEach(eid=>{
+    const ent=findEntity(eid); if(!ent) return;
+    nodesReferencingEntity(eid).forEach(n=>seenNodes.add(n.id));
+    if(entityKindDef(ent.kind).catalog) nodesUsingCatalogEntity(ent).forEach(n=>seenNodes.add(n.id));
+    relationCount+=relationsForEntity(eid).length;
+    eventCount+=worldEventsForEntity(eid).length;
+  });
+  return {nodeCount:seenNodes.size,relationCount,eventCount};
 }
 
 function findEntity(id){ return entities.find(e=>e.id===id); }

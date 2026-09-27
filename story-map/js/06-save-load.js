@@ -93,7 +93,8 @@ function collectStoryJSON(){
     relationTypes:relationTypes.map(t=>({id:t.id,name:t.name,inverseName:t.inverseName||'',symmetric:!!t.symmetric})),
     relations:relations.map(r=>({id:r.id,type:r.type,from:r.from,to:r.to,status:r.status||'confirmed',source:r.source||'',comment:r.comment||'',conditions:r.conditions||[],effects:r.effects||[]})),
     proposals:proposals.map(p=>({id:p.id,title:p.title,text:p.text||'',status:p.status||'idea',priority:p.priority||'normal',source:p.source||'',createdAt:p.createdAt||'',relatedEntities:p.relatedEntities||[],relatedSystems:p.relatedSystems||[],relatedNodes:p.relatedNodes||[]})),
-    worldEvents:worldEvents.map(ev=>({id:ev.id,title:ev.title||'',actor:ev.actor||'',action:ev.action||'',target:ev.target||'',resultLifecycle:ev.resultLifecycle||'',effects:ev.effects||[],comment:ev.comment||''}))
+    worldEvents:worldEvents.map(ev=>({id:ev.id,title:ev.title||'',actor:ev.actor||'',action:ev.action||'',target:ev.target||'',resultLifecycle:ev.resultLifecycle||'',effects:ev.effects||[],comment:ev.comment||''})),
+    decisions:decisions.map(d=>({id:d.id,title:d.title||'',text:d.text||'',status:d.status||'tentative',source:d.source||'decision',relatedSystems:d.relatedSystems||[],relatedEntities:d.relatedEntities||[],comment:d.comment||'',createdAt:d.createdAt||''}))
   };
 }
 // Разбор старого свободного текста ("предмет1, предмет2") в массив — ничего не теряем при переходе
@@ -157,8 +158,9 @@ async function loadStoryFromProject(){
     relations=Array.isArray(data.relations)?data.relations.map(r=>({id:r.id||uid('rel'),type:r.type||'',from:r.from||'',to:r.to||'',status:r.status||'confirmed',source:r.source||'',comment:r.comment||'',conditions:Array.isArray(r.conditions)?r.conditions:[],effects:Array.isArray(r.effects)?r.effects:[]})):[];
     proposals=Array.isArray(data.proposals)?data.proposals.map(p=>({id:p.id||uid('pr'),title:p.title||'',text:p.text||'',status:p.status||'idea',priority:p.priority||'normal',source:p.source||'',createdAt:p.createdAt||'',relatedEntities:Array.isArray(p.relatedEntities)?p.relatedEntities:[],relatedSystems:Array.isArray(p.relatedSystems)?p.relatedSystems:[],relatedNodes:Array.isArray(p.relatedNodes)?p.relatedNodes:[]})):[];
     worldEvents=Array.isArray(data.worldEvents)?data.worldEvents.map(ev=>({id:ev.id||uid('we'),title:ev.title||'',actor:ev.actor||'',action:ev.action||'',target:ev.target||'',resultLifecycle:ev.resultLifecycle||'',effects:Array.isArray(ev.effects)?ev.effects:[],comment:ev.comment||''})):[];
+    decisions=Array.isArray(data.decisions)?data.decisions.map(d=>({id:d.id||uid('dec'),title:d.title||'',text:d.text||'',status:d.status||'tentative',source:d.source||'decision',relatedSystems:Array.isArray(d.relatedSystems)?d.relatedSystems:[],relatedEntities:Array.isArray(d.relatedEntities)?d.relatedEntities:[],comment:d.comment||'',createdAt:d.createdAt||''})):[];
   }
-  selectedNodeId=null; selectedEntityId=null; selectedRelationId=null; selectedProposalId=null; selectedWorldEventId=null;
+  selectedNodeId=null; selectedEntityId=null; selectedRelationId=null; selectedProposalId=null; selectedWorldEventId=null; selectedDecisionId=null;
   resetHistory();
   markClean();
   // Object Plan's own статус реализации (data/object_plan.json, §21/§22) — read-only best-effort:

@@ -111,6 +111,9 @@ label.small{font-size:11px;color:var(--muted);display:block;margin-bottom:2px}
 .tag.implemented{border-color:var(--accent-hi);color:#bfe9d2;font-weight:600}
 .tag.rejected{border-color:var(--danger);color:#ff9a88}
 .tag.deprecated{border-color:var(--warn);color:#f0b57a}
+.tag.defined{border-color:var(--accent-hi);color:#bfe9d2}
+.tag.tentative{border-color:var(--info);color:#9fd8e8}
+.tag.unknown{border-color:var(--muted)}
 
 #btnReadOnly.active{background:var(--warn);border-color:var(--warn);color:#1a1006;font-weight:600}
 body.read-only .app{outline:3px solid var(--warn);outline-offset:-3px}

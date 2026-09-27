@@ -203,8 +203,9 @@ function runChecks(){
     const usedInWorldEvents=worldEvents.some(ev=>ev.actor===e.id||ev.target===e.id);
     const usedViaCatalog=kind.catalog&&typeof nodesUsingCatalogEntity==='function'?nodesUsingCatalogEntity(e).length>0:false;
     const usedInProposals=proposals.some(p=>(p.relatedEntities||[]).includes(e.id));
-    if(!usedInRefs&&!usedInAction&&!usedInRelations&&!usedInWorldEvents&&!usedViaCatalog&&!usedInProposals){
-      out.push({level:'info',text:`Сущность «${entityDisplayName(e)}»: нигде не используется — ни в узлах сюжета, ни в связях, ни в событиях мира, ни в идеях-предложениях.`,entityId:e.id});
+    const usedInDecisions=decisions.some(d=>(d.relatedEntities||[]).includes(e.id));
+    if(!usedInRefs&&!usedInAction&&!usedInRelations&&!usedInWorldEvents&&!usedViaCatalog&&!usedInProposals&&!usedInDecisions){
+      out.push({level:'info',text:`Сущность «${entityDisplayName(e)}»: нигде не используется — ни в узлах сюжета, ни в связях, ни в событиях мира, ни в идеях-предложениях, ни в Decision Log.`,entityId:e.id});
     }
   });
   relations.forEach(r=>{
@@ -239,7 +240,7 @@ function runChecks(){
   const errCount=out.filter(p=>p.level==='err').length;
   const warnCount=out.filter(p=>p.level==='warn').length;
   const infoCount=out.filter(p=>p.level==='info').length;
-  out.unshift({level:'summary',text:`Ошибок: ${errCount} · Предупреждений: ${warnCount} · Инфо: ${infoCount}  —  Узлов: ${nodes.length} · переменных: ${variables.length} · концовок: ${endingCount} · без входящих переходов: ${unreachableCount} · сущностей: ${entities.length} · связей: ${relations.length} · событий мира: ${worldEvents.length}`});
+  out.unshift({level:'summary',text:`Ошибок: ${errCount} · Предупреждений: ${warnCount} · Инфо: ${infoCount}  —  Узлов: ${nodes.length} · переменных: ${variables.length} · концовок: ${endingCount} · без входящих переходов: ${unreachableCount} · сущностей: ${entities.length} · связей: ${relations.length} · событий мира: ${worldEvents.length} · решений: ${decisions.length}`});
 
   return out;
 }
