@@ -21,6 +21,7 @@
   <button id="btnSave" title="Ctrl+S">💾 Сохранить</button>
   <span id="dirtyStatus" class="status"></span>
   <button id="btnReadOnly" title="Открыть как документацию — отключает добавление/удаление/перетаскивание/редактирование, оставляет навигацию (выбор, поиск, Проверки, Dependency Explorer)">👁 Только чтение</button>
+  <button id="btnSimPlay" title="Лёгкий inline-прогон логики прямо здесь: старт → выборы → переменные. Не путать с story-bot/ — полноценным ботом-симулятором в отдельном инструменте.">▶ Играть</button>
   <div class="zoombar" id="storyZoombar">
     <button id="btnZoomOut" title="Уменьшить">－</button>
     <span id="zoomLabel">100%</span>
@@ -160,6 +161,17 @@
   </div>
 </div>
 
+<div id="simModal" class="modal-overlay" style="display:none">
+  <div class="modal-card" style="width:640px">
+    <h3>Симуляция (лёгкий inline-прогон)</h3>
+    <div id="simBody"></div>
+    <div class="row" style="margin-top:12px">
+      <button id="btnSimRestart">🔁 Заново</button>
+      <button id="btnSimClose" class="primary">Закрыть</button>
+    </div>
+  </div>
+</div>
+
 <!-- Каталог Object Plan подключается напрямую его же скриптами — раздел/объект/предметы/навыки всегда
      совпадают с тем, что видит сам Object Plan. Даёт PLAN_ITEMS, OS_SKILLS, SYSTEMS, ACTIONS. -->
 <script src="../object-plan/js/02-vocab.js"></script>
@@ -192,5 +204,6 @@
 <script src="js/11-init.js"></script>
 <script src="js/12-story-templates.js"></script>
 <script src="js/13-timeline.js"></script>
+<script src="js/14-simulation.js"></script>
 </body>
 </html>
