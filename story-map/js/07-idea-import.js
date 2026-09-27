@@ -327,8 +327,8 @@ const IDEA_TEMPLATE={
     {ref:'e_thirstfix',kind:'effect',name:'Восстановление жажды'}
   ],
   relations:[
-    {from_ref:'e_ivan',type:'can_perform',to_ref:'e_drink',status:'confirmed',comment:'Иван может пить'},
-    {from_ref:'e_drink',type:'produces',to_ref:'e_thirstfix',status:'confirmed'}
+    {from_ref:'e_ivan',type:'может_делать',to_ref:'e_drink',status:'confirmed',comment:'Иван может пить'},
+    {from_ref:'e_drink',type:'производит',to_ref:'e_thirstfix',status:'confirmed'}
   ],
   proposals:[
     // priority/source необязательны (по умолчанию priority:"normal", source — метка этого импорта)

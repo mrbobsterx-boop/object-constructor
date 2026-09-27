@@ -131,7 +131,7 @@ function renderWorldLeft(){
         <button class="del-x" data-delreltype="${esc(t.id)}">✕</button>
       </div>
       <div class="row">
-        <input type="text" value="${esc(t.inverseName||'')}" data-rtfield="inverseName" placeholder="обратное имя (member_of → has_member)" style="flex:1" ${t.symmetric?'disabled':''}>
+        <input type="text" value="${esc(t.inverseName||'')}" data-rtfield="inverseName" placeholder="обратное имя (состоит_в → включает)" style="flex:1" ${t.symmetric?'disabled':''}>
         <label class="small" title="Связь читается одинаково в обе стороны, без направления (friend_of)"><input type="checkbox" data-rtfield="symmetric" ${t.symmetric?'checked':''}> симметрична</label>
       </div>
     </div>`).join('')||'<div class="hint">Нет типов связей.</div>';
@@ -207,6 +207,10 @@ document.getElementById('proposalList').addEventListener('click',e=>{
 document.getElementById('btnAddRelType').onclick=()=>{
   const input=document.getElementById('newRelTypeName');
   addRelationType(input.value); input.value='';
+};
+document.getElementById('btnTranslateRelTypes').onclick=()=>{
+  const n=translateRelationTypesToRussian();
+  alert(n?`Переименовано типов связи: ${n}.`:'Ничего не найдено для перевода — уже на русском, или названия не совпадают со стандартными английскими.');
 };
 document.getElementById('relationTypeList').addEventListener('input',e=>{
   if(readOnlyMode) return;

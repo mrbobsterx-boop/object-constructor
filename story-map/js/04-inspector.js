@@ -67,7 +67,10 @@ function resourceFxRowsHtml(list){
 // точное совпадение по подписи среди вариантов; если не нашёл — добавляет как есть (не блокирует
 // ввод, просто не подсвечивает человекочитаемым именем).
 function chipOptionsFor(src){
-  if(src==='items') return (typeof PLAN_ITEMS!=='undefined'?PLAN_ITEMS:[]).map(i=>({id:i.id,label:i.n}));
+  // allPlanItems() (09-world-model.js) — PLAN_ITEMS + "свои объекты" Object Plan (store.custom);
+  // определена позже, но вызывается только после полной загрузки страницы (см. договорённость про
+  // общую область имён classic-скриптов — та же, что и у entityKindLabel/entityDisplayName ниже).
+  if(src==='items') return allPlanItems().map(i=>({id:i.id,label:i.n}));
   if(src==='skills') return (typeof OS_SKILLS!=='undefined'?OS_SKILLS:[]).map(s=>({id:s,label:s}));
   if(src==='systems') return (typeof SYSTEMS!=='undefined'?SYSTEMS:[]).map(s=>({id:s.id,label:s.name}));
   // Сущности слоя "Мир" (персонажи/локации/фракции/предметы/…) — тот же список, что и в режиме "Мир",

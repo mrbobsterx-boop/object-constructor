@@ -24,8 +24,18 @@ const ENTITY_KINDS=[
 ];
 function entityKindDef(kindId){ return ENTITY_KINDS.find(k=>k.id===kindId)||ENTITY_KINDS[0]; }
 function entityKindLabel(kindId){ return entityKindDef(kindId).label; }
+// Каталог предметов = встроенный PLAN_ITEMS + "свои объекты" Object Plan (store.custom, живут в
+// data/object_plan.json, а не в исходниках Object Plan) — раньше Story Map читал только PLAN_ITEMS,
+// поэтому предмет, заведённый через кнопку "свой объект" в самом Object Plan (а не как строка в его
+// исходниках), был не виден здесь. Сырые записи store.custom — того же формата {id,n,sys,...}, что и
+// PLAN_ITEMS (Object Plan сам их нормализует лениво при показе — normalizeItem() в 06-model.js — нам
+// эта нормализация не нужна, id/n/sys уже есть как есть).
+function allPlanItems(){
+  const custom=(objectPlanStatusData&&Array.isArray(objectPlanStatusData.custom))?objectPlanStatusData.custom:[];
+  return (typeof PLAN_ITEMS!=='undefined'?PLAN_ITEMS:[]).concat(custom);
+}
 function catalogOptionsFor(catalog){
-  if(catalog==='items') return (typeof PLAN_ITEMS!=='undefined'?PLAN_ITEMS:[]).map(i=>({id:i.id,label:i.n}));
+  if(catalog==='items') return allPlanItems().map(i=>({id:i.id,label:i.n}));
   if(catalog==='skills') return (typeof OS_SKILLS!=='undefined'?OS_SKILLS:[]).map(s=>({id:s,label:s}));
   if(catalog==='actions') return (typeof ACTIONS!=='undefined'?ACTIONS:[]).map(a=>({id:a,label:a}));
   if(catalog==='systems') return (typeof SYSTEMS!=='undefined'?SYSTEMS:[]).map(s=>({id:s.id,label:s.name}));
@@ -40,7 +50,7 @@ function catalogOptionsFor(catalog){
 const RESOURCE_TYPE_LABELS={water:'Вода',energy:'Энергия',fuel:'Топливо',scrap:'Металлолом'};
 function getResourceTypes(){
   const seen=new Set();
-  (typeof PLAN_ITEMS!=='undefined'?PLAN_ITEMS:[]).forEach(i=>{ const rt=i.os&&i.os.resourceType; if(rt) seen.add(rt); });
+  allPlanItems().forEach(i=>{ const rt=i.os&&i.os.resourceType; if(rt) seen.add(rt); });
   return [...seen].map(id=>({id,label:RESOURCE_TYPE_LABELS[id]||id}));
 }
 function resourceTypeLabel(id){ return RESOURCE_TYPE_LABELS[id]||id||''; }
@@ -51,33 +61,70 @@ function resourceTypeLabel(id){ return RESOURCE_TYPE_LABELS[id]||id||''; }
 // Object Plan) и показываем как есть. Читаем только РУЧНОЙ статус (store.status[id]) — авто-статус
 // по шагам (готовность картинки/размеров/анимаций и т. п.) зависит от data/objects, которую Story Map
 // иначе никогда не парсит; честнее показать "не отмечено", чем гадать по чужой логике, которую здесь
-// не воспроизводим.
+// не воспроизводим. Тот же файл несёт и store.custom (см. allPlanItems() выше) — одно чтение на оба.
 let objectPlanStatusData=null;
 async function loadObjectPlanStatus(){ objectPlanStatusData=await readJsonFromProject('data/object_plan.json'); }
 const OP_STATUS_LABELS={todo:'Не начато',wip:'В работе',done:'Готово',skip:'Отложено'};
 function objectPlanManualStatus(itemId){ return objectPlanStatusData&&objectPlanStatusData.status?objectPlanStatusData.status[itemId]:undefined; }
 function objectPlanStatusLabel(id){ return OP_STATUS_LABELS[id]||id; }
-function findPlanItem(id){ return (typeof PLAN_ITEMS!=='undefined'?PLAN_ITEMS:[]).find(i=>i.id===id); }
+function findPlanItem(id){ return allPlanItems().find(i=>i.id===id); }
 
 // inverseName — как читается ЭТА ЖЕ связь с точки зрения второй сущности (member_of → has_member),
 // вместо голого "← member_of"; symmetric — связь читается одинаково с обеих сторон (friend_of), без
 // направления вовсе. Оба поля — необязательные, редактируются в списке "Типы связей" (§14).
 const DEFAULT_RELATION_TYPES=[
-  {name:'member_of',inverseName:'has_member'},
-  {name:'located_at'},
-  {name:'contains',inverseName:'part_of'},
-  {name:'owns',inverseName:'owned_by'},
-  {name:'can_perform'},
-  {name:'uses'},
-  {name:'produces'},
-  {name:'satisfies_need'},
-  {name:'has_skill'},
-  {name:'has_need'},
-  {name:'is_a'},
-  {name:'supports'},
-  {name:'friend_of',symmetric:true},
-  {name:'enemy_of',symmetric:true}
+  {name:'состоит_в',inverseName:'включает'},
+  {name:'находится_в'},
+  {name:'содержит',inverseName:'часть_от'},
+  {name:'владеет',inverseName:'принадлежит'},
+  {name:'может_делать'},
+  {name:'использует'},
+  {name:'производит'},
+  {name:'удовлетворяет_потребность'},
+  {name:'имеет_навык'},
+  {name:'имеет_потребность'},
+  {name:'является'},
+  {name:'поддерживает'},
+  {name:'друг_с',symmetric:true},
+  {name:'враг_с',symmetric:true}
 ];
+// Известные англоязычные имена (этот же список ДО перевода выше + то, что заводит идея-импорт для
+// связей Object Plan — "supports_action" и т.п., см. IDEA_TEMPLATE ниже) → русский эквивалент.
+// Разовая явная кнопка «🌐 На русский» в панели «Типы связей» (10-world-view.js), а НЕ автоматическая
+// миграция при каждой загрузке файла — тип связи авторские данные, пользователь мог сам переименовать
+// что угодно по-своему, молча перезаписывать это при каждом открытии проекта было бы неожиданно.
+const RELATION_TYPE_RU_TRANSLATIONS={
+  member_of:'состоит_в', has_member:'включает',
+  located_at:'находится_в',
+  contains:'содержит', part_of:'часть_от',
+  owns:'владеет', owned_by:'принадлежит',
+  can_perform:'может_делать',
+  uses:'использует',
+  produces:'производит',
+  satisfies_need:'удовлетворяет_потребность',
+  has_skill:'имеет_навык',
+  has_need:'имеет_потребность',
+  is_a:'является',
+  supports:'поддерживает',
+  friend_of:'друг_с', enemy_of:'враг_с',
+  supports_action:'поддерживает_действие',
+  requires_item:'требует_предмет',
+  interacts_with:'взаимодействует_с',
+  uses_system:'использует_систему',
+  used_in_room:'используется_в_комнате'
+};
+function translateRelationTypesToRussian(){
+  if(blockIfReadOnly()) return 0;
+  let count=0;
+  relationTypes.forEach(t=>{
+    const nameTr=RELATION_TYPE_RU_TRANSLATIONS[t.name];
+    if(nameTr){ t.name=nameTr; count++; }
+    const invTr=RELATION_TYPE_RU_TRANSLATIONS[t.inverseName];
+    if(invTr) t.inverseName=invTr;
+  });
+  if(count){ pushHistory(); renderAll(); }
+  return count;
+}
 const RELATION_STATUS=[['confirmed','подтверждено'],['proposed','предположение'],['deprecated','устарело']];
 
 let entities=[], relationTypes=[], relations=[], proposals=[], worldEvents=[], decisions=[];
