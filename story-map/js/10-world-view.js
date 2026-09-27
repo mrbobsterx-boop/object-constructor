@@ -403,10 +403,15 @@ function renderWorldCanvas(){
   el.innerHTML=`
     <div class="group">
       <h3>${esc(entityKindLabel(e.kind))}${deprecated?' <span class="tag deprecated">устарело</span>':''}</h3>
-      ${kind.catalog?`
-        <label class="small">Из каталога Object Plan (${esc(kind.catalog)})</label>
-        <select id="entityRefSelect"><option value="">— выбери —</option>${catalogOptionsFor(kind.catalog).map(o=>`<option value="${esc(o.id)}" ${e.ref&&e.ref.refId===o.id?'selected':''}>${esc(o.label)}</option>`).join('')}</select>`
-      :`
+      ${kind.catalog?(()=>{
+        const opts=catalogOptionsFor(kind.catalog);
+        const current=opts.find(o=>o.id===(e.ref&&e.ref.refId));
+        return `
+        <label class="small">Из каталога Object Plan (${esc(kind.catalog)}, ${opts.length})</label>
+        <input type="text" class="full" id="entityRefSearch" list="entityRefDatalist" placeholder="начни печатать, чтобы найти…" value="${esc(current?current.label:'')}">
+        <datalist id="entityRefDatalist">${opts.map(o=>`<option value="${esc(o.label)}">`).join('')}</datalist>
+        <div class="muted small" id="entityRefSearchMsg" style="margin-top:2px"></div>`;
+      })():`
         <label class="small">Название</label>
         <input type="text" class="full" id="entityNameInput" value="${esc(e.name)}">`}
       <label class="small" style="margin-top:6px">Заметка</label>
@@ -521,7 +526,15 @@ document.getElementById('entityDetail').addEventListener('change',e=>{
     return;
   }
   const ent=findEntity(selectedEntityId); if(!ent) return;
-  if(e.target.id==='entityRefSelect'){ ent.ref={catalog:ent.ref.catalog,refId:e.target.value}; pushHistory(); renderAll(); return; }
+  if(e.target.id==='entityRefSearch'){
+    const opts=catalogOptionsFor(ent.ref.catalog);
+    const typed=e.target.value.trim();
+    const msg=document.getElementById('entityRefSearchMsg');
+    if(!typed){ ent.ref={catalog:ent.ref.catalog,refId:''}; pushHistory(); renderAll(); return; }
+    const match=opts.find(o=>o.label===typed);
+    if(!match){ if(msg) msg.textContent='Нет точного совпадения в каталоге — выбери вариант из подсказки.'; return; }
+    ent.ref={catalog:ent.ref.catalog,refId:match.id}; pushHistory(); renderAll(); return;
+  }
   if(e.target.id==='entityLifecycleSelect'){ ent.lifecycle=e.target.value; pushHistory(); renderAll(); return; }
   if(e.target.id==='entityNameInput'||e.target.id==='entityNoteInput'){ pushHistory(); renderAll(); }
 });
