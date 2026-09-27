@@ -21,7 +21,7 @@ function collectStoryJSON(){
     entities:entities.map(e=>({id:e.id,kind:e.kind,name:e.name||'',ref:e.ref?{catalog:e.ref.catalog,refId:e.ref.refId||''}:null,note:e.note||'',status:e.status||'active'})),
     relationTypes:relationTypes.map(t=>({id:t.id,name:t.name,inverseName:t.inverseName||'',symmetric:!!t.symmetric})),
     relations:relations.map(r=>({id:r.id,type:r.type,from:r.from,to:r.to,status:r.status||'confirmed',source:r.source||'',comment:r.comment||'',conditions:r.conditions||[],effects:r.effects||[]})),
-    proposals:proposals.map(p=>({id:p.id,title:p.title,text:p.text||'',status:p.status||'idea',relatedEntities:p.relatedEntities||[],relatedSystems:p.relatedSystems||[]}))
+    proposals:proposals.map(p=>({id:p.id,title:p.title,text:p.text||'',status:p.status||'idea',priority:p.priority||'normal',source:p.source||'',createdAt:p.createdAt||'',relatedEntities:p.relatedEntities||[],relatedSystems:p.relatedSystems||[],relatedNodes:p.relatedNodes||[]}))
   };
 }
 // Разбор старого свободного текста ("предмет1, предмет2") в массив — ничего не теряем при переходе
@@ -72,9 +72,9 @@ async function loadStoryFromProject(){
     relationTypes=Array.isArray(data.relationTypes)?data.relationTypes.map(t=>({id:t.id||uid('rt'),name:t.name||'',inverseName:t.inverseName||'',symmetric:!!t.symmetric})):[];
     seedRelationTypesIfEmpty();
     relations=Array.isArray(data.relations)?data.relations.map(r=>({id:r.id||uid('rel'),type:r.type||'',from:r.from||'',to:r.to||'',status:r.status||'confirmed',source:r.source||'',comment:r.comment||'',conditions:Array.isArray(r.conditions)?r.conditions:[],effects:Array.isArray(r.effects)?r.effects:[]})):[];
-    proposals=Array.isArray(data.proposals)?data.proposals.map(p=>({id:p.id||uid('pr'),title:p.title||'',text:p.text||'',status:p.status||'idea',relatedEntities:Array.isArray(p.relatedEntities)?p.relatedEntities:[],relatedSystems:Array.isArray(p.relatedSystems)?p.relatedSystems:[]})):[];
+    proposals=Array.isArray(data.proposals)?data.proposals.map(p=>({id:p.id||uid('pr'),title:p.title||'',text:p.text||'',status:p.status||'idea',priority:p.priority||'normal',source:p.source||'',createdAt:p.createdAt||'',relatedEntities:Array.isArray(p.relatedEntities)?p.relatedEntities:[],relatedSystems:Array.isArray(p.relatedSystems)?p.relatedSystems:[],relatedNodes:Array.isArray(p.relatedNodes)?p.relatedNodes:[]})):[];
   }
-  selectedNodeId=null; selectedEntityId=null; selectedRelationId=null;
+  selectedNodeId=null; selectedEntityId=null; selectedRelationId=null; selectedProposalId=null;
   resetHistory();
   markClean();
   renderAll();

@@ -214,7 +214,7 @@ document.getElementById('varList').addEventListener('click',e=>{
   const jumpNode=e.target.closest('[data-jumpnode]');
   if(jumpNode){ selectNode(jumpNode.dataset.jumpnode); focusNode(jumpNode.dataset.jumpnode); return; }
   const jumpRel=e.target.closest('[data-jumprel]');
-  if(jumpRel&&typeof setViewMode==='function'){ selectedEntityId=jumpRel.dataset.jumprelentity; selectedRelationId=jumpRel.dataset.jumprel; setViewMode('world'); }
+  if(jumpRel&&typeof setViewMode==='function'){ selectedEntityId=jumpRel.dataset.jumprelentity; selectedRelationId=jumpRel.dataset.jumprel; if(typeof selectedProposalId!=='undefined') selectedProposalId=null; setViewMode('world'); }
 });
 document.getElementById('nodeList').addEventListener('click',e=>{
   const del=e.target.closest('[data-delnode]');

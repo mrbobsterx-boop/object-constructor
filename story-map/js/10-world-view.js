@@ -25,7 +25,7 @@ document.getElementById('viewWorldBtn').onclick=()=>setViewMode('world');
 
 // Story → World: вызывается из инспектора узла (04-inspector.js) кликом по фишке-ссылке на сущность.
 function jumpToWorldEntity(id){
-  selectedEntityId=id; selectedRelationId=null;
+  selectedEntityId=id; selectedRelationId=null; selectedProposalId=null;
   setViewMode('world');
 }
 // World → Story (обратное направление той же связи): какие узлы сюжета ссылаются на эту сущность
@@ -95,11 +95,11 @@ function renderWorldLeft(){
   const propCountEl=document.getElementById('proposalCount'); if(propCountEl) propCountEl.textContent=proposals.length;
   const propListEl=document.getElementById('proposalList');
   if(propListEl) propListEl.innerHTML=proposals.length?proposals.map(p=>`
-    <div class="noderow" data-proposal="${esc(p.id)}">
-      <span class="tag ${esc(p.status)}">${p.status==='idea'?'идея':p.status==='accepted'?'принято':'отклонено'}</span>
-      <div class="nm-wrap"><span class="nm">${esc(p.title)}</span></div>
+    <div class="noderow ${selectedProposalId===p.id?'active':''}" data-proposal="${esc(p.id)}">
+      <span class="tag ${esc(p.status)}">${esc(proposalStatusLabel(p.status))}</span>
+      <div class="nm-wrap"><span class="nm">${esc(p.title)}${p.priority==='high'?' <span class="muted small" title="Высокий приоритет">🔺</span>':''}</span></div>
       <button class="del-x" data-delproposal="${esc(p.id)}">✕</button>
-    </div>`).join(''):'<div class="hint">Пока нет идей — закинь мысль текстом, потом при желании оформи как сущность.</div>';
+    </div>`).join(''):'<div class="hint">Пока нет идей — закинь мысль текстом, потом при желании оформи как сущность или узел сюжета.</div>';
 
   const rtEl=document.getElementById('relationTypeList');
   if(rtEl) rtEl.innerHTML=relationTypes.map(t=>`
@@ -150,22 +150,20 @@ document.getElementById('entityList').addEventListener('click',e=>{
     return;
   }
   const row=e.target.closest('[data-entity]');
-  if(row){ selectedEntityId=row.dataset.entity; selectedRelationId=null; renderAll(); }
+  if(row){ selectedEntityId=row.dataset.entity; selectedRelationId=null; selectedProposalId=null; renderAll(); }
 });
 document.getElementById('btnAddProposal').onclick=()=>{
   const input=document.getElementById('newProposalTitle');
   addProposal(input.value); input.value='';
 };
+// Клик по строке ТОЛЬКО открывает карточку идеи (как у сущности) — раньше сам клик сразу спрашивал
+// "сделать сущностью?", и не было способа просто посмотреть/поправить текст идеи, не рискуя нажать
+// не туда. Промоушен теперь — явные кнопки внутри карточки (renderProposalDetail).
 document.getElementById('proposalList').addEventListener('click',e=>{
   const del=e.target.closest('[data-delproposal]');
-  if(del){ deleteProposal(del.dataset.delproposal); return; }
+  if(del){ if(confirm('Удалить идею?')) deleteProposal(del.dataset.delproposal); return; }
   const row=e.target.closest('[data-proposal]');
-  if(row){
-    if(readOnlyMode) return;
-    const p=proposals.find(x=>x.id===row.dataset.proposal); if(!p) return;
-    const kindId=(document.getElementById('newEntityKind')||{}).value||'concept';
-    if(confirm(`Сделать сущностью «${p.title}» (тип: ${entityKindLabel(kindId)})? Тип берётся из выбора над кнопкой «+ добавить» слева.`)) promoteProposalToEntity(p.id,kindId);
-  }
+  if(row){ selectedProposalId=row.dataset.proposal; selectedEntityId=null; selectedRelationId=null; renderAll(); }
 });
 document.getElementById('btnAddRelType').onclick=()=>{
   const input=document.getElementById('newRelTypeName');
@@ -213,10 +211,74 @@ function relationRowHtml(r,fromPerspectiveId){
     <button class="del-x" data-delrelation="${esc(r.id)}">✕</button>
   </div>`;
 }
+// Список узлов, привязанных к идее вручную (linkProposalToNode) или созданных из неё
+// (promoteProposalToNode) — с переходом к узлу и отвязкой; плюс пикер, чтобы привязать уже
+// существующий узел без создания нового (не каждая идея должна порождать черновик).
+function proposalNodesHtml(p){
+  const linked=(p.relatedNodes||[]).map(id=>findNode(id)).filter(Boolean);
+  const rows=linked.map(n=>`<div class="noderow" data-jumpstory="${esc(n.id)}">
+    <span class="tag ${esc(n.type)}">${esc(n.type)}</span>
+    <div class="nm-wrap"><span class="nm">${esc(n.title||'(без названия)')}</span></div>
+    <button class="del-x" data-delproposalnode="${esc(n.id)}" title="Отвязать (узел не удаляется)">✕</button>
+  </div>`).join('')||'<div class="hint">Пока не привязано ни одного узла сюжета.</div>';
+  const linkedIds=new Set(p.relatedNodes||[]);
+  const available=nodes.filter(n=>!linkedIds.has(n.id));
+  const picker=`<div class="row" style="margin-top:6px">
+    <select id="proposalNodeLinkSelect" style="flex:1"><option value="">— выбери существующий узел —</option>${available.map(n=>`<option value="${esc(n.id)}">${esc(n.title||'(без названия)')}</option>`).join('')}</select>
+    <button id="btnLinkProposalNode">Привязать</button>
+  </div>`;
+  return rows+picker;
+}
+function renderProposalDetail(){
+  const el=document.getElementById('entityDetail'); if(!el) return;
+  const p=proposals.find(x=>x.id===selectedProposalId);
+  if(!p){ selectedProposalId=null; renderWorldCanvas(); return; }
+  el.innerHTML=`
+    <div class="group">
+      <h3>Идея / предложение</h3>
+      <label class="small">Заголовок</label>
+      <input type="text" class="full" id="proposalTitleInput" value="${esc(p.title)}">
+      <label class="small" style="margin-top:6px">Текст</label>
+      <textarea id="proposalTextInput">${esc(p.text||'')}</textarea>
+      <div class="row" style="margin-top:6px">
+        <div><label class="small">Статус</label>
+          <select id="proposalStatusSelect">${PROPOSAL_STATUS.map(([id,label])=>`<option value="${id}" ${p.status===id?'selected':''}>${label}</option>`).join('')}</select></div>
+        <div><label class="small">Приоритет</label>
+          <select id="proposalPrioritySelect">${PROPOSAL_PRIORITY.map(([id,label])=>`<option value="${id}" ${p.priority===id?'selected':''}>${label}</option>`).join('')}</select></div>
+      </div>
+      <label class="small" style="margin-top:6px">Источник</label>
+      <input type="text" class="full" id="proposalSourceInput" value="${esc(p.source||'')}" placeholder="напр. playtest#3, design.md">
+      ${p.createdAt?`<div class="hint small" style="margin-top:4px">Создано: ${esc(new Date(p.createdAt).toLocaleString())}</div>`:''}
+      <button class="full danger" id="btnDeleteProposalHere" style="margin-top:8px">🗑 Удалить идею</button>
+    </div>
+    <div class="group">
+      <h3>Сделать чем-то реальным</h3>
+      <div class="hint" style="margin-bottom:6px">Идея остаётся в списке (со статусом «реализовано») и запоминает, во что она превратилась.</div>
+      <div class="row">
+        <select id="proposalPromoteKind">${ENTITY_KINDS.map(k=>`<option value="${esc(k.id)}">${esc(k.label)}</option>`).join('')}</select>
+        <button id="btnPromoteToEntity">→ Сущностью</button>
+      </div>
+      <button class="full" id="btnPromoteToNode" style="margin-top:6px">→ Черновой узел сюжета</button>
+    </div>
+    <div class="group">
+      <h3>Связанные системы (Object Plan)</h3>
+      ${chipPickerHtml('relatedSystems',p.relatedSystems||[],'systems',false)}
+    </div>
+    <div class="group">
+      <h3>Связанные сущности</h3>
+      ${chipPickerHtml('relatedEntities',p.relatedEntities||[],'worldEntities',true)}
+    </div>
+    <div class="group">
+      <h3>Связанные узлы сюжета (${(p.relatedNodes||[]).length})</h3>
+      ${proposalNodesHtml(p)}
+    </div>
+  `;
+}
 function renderWorldCanvas(){
   const el=document.getElementById('entityDetail'); if(!el) return;
+  if(selectedProposalId){ renderProposalDetail(); return; }
   const e=findEntity(selectedEntityId);
-  if(!e){ el.innerHTML='<div class="hint">Выбери сущность слева — или добавь новую.</div>'; return; }
+  if(!e){ el.innerHTML='<div class="hint">Выбери сущность или идею слева — или добавь новую.</div>'; return; }
   const kind=entityKindDef(e.kind);
   const rels=relationsForEntity(e.id);
   const refNodes=nodesReferencingEntity(e.id);
@@ -265,17 +327,74 @@ function renderWorldCanvas(){
 }
 document.getElementById('entityDetail').addEventListener('input',e=>{
   if(readOnlyMode) return;
+  if(selectedProposalId){
+    const p=proposals.find(x=>x.id===selectedProposalId); if(!p) return;
+    if(e.target.id==='proposalTitleInput') p.title=e.target.value;
+    if(e.target.id==='proposalTextInput') p.text=e.target.value;
+    if(e.target.id==='proposalSourceInput') p.source=e.target.value;
+    return;
+  }
   const ent=findEntity(selectedEntityId); if(!ent) return;
   if(e.target.id==='entityNameInput') ent.name=e.target.value;
   if(e.target.id==='entityNoteInput') ent.note=e.target.value;
 });
 document.getElementById('entityDetail').addEventListener('change',e=>{
   if(readOnlyMode) return;
+  if(selectedProposalId){
+    const p=proposals.find(x=>x.id===selectedProposalId); if(!p) return;
+    if(['proposalTitleInput','proposalTextInput','proposalSourceInput'].includes(e.target.id)){ pushHistory(); renderAll(); return; }
+    if(e.target.id==='proposalStatusSelect'){ p.status=e.target.value; pushHistory(); renderAll(); return; }
+    if(e.target.id==='proposalPrioritySelect'){ p.priority=e.target.value; pushHistory(); renderAll(); return; }
+    return;
+  }
   const ent=findEntity(selectedEntityId); if(!ent) return;
   if(e.target.id==='entityRefSelect'){ ent.ref={catalog:ent.ref.catalog,refId:e.target.value}; pushHistory(); renderAll(); return; }
   if(e.target.id==='entityNameInput'||e.target.id==='entityNoteInput'){ pushHistory(); renderAll(); }
 });
 document.getElementById('entityDetail').addEventListener('click',e=>{
+  if(selectedProposalId){
+    const p=proposals.find(x=>x.id===selectedProposalId); if(!p) return;
+    if(e.target.id==='btnDeleteProposalHere'){ if(!readOnlyMode&&confirm('Удалить идею?')) deleteProposal(p.id); return; }
+    if(e.target.id==='btnPromoteToEntity'){
+      if(readOnlyMode) return;
+      const kindId=(document.getElementById('proposalPromoteKind')||{}).value||'concept';
+      promoteProposalToEntity(p.id,kindId); return;
+    }
+    if(e.target.id==='btnPromoteToNode'){ promoteProposalToNode(p.id); return; }
+    if(e.target.id==='btnLinkProposalNode'){
+      if(readOnlyMode) return;
+      const sel=document.getElementById('proposalNodeLinkSelect'); const nodeId=sel&&sel.value;
+      if(nodeId) linkProposalToNode(p.id,nodeId);
+      return;
+    }
+    const delNode=e.target.closest('[data-delproposalnode]');
+    if(delNode){ unlinkProposalFromNode(p.id,delNode.dataset.delproposalnode); return; }
+    const jumpStory=e.target.closest('[data-jumpstory]');
+    if(jumpStory){ setViewMode('story'); selectNode(jumpStory.dataset.jumpstory); focusNode(jumpStory.dataset.jumpstory); return; }
+    const jumpChip=e.target.closest('[data-jumpref]');
+    if(jumpChip){ selectedEntityId=jumpChip.dataset.jumpref; selectedProposalId=null; setViewMode('world'); return; }
+    const addChip=e.target.closest('[data-addchip]');
+    if(addChip){
+      if(readOnlyMode) return;
+      const fieldPath=addChip.dataset.addchip, input=document.getElementById(addChip.dataset.chipinput);
+      const typed=input.value.trim(); if(!typed) return;
+      const options=chipOptionsFor(fieldPath==='relatedSystems'?'systems':'worldEntities');
+      const match=options.find(o=>o.label===typed||o.id===typed);
+      const value=match?match.id:typed;
+      const arr=p[fieldPath]||(p[fieldPath]=[]);
+      if(!arr.includes(value)) arr.push(value);
+      input.value='';
+      pushHistory(); renderAll(); return;
+    }
+    const delChip=e.target.closest('[data-delchip]');
+    if(delChip){
+      if(readOnlyMode) return;
+      const arr=p[delChip.dataset.delchip];
+      if(arr) arr.splice(Number(delChip.dataset.delchipidx),1);
+      pushHistory(); renderAll(); return;
+    }
+    return;
+  }
   if(e.target.id==='btnDeleteEntity'){ if(!readOnlyMode&&confirm('Архивировать сущность («устарело»)? Существующие ссылки не сломаются, но она перестанет предлагаться для новых.')) deprecateEntity(selectedEntityId); return; }
   if(e.target.id==='btnRestoreEntity'){ restoreEntity(selectedEntityId); return; }
   if(e.target.id==='btnDeleteEntityForever'){ if(!readOnlyMode&&confirm('Удалить сущность НАВСЕГДА? Связи с ней тоже удалятся. Отменить будет нельзя (кроме Ctrl+Z).')) deleteEntity(selectedEntityId); return; }
@@ -297,7 +416,7 @@ document.getElementById('entityDetail').addEventListener('click',e=>{
   const del=e.target.closest('[data-delrelation]');
   if(del){ deleteRelation(del.dataset.delrelation); return; }
   const jump=e.target.closest('[data-jumpentity]');
-  if(jump&&jump.dataset.jumpentity){ selectedEntityId=jump.dataset.jumpentity; selectedRelationId=null; renderAll(); return; }
+  if(jump&&jump.dataset.jumpentity){ selectedEntityId=jump.dataset.jumpentity; selectedRelationId=null; selectedProposalId=null; renderAll(); return; }
   const row=e.target.closest('[data-relation]');
   if(row){ selectedRelationId=row.dataset.relation; renderAll(); }
   const jumpStory=e.target.closest('[data-jumpstory]');

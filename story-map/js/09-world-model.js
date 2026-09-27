@@ -54,7 +54,10 @@ const DEFAULT_RELATION_TYPES=[
 const RELATION_STATUS=[['confirmed','подтверждено'],['proposed','предположение'],['deprecated','устарело']];
 
 let entities=[], relationTypes=[], relations=[], proposals=[];
-let selectedEntityId=null, selectedRelationId=null;
+let selectedEntityId=null, selectedRelationId=null, selectedProposalId=null;
+const PROPOSAL_STATUS=[['idea','идея'],['planned','запланировано'],['accepted','принято'],['implemented','реализовано'],['rejected','отклонено']];
+const PROPOSAL_PRIORITY=[['low','низкий'],['normal','обычный'],['high','высокий']];
+function proposalStatusLabel(status){ const e=PROPOSAL_STATUS.find(([id])=>id===status); return e?e[1]:status; }
 
 function findEntity(id){ return entities.find(e=>e.id===id); }
 function findRelationType(id){ return relationTypes.find(t=>t.id===id); }
@@ -135,7 +138,7 @@ function addEntity(kindId){
     if(free) e.ref.refId=free.id;
   }
   entities.push(e);
-  selectedEntityId=e.id;
+  selectedEntityId=e.id; selectedProposalId=null;
   pushHistory(); renderAll();
   return e;
 }
@@ -167,6 +170,7 @@ function deleteEntity(id){
   if(blockIfReadOnly()) return;
   entities=entities.filter(e=>e.id!==id);
   relations=relations.filter(r=>r.from!==id&&r.to!==id);
+  proposals.forEach(p=>{ if(Array.isArray(p.relatedEntities)) p.relatedEntities=p.relatedEntities.filter(x=>x!==id); });
   if(selectedEntityId===id) selectedEntityId=null;
   pushHistory(); renderAll();
 }
@@ -186,6 +190,11 @@ function mergeEntities(fromId,toId){
   relations.forEach(r=>{
     if(r.from===fromId){ r.from=toId; count++; }
     if(r.to===fromId){ r.to=toId; count++; }
+  });
+  proposals.forEach(p=>{
+    if(!Array.isArray(p.relatedEntities)) return;
+    const i=p.relatedEntities.indexOf(fromId);
+    if(i>=0){ if(p.relatedEntities.includes(toId)) p.relatedEntities.splice(i,1); else p.relatedEntities[i]=toId; count++; }
   });
   const from=findEntity(fromId);
   from.status='deprecated';
@@ -230,8 +239,9 @@ function deleteRelation(id){
 function addProposal(title){
   if(blockIfReadOnly()) return;
   title=(title||'').trim(); if(!title) return;
-  const p={id:uid('pr'),title,text:'',status:'idea',relatedEntities:[],relatedSystems:[]};
+  const p={id:uid('pr'),title,text:'',status:'idea',priority:'normal',source:'',createdAt:new Date().toISOString(),relatedEntities:[],relatedSystems:[],relatedNodes:[]};
   proposals.unshift(p);
+  selectedProposalId=p.id; selectedEntityId=null; selectedRelationId=null;
   pushHistory(); renderAll();
   return p;
 }
@@ -244,17 +254,51 @@ function updateProposal(id,patch){
 function deleteProposal(id){
   if(blockIfReadOnly()) return;
   proposals=proposals.filter(p=>p.id!==id);
+  if(selectedProposalId===id) selectedProposalId=null;
   pushHistory(); renderAll();
 }
+// Идея -> реальная сущность/узел сюжета — единственные два способа "построить" её (кроме простого
+// изменения статуса вручную); обе помечают идею implemented (а не только accepted — задача уже
+// сделана, не просто согласована) и запоминают, во что она превратилась, чтобы не терять эту нить.
 function promoteProposalToEntity(id,kindId){
   if(blockIfReadOnly()) return null;
   const p=proposals.find(x=>x.id===id); if(!p) return null;
   const kind=entityKindDef(kindId||'concept');
   const e={id:uid('e'),kind:kind.id,name:kind.catalog?'':p.title,ref:kind.catalog?{catalog:kind.catalog,refId:''}:null,note:p.text||'',status:'active'};
   entities.push(e);
-  p.status='accepted';
+  p.status='implemented';
   p.relatedEntities=[...new Set([...(p.relatedEntities||[]),e.id])];
-  selectedEntityId=e.id;
+  selectedEntityId=e.id; selectedProposalId=null;
   pushHistory(); renderAll();
   return e;
+}
+// Черновой узел сюжета из идеи — заголовок/текст переносятся как есть, раздел берётся из первой
+// связанной системы Object Plan (если есть), а дальше это обычный узел, ничем не отличающийся от
+// созданного вручную. Прыгаем в "Сюжет" сразу на нём — то же ощущение "смотри, что получилось", что
+// и у promoteProposalToEntity внутри "Мира".
+function promoteProposalToNode(id){
+  if(blockIfReadOnly()) return null;
+  const p=proposals.find(x=>x.id===id); if(!p) return null;
+  const n=addNode('event');
+  if(!n) return null;
+  n.title=p.title; n.text=p.text||'';
+  if(p.relatedSystems&&p.relatedSystems[0]) n.category=p.relatedSystems[0];
+  p.status='implemented';
+  p.relatedNodes=[...new Set([...(p.relatedNodes||[]),n.id])];
+  if(typeof setViewMode==='function') setViewMode('story');
+  selectNode(n.id); if(typeof focusNode==='function') focusNode(n.id);
+  pushHistory(); renderAll();
+  return n;
+}
+function linkProposalToNode(id,nodeId){
+  if(blockIfReadOnly()) return;
+  const p=proposals.find(x=>x.id===id); if(!p||!nodeId) return;
+  p.relatedNodes=[...new Set([...(p.relatedNodes||[]),nodeId])];
+  pushHistory(); renderAll();
+}
+function unlinkProposalFromNode(id,nodeId){
+  if(blockIfReadOnly()) return;
+  const p=proposals.find(x=>x.id===id); if(!p) return;
+  p.relatedNodes=(p.relatedNodes||[]).filter(x=>x!==nodeId);
+  pushHistory(); renderAll();
 }

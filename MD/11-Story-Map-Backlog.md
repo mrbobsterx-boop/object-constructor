@@ -100,10 +100,12 @@
 
 Подробности — `09-Story-Map.md` §14.
 
-## K. Proposals как backlog (135–144)
+## K. Proposals как backlog (135–144) — ✅ сделано
 
-135–141. Proposal получает status (idea/planned/accepted/implemented/rejected), priority, source, дату, связь с node/entity/system. *(Сейчас статус только idea/accepted/rejected и связь `relatedEntities` — нет priority/source/даты/явной привязки к story node.)*
-142–144. Proposal → Story Node, Proposal → Object Plan (что ещё нужно построить).
+135–141. ✅ Proposal получил полноценные поля: `status` (idea/planned/accepted/implemented/rejected — было только idea/accepted/rejected), `priority` (low/normal/high, высокий приоритет виден значком 🔺 прямо в списке), `source` (свободный текст, как у `relation.source`), `createdAt` (проставляется автоматически). Идея впервые получила **собственную карточку** (общий блок `#entityDetail` с сущностями, взаимоисключающе через `selectedProposalId`) — раньше клик по строке сразу спрашивал «сделать сущностью?», не давая просто открыть и почитать/поправить идею.
+142–144. ✅ Proposal → Story Node — «→ Черновой узел сюжета» создаёт узел из заголовка/текста идеи и сразу открывает его (`promoteProposalToNode`), плюс ручная привязка к уже существующему узлу (`linkProposalToNode`/`unlinkProposalFromNode`) для идей, которые не должны плодить новый черновик. ✅ Proposal → Object Plan — пикер «Связанные системы» (`relatedSystems`, тот же чип-механизм, что у раздела/тегов узла, §3) — отметить, каких игровых систем касается идея, без создания чего-либо реального. Оба вида промоушена (в сущность и в узел) теперь помечают идею `implemented` (не `accepted` — «принято» и «сделано» разделены), а `deleteEntity`/`deleteNode`/`mergeEntities` не оставляют в идеях дырок/дублей — вычищают или мигрируют ссылки так же, как для `node.refs`/связей.
+
+Подробности — `09-Story-Map.md` §15.
 
 ## L. Импорт (145–157)
 

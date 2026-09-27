@@ -95,7 +95,9 @@ label.small{font-size:11px;color:var(--muted);display:block;margin-bottom:2px}
 .tag.entity{border-color:#8a7fd1;color:#c9c2f0}
 .tag.err{border-color:var(--danger);color:#ff9a88}
 .tag.idea{border-color:var(--muted)}
+.tag.planned{border-color:var(--info);color:#9fd8e8}
 .tag.accepted{border-color:var(--accent-hi);color:#bfe9d2}
+.tag.implemented{border-color:var(--accent-hi);color:#bfe9d2;font-weight:600}
 .tag.rejected{border-color:var(--danger);color:#ff9a88}
 .tag.deprecated{border-color:var(--warn);color:#f0b57a}
 

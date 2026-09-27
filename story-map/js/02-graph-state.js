@@ -88,6 +88,7 @@ function deleteNode(id){
   if(blockIfReadOnly()) return;
   nodes=nodes.filter(n=>n.id!==id);
   nodes.forEach(n=>{ n.choices=n.choices.filter(c=>c.target!==id); });
+  if(typeof proposals!=='undefined') proposals.forEach(p=>{ if(Array.isArray(p.relatedNodes)) p.relatedNodes=p.relatedNodes.filter(x=>x!==id); });
   if(selectedNodeId===id) selectedNodeId=null;
   multiSelected.delete(id);
   pushHistory(); renderAll();

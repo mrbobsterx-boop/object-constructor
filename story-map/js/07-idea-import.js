@@ -181,7 +181,7 @@ function importIdea(data){
   let addedProposalCount=0;
   (data.proposals||[]).forEach(p=>{
     if(!p||!p.title) return;
-    proposals.push({id:uid('pr'),title:p.title,text:p.text||'',status:'idea',relatedEntities:[],relatedSystems:[]});
+    proposals.push({id:uid('pr'),title:p.title,text:p.text||'',status:'idea',priority:p.priority||'normal',source:p.source||('idea:'+(data.idea_id||data.title||'')),createdAt:new Date().toISOString(),relatedEntities:[],relatedSystems:[],relatedNodes:[]});
     addedProposalCount++;
   });
 
@@ -237,7 +237,8 @@ const IDEA_TEMPLATE={
     {from_ref:'e_drink',type:'produces',to_ref:'e_thirstfix',status:'confirmed'}
   ],
   proposals:[
-    {title:'Завести Need-сущность "Голод" по аналогии с жаждой',text:'Симметрично текущей связке DRINK→восстановление жажды — стоит явно завести сущность-потребность и связать её с EAT.'}
+    // priority/source необязательны (по умолчанию priority:"normal", source — метка этого импорта)
+    {title:'Завести Need-сущность "Голод" по аналогии с жаждой',text:'Симметрично текущей связке DRINK→восстановление жажды — стоит явно завести сущность-потребность и связать её с EAT.',priority:'normal'}
   ]
 };
 
