@@ -234,7 +234,11 @@ function moveStickyNote(id,x,y){
   if(readOnlyMode) return;
   const n=stickyNotes.find(s=>s.id===id); if(!n) return;
   n.x=x; n.y=y;
-  renderCanvas(); // как moveNode — перетаскивание не должно засорять историю на каждый пиксель
+  // Как moveNode — перетаскивание не должно засорять историю на каждый пиксель; и, как у moveNode
+  // (§27), не должно на каждый пиксель ещё и пересобирать innerHTML всех карточек — двигаем саму
+  // заметку напрямую, если DOM уже отрисован (updateStickyNotePosition из 03-canvas.js, вызывается
+  // только во время реального перетаскивания, т.е. заведомо после полной загрузки страницы).
+  if(typeof updateStickyNotePosition==='function') updateStickyNotePosition(id); else renderCanvas();
 }
 function commitStickyMove(){ if(readOnlyMode) return; pushHistory(); }
 function deleteStickyNote(id){

@@ -349,6 +349,47 @@ function stickyNoteHtml(s){
     <textarea class="sticky-text" data-notetext="${esc(s.id)}" placeholder="Заметка…">${esc(s.text)}</textarea>
   </div>`;
 }
+// Быстрый путь для активного перетаскивания (§27) — двигает СУЩЕСТВУЮЩИЕ .node-box/.sticky-note
+// напрямую через style.left/top, не пересобирая innerHTML всех карточек на каждый пиксель мыши.
+// До этого pointermove при перетаскивании вызывал полный renderCanvas() — на графе из сотни узлов это
+// пересобирало HTML всех карточек и все связи десятки раз в секунду ради того, что реально сдвинулся
+// один-два узла. Рёбра всё равно перерисовываются полностью (renderEdgesOnly) — их путь зависит от
+// позиции узлов, а вычислять адресно, каких именно рёбер коснулось перетаскивание, не окупается.
+function updateNodeBoxPositions(ids){
+  ids.forEach(id=>{
+    const n=findNode(id); if(!n) return;
+    const box=worldEl.querySelector(`.node-box[data-node="${CSS.escape(id)}"]`); if(!box) return;
+    box.style.left=n.x+'px'; box.style.top=n.y+'px';
+  });
+}
+function updateStickyNotePosition(id){
+  const s=stickyNotes.find(x=>x.id===id); if(!s) return;
+  const el=worldEl.querySelector(`.sticky-note[data-note="${CSS.escape(id)}"]`); if(!el) return;
+  el.style.left=s.x+'px'; el.style.top=s.y+'px';
+}
+function renderEdgesOnly(){
+  const focusSet=computeFocusSet();
+  let svg=`<defs><marker id="arrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 Z"></path></marker></defs>`;
+  nodes.forEach(n=>{
+    const a=nodeAnchorOut(n);
+    n.choices.forEach(c=>{
+      const target=findNode(c.target); if(!target) return;
+      const b=nodeAnchorIn(target);
+      const dimmed=focusSet&&(!focusSet.has(n.id)||!focusSet.has(target.id));
+      const d=edgePath(a,b);
+      svg+=`<path class="edge-hit" data-fromnode="${esc(n.id)}" data-choice="${esc(c.id)}" d="${d}" stroke="transparent" stroke-width="14"></path>`;
+      svg+=`<path class="${dimmed?'dimmed':''}" d="${d}" marker-end="url(#arrow)"></path>`;
+    });
+  });
+  if(tempConnectFrom&&tempConnectPt){
+    const src=findNode(tempConnectFrom);
+    if(src) svg+=`<path class="temp" d="${edgePath(nodeAnchorOut(src),tempConnectPt)}"></path>`;
+  }
+  edgeLayer.innerHTML=svg;
+  const bbox={w:Math.max(1200,...nodes.map(n=>n.x+400)),h:Math.max(800,...nodes.map(n=>n.y+300))};
+  edgeLayer.setAttribute('width',bbox.w); edgeLayer.setAttribute('height',bbox.h);
+  edgeLayer.setAttribute('viewBox',`0 0 ${bbox.w} ${bbox.h}`);
+}
 function renderCanvas(){
   const focusSet=computeFocusSet();
   const varHighlightSet=computeVarHighlightSet();
@@ -373,29 +414,7 @@ function renderCanvas(){
     </div>`;
   }).join('')+stickyNotes.map(stickyNoteHtml).join('');
 
-  let svg=`<defs><marker id="arrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 Z"></path></marker></defs>`;
-  nodes.forEach(n=>{
-    const a=nodeAnchorOut(n);
-    n.choices.forEach(c=>{
-      const target=findNode(c.target); if(!target) return;
-      const b=nodeAnchorIn(target);
-      const dimmed=focusSet&&(!focusSet.has(n.id)||!focusSet.has(target.id));
-      const d=edgePath(a,b);
-      // Невидимая "толстая" копия под видимой линией — сама линия (2px) слишком тонкая, чтобы по ней
-      // целиться курсором; #edgeLayer в остальном pointer-events:none (иначе пустое место между
-      // линиями мешало бы панораме/рамке выделения, см. css/app.css), только .edge-hit ловит клики.
-      svg+=`<path class="edge-hit" data-fromnode="${esc(n.id)}" data-choice="${esc(c.id)}" d="${d}" stroke="transparent" stroke-width="14"></path>`;
-      svg+=`<path class="${dimmed?'dimmed':''}" d="${d}" marker-end="url(#arrow)"></path>`;
-    });
-  });
-  if(tempConnectFrom&&tempConnectPt){
-    const src=findNode(tempConnectFrom);
-    if(src) svg+=`<path class="temp" d="${edgePath(nodeAnchorOut(src),tempConnectPt)}"></path>`;
-  }
-  edgeLayer.innerHTML=svg;
-  const bbox={w:Math.max(1200,...nodes.map(n=>n.x+400)),h:Math.max(800,...nodes.map(n=>n.y+300))};
-  edgeLayer.setAttribute('width',bbox.w); edgeLayer.setAttribute('height',bbox.h);
-  edgeLayer.setAttribute('viewBox',`0 0 ${bbox.w} ${bbox.h}`);
+  renderEdgesOnly();
   applyWorldTransform();
 }
 function triggerLabel(t){
@@ -496,7 +515,8 @@ canvasOuter.addEventListener('pointermove',e=>{
     const p=screenToWorld(e.clientX,e.clientY);
     const dx=p.x-dragStart.pt.x, dy=p.y-dragStart.pt.y;
     dragIds.forEach(id=>{ const n=findNode(id); const base=dragStart.positions.get(id); if(n&&base){ n.x=base.x+dx; n.y=base.y+dy; } });
-    renderCanvas();
+    updateNodeBoxPositions(dragIds);
+    renderEdgesOnly();
     return;
   }
   if(panDrag){ pan.x=panDrag.px0+(e.clientX-panDrag.x0); pan.y=panDrag.py0+(e.clientY-panDrag.y0); applyWorldTransform(); }
@@ -518,8 +538,10 @@ canvasOuter.addEventListener('pointerup',e=>{
     hideBoxSelectOverlay();
     renderAll();
   }
-  if(dragIds){ dragIds=null; dragStart=null; commitMove(); }
-  if(stickyDrag){ stickyDrag=null; commitStickyMove(); }
+  // Быстрый путь во время перетаскивания (§27) не трогал миникарту/размеры edgeLayer — досчитываем
+  // это один раз в конце жеста, а не на каждый пиксель.
+  if(dragIds){ dragIds=null; dragStart=null; commitMove(); applyWorldTransform(); }
+  if(stickyDrag){ stickyDrag=null; commitStickyMove(); applyWorldTransform(); }
   if(panDrag){ panDrag=null; canvasOuter.classList.remove('panning'); }
 });
 // Двойной клик по пустому месту холста (не по узлу и не по заметке) — быстро поставить заметку
