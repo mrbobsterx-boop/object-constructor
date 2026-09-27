@@ -135,10 +135,12 @@
 
 Подробности — `09-Story-Map.md` §19.
 
-## P. Event Trigger Explorer, Consequence Chain (198–203)
+## P. Event Trigger Explorer, Consequence Chain (198–203) — ✅ сделано
 
-198–199. Event Trigger Explorer: trigger/conditions/source/cooldown/effects одним экраном.
-200–203. **Consequence chain** — от выбора игрока видеть не только следующий узел, но и цепочку долгосрочных последствий (`Trust −10 → Marcus leaves → Faction relation −20 → …`).
+198–199. ✅ Event Trigger Explorer («🔔 Триггеры» в шапке) — все узлы графа кроме стартового одним экраном: trigger (условие/расписание, `nodeTriggerSummary()`), source (`eventSource`, группа O), effects (сводка "→ на что влияет"). Отдельного "cooldown" не заводили — это уже `trigger.afterHours` при включённом `repeat`, показано прямо в сводке триггера ("· повтор").
+200–203. ✅ Consequence chain — кнопка «🔗» у перехода в инспекторе разворачивает возможную цепочку влияния на несколько шагов (переменная → кто её читает → его эффекты → дальше), переиспользуя `variableDependents()` (Dependency Explorer переменных, §1) на несколько шагов подряд вместо одного. Явно подписано как ВОЗМОЖНОЕ влияние, а не гарантированный исход — по тому же рассуждению, что и у сознательно НЕ реализованной проверки "эффект делает ветку недостижимой" (группа G): без знания фактических значений переменных в конкретный момент нельзя доказать, что цепочка сработает именно так.
+
+Подробности — `09-Story-Map.md` §20.
 
 ## Q. World Event Sources, system tags, Resource/Action/Requirements слои (204–218)
 

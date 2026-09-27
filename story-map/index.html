@@ -22,6 +22,7 @@
   <span id="dirtyStatus" class="status"></span>
   <button id="btnReadOnly" title="Открыть как документацию — отключает добавление/удаление/перетаскивание/редактирование, оставляет навигацию (выбор, поиск, Проверки, Dependency Explorer)">👁 Только чтение</button>
   <button id="btnSimPlay" title="Лёгкий inline-прогон логики прямо здесь: старт → выборы → переменные. Не путать с story-bot/ — полноценным ботом-симулятором в отдельном инструменте.">▶ Играть</button>
+  <button id="btnTriggerExplorer" title="Все условия/расписания срабатывания узлов, их источник и что они меняют — одним экраном, без клика по каждому отдельно">🔔 Триггеры</button>
   <div class="zoombar" id="storyZoombar">
     <button id="btnZoomOut" title="Уменьшить">－</button>
     <span id="zoomLabel">100%</span>
@@ -172,6 +173,18 @@
   </div>
 </div>
 
+<div id="triggerExplorerModal" class="modal-overlay" style="display:none">
+  <div class="modal-card" style="width:640px">
+    <h3>Обозреватель триггеров</h3>
+    <div class="hint" style="margin-bottom:8px">Все узлы графа, кроме стартового: условие/расписание срабатывания, источник события и что они меняют — одним экраном, без клика по каждому отдельно.</div>
+    <input type="text" id="triggerExplorerSearch" class="full" placeholder="🔎 Фильтр по названию/условию/источнику…" style="margin-bottom:8px">
+    <div id="triggerExplorerList" class="nodelist" style="max-height:420px;overflow-y:auto"></div>
+    <div class="row" style="margin-top:12px">
+      <button id="btnTriggerExplorerClose" class="primary">Закрыть</button>
+    </div>
+  </div>
+</div>
+
 <!-- Каталог Object Plan подключается напрямую его же скриптами — раздел/объект/предметы/навыки всегда
      совпадают с тем, что видит сам Object Plan. Даёт PLAN_ITEMS, OS_SKILLS, SYSTEMS, ACTIONS. -->
 <script src="../object-plan/js/02-vocab.js"></script>
@@ -205,5 +218,6 @@
 <script src="js/12-story-templates.js"></script>
 <script src="js/13-timeline.js"></script>
 <script src="js/14-simulation.js"></script>
+<script src="js/15-trigger-explorer.js"></script>
 </body>
 </html>

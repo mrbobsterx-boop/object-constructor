@@ -67,11 +67,64 @@ function chipPickerHtml(fieldPath,values,src,jumpable){
     <datalist id="${inputId}_dl">${suggestOptions.map(o=>`<option value="${esc(o.label)}">`).join('')}</datalist>`;
 }
 
+// Цепочка последствий — не факт, а ВОЗМОЖНОСТЬ: от эффектов выбора идём по тем же writer/reader
+// связям, что и Dependency Explorer переменной (variableDependents, §1), только на несколько шагов
+// подряд (эффект → кто читает эту переменную → его собственные эффекты → кто читает ИХ → …). Сознательно
+// не выдаёт готового "это произойдёт" — то же самое рассуждение, что и у "эффект делает ветку
+// недостижимой" (группа G, НЕ реализовано): не зная реальных значений переменных в момент выбора,
+// нельзя доказать, что условие следующего узла станет истинным — только показать, что ОНО ЗАВИСИТ от
+// той же переменной. Ограничено по числу шагов и записей, чтобы не взорваться на плотном графе.
+const CONSEQUENCE_MAX_HOPS=3, CONSEQUENCE_MAX_STEPS=30;
+function consequenceChainFor(effects){
+  const steps=[];
+  let frontier=new Set((effects||[]).map(e=>e.var).filter(Boolean));
+  const seenVars=new Set(frontier);
+  const seenNodes=new Set();
+  for(let hop=1;hop<=CONSEQUENCE_MAX_HOPS&&frontier.size&&steps.length<CONSEQUENCE_MAX_STEPS;hop++){
+    const next=new Set();
+    frontier.forEach(varId=>{
+      const v=findVariable(varId); if(!v) return;
+      const {readers}=variableDependents(varId);
+      readers.forEach(r=>{
+        if(steps.length>=CONSEQUENCE_MAX_STEPS) return;
+        if(r.nodeId){
+          steps.push({hop,varName:v.name,readerLabel:r.label,nodeId:r.nodeId});
+          if(!seenNodes.has(r.nodeId)){
+            seenNodes.add(r.nodeId);
+            const n=findNode(r.nodeId);
+            if(n){
+              (n.effects||[]).forEach(e=>{ if(e.var&&!seenVars.has(e.var)){ next.add(e.var); seenVars.add(e.var); } });
+              (n.choices||[]).forEach(c=>(c.effects||[]).forEach(e=>{ if(e.var&&!seenVars.has(e.var)){ next.add(e.var); seenVars.add(e.var); } }));
+            }
+          }
+        } else if(r.relationId){
+          // Связь мира тоже может читать переменную (§12) — показываем как конечную точку цепочки,
+          // но не продолжаем через неё: relations и nodes — два разных графа, объединять их обход в
+          // одну сквозную цепочку без явного повода рискует запутать больше, чем прояснить.
+          steps.push({hop,varName:v.name,readerLabel:r.label,nodeId:null});
+        }
+      });
+    });
+    frontier=next;
+  }
+  return steps;
+}
+function consequenceChainHtml(c){
+  const steps=consequenceChainFor(c.effects);
+  if(!steps.length) return '<div class="hint" style="margin-top:6px">У этого выбора нет эффектов, либо ничто в графе дальше не проверяет затронутые переменные.</div>';
+  const rows=steps.map(s=>`<div class="var-dep-row" ${s.nodeId?`data-jumpnode="${esc(s.nodeId)}"`:''} style="padding-left:${(s.hop-1)*14}px">
+    <span class="nm">${'→'.repeat(s.hop)} «${esc(s.varName)}» читает: ${esc(s.readerLabel)}</span>
+  </div>`).join('');
+  return `<div class="hint" style="margin:6px 0 4px">Возможная цепочка влияния (не гарантия — зависит от значений переменных в момент выбора):</div><div class="var-deps-col">${rows}</div>`;
+}
+let expandedConsequenceChoiceId=null;
 function choiceCardHtml(c,i){
+  const expanded=expandedConsequenceChoiceId===c.id;
   return `<div class="choice-card">
     <div class="row">
       <input type="text" data-path="choices.${i}.label" value="${esc(c.label)}" style="flex:1" placeholder="Текст выбора">
       <select data-path="choices.${i}.target"><option value="">— куда —</option>${nodes.map(x=>`<option value="${esc(x.id)}" ${c.target===x.id?'selected':''}>${esc(x.title)}</option>`).join('')}</select>
+      <button class="dep-toggle ${expanded?'active':''}" data-consequencechoice="${esc(c.id)}" title="Возможная цепочка последствий этого выбора">🔗</button>
       <button class="del-x" data-delchoice="${i}">✕</button>
     </div>
     <div class="sub">
@@ -80,6 +133,7 @@ function choiceCardHtml(c,i){
       <label class="small" style="margin-top:6px">Меняет (в дополнение к эффектам узла)</label>
       ${condRowsHtml('choices.'+i+'.effects',c.effects,true)}
     </div>
+    ${expanded?consequenceChainHtml(c):''}
   </div>`;
 }
 
@@ -250,6 +304,10 @@ inspectorEl.addEventListener('click',e=>{
   if(tabBtn){ inspectorTab=tabBtn.dataset.tab; renderInspector(); return; }
   const jumpChip=e.target.closest('[data-jumpref]');
   if(jumpChip){ if(typeof jumpToWorldEntity==='function') jumpToWorldEntity(jumpChip.dataset.jumpref); return; }
+  const consequenceToggle=e.target.closest('[data-consequencechoice]');
+  if(consequenceToggle){ expandedConsequenceChoiceId=expandedConsequenceChoiceId===consequenceToggle.dataset.consequencechoice?null:consequenceToggle.dataset.consequencechoice; renderInspector(); return; }
+  const jumpNode=e.target.closest('[data-jumpnode]');
+  if(jumpNode){ selectNode(jumpNode.dataset.jumpnode); focusNode(jumpNode.dataset.jumpnode); return; }
   const addChip=e.target.closest('[data-addchip]');
   if(addChip){
     if(readOnlyMode) return;
