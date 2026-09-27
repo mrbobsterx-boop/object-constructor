@@ -45,6 +45,20 @@ function getResourceTypes(){
 }
 function resourceTypeLabel(id){ return RESOURCE_TYPE_LABELS[id]||id||''; }
 
+// Object Plan уже сам ведёт статус реализации предмета (todo/wip/done/skip, вручную или по шагам —
+// object-plan/js/07-store.js), сохраняя его в data/object_plan.json того же проекта. Не изобретаем
+// свой параллельный статус — читаем ЕГО файл (только на чтение, ничего не пишем и не трогаем папку
+// Object Plan) и показываем как есть. Читаем только РУЧНОЙ статус (store.status[id]) — авто-статус
+// по шагам (готовность картинки/размеров/анимаций и т. п.) зависит от data/objects, которую Story Map
+// иначе никогда не парсит; честнее показать "не отмечено", чем гадать по чужой логике, которую здесь
+// не воспроизводим.
+let objectPlanStatusData=null;
+async function loadObjectPlanStatus(){ objectPlanStatusData=await readJsonFromProject('data/object_plan.json'); }
+const OP_STATUS_LABELS={todo:'Не начато',wip:'В работе',done:'Готово',skip:'Отложено'};
+function objectPlanManualStatus(itemId){ return objectPlanStatusData&&objectPlanStatusData.status?objectPlanStatusData.status[itemId]:undefined; }
+function objectPlanStatusLabel(id){ return OP_STATUS_LABELS[id]||id; }
+function findPlanItem(id){ return (typeof PLAN_ITEMS!=='undefined'?PLAN_ITEMS:[]).find(i=>i.id===id); }
+
 // inverseName — как читается ЭТА ЖЕ связь с точки зрения второй сущности (member_of → has_member),
 // вместо голого "← member_of"; symmetric — связь читается одинаково с обеих сторон (friend_of), без
 // направления вовсе. Оба поля — необязательные, редактируются в списке "Типы связей" (§14).

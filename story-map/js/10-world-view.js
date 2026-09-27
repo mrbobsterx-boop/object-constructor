@@ -326,6 +326,16 @@ function renderWorldCanvas(){
       <h3>Используется в сюжете (${usedNodes.length})</h3>
       ${entityNodesHtml(usedNodes,'Пока не используется ни в одном узле сюжета (через «нужны предметы/навыки» — §3, или через раздел/тег узла для систем).')}
     </div>`:''}
+    ${kind.id==='item'&&e.ref&&e.ref.refId?(()=>{
+      const item=findPlanItem(e.ref.refId); if(!item) return '';
+      const sysNames=(item.sys||[]).map(sid=>{ const s=(typeof SYSTEMS!=='undefined'?SYSTEMS:[]).find(x=>x.id===sid); return s?s.name:sid; });
+      const manualStatus=objectPlanManualStatus(e.ref.refId);
+      return `<div class="group">
+        <h3>Данные из Object Plan</h3>
+        <div class="hint">Игровые системы: ${sysNames.length?esc(sysNames.join(', ')):'не указаны'}</div>
+        <div class="hint">Статус реализации: ${manualStatus?esc(objectPlanStatusLabel(manualStatus)):'не отмечено вручную в Object Plan'}</div>
+      </div>`;
+    })():''}
   `;
 }
 document.getElementById('entityDetail').addEventListener('input',e=>{

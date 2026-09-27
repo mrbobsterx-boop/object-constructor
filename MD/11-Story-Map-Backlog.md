@@ -151,11 +151,13 @@
 
 Подробности — `09-Story-Map.md` §21.
 
-## R. Story ↔ Object Plan: статус реализации, трассировка (219–236)
+## R. Story ↔ Object Plan: статус реализации, трассировка (219–236) — ✅ сделано (с уточнением объёма)
 
-219–225. Ссылка на Object Plan-объект в событии; статус `planned`/`available` прямо в Story Map; implementation status на узле (Logic/Characters/Object/Animation/Text).
-226–231. **Traceability**: Story → World Entity → Object Plan → Game System, и обратная трассировка (кто использует `water_tank`).
-232–236. Orphan Detection: неиспользуемые World entities/variables/nodes/Object Plan объекты.
+219–225. ✅ Ссылка на Object Plan-объект в событии — уже было (`node.refs`/`sim.requiresItems`, группа A/Q). ✅ Статус `planned`/`available` прямо в Story Map — Object Plan уже сам ведёт статус предмета (`todo`/`wip`/`done`/`skip`, `data/object_plan.json`); Story Map читает его (только ручной статус, только на чтение) и показывает на карточке сущности, не заводя параллельный статус. ✅ Implementation status на узле (Logic/Characters/Object/Animation/Text) — `node.implementationStatus`, пять аспектов, сводка «N/5» на карточке холста и в списке узлов.
+226–231. ✅ Traceability Story → World Entity → Object Plan → Game System — карточка каталожной сущности показывает игровые системы предмета (`PLAN_ITEMS[].sys`) и его статус реализации. ✅ Обратная трассировка «кто использует X» — уже было реализовано в группе H/O («Используется в сюжете» на карточке любой каталожной сущности).
+232–236. ✅ Orphan Detection для World entities — новая проверка (info): сущность, на которую ничто не ссылается (ни `node.refs`/`actionRef`, ни связи, ни идеи). ✅ Для переменных и узлов — уже было раньше («переменная нигде не используется», «нет входящих переходов»/«изолирован»). ❌ Orphan Detection для самих объектов Object Plan — сознательно НЕ реализовано: каталог заведомо намного шире одного конкретного сюжета, пометка «неиспользуемым» большинства каталога утопила бы редкий настоящий сигнал в шуме.
+
+Подробности — `09-Story-Map.md` §22.
 
 ## S. Обзор проекта, версии, надёжность (237–256)
 

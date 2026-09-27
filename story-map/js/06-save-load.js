@@ -13,6 +13,7 @@ function collectStoryJSON(){
       id:n.id,title:n.title,text:n.text,type:n.type,category:n.category||'story',tags:n.tags||[],samSystem:n.samSystem||'',
       arc:n.arc||'',chapter:n.chapter||'',eventSource:n.eventSource||'',
       actionRef:{action:(n.actionRef&&n.actionRef.action)||'',target:(n.actionRef&&n.actionRef.target)||''},
+      implementationStatus:Object.assign({},n.implementationStatus),
       refs:n.refs||[],
       x:num(n.x),y:num(n.y),
       trigger:n.trigger,effects:n.effects,sim:n.sim,
@@ -63,6 +64,7 @@ async function loadStoryFromProject(){
         category:n.category||'story',tags:Array.isArray(n.tags)?n.tags:[],samSystem:n.samSystem||'',
         arc:n.arc||'',chapter:n.chapter||'',eventSource:n.eventSource||'',
         actionRef:{action:(n.actionRef&&n.actionRef.action)||'',target:(n.actionRef&&n.actionRef.target)||''},
+        implementationStatus:(n.implementationStatus&&typeof n.implementationStatus==='object')?Object.assign({},n.implementationStatus):{},
         refs:Array.isArray(n.refs)?n.refs:[],
         x:num(n.x,120),y:num(n.y,120),
         trigger:n.trigger||{kind:'conditions',all:[]},
@@ -82,5 +84,9 @@ async function loadStoryFromProject(){
   selectedNodeId=null; selectedEntityId=null; selectedRelationId=null; selectedProposalId=null;
   resetHistory();
   markClean();
+  // Object Plan's own статус реализации (data/object_plan.json, §21/§22) — read-only best-effort:
+  // тот же connect-flow, что и у story.json, но ошибка/отсутствие файла не должны мешать загрузке
+  // самого сюжета (readJsonFromProject уже сама возвращает null на любую ошибку).
+  if(typeof loadObjectPlanStatus==='function') await loadObjectPlanStatus();
   renderAll();
 }

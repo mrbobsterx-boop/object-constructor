@@ -116,6 +116,13 @@ function nodeAffectsSummary(n){
   const names=[...ids].map(id=>{ const v=findVariable(id); return v?v.name:id; });
   return names.join(', ');
 }
+// Готовность узла (§22) — доля аспектов (логика/персонажи/объекты/анимации/текст) уже отмеченных
+// "готово". Чисто продакшен-метка, не влияет на граф/проверки/симуляцию.
+function implementationProgress(n){
+  const st=n.implementationStatus||{};
+  const done=NODE_IMPL_ASPECTS.filter(([id])=>st[id]==='done').length;
+  return {done,total:NODE_IMPL_ASPECTS.length};
+}
 // Поиск ищет не только название, но и текст, id, раздел/теги и имена переменных, которые узел трогает.
 function nodeMatchesSearch(n,q){
   if(!q) return true;
@@ -187,9 +194,10 @@ function renderNodesByCategory(){
       const summary=nodeAffectsSummary(n);
       const deadEnd=!n.choices.length&&!n.ending;
       const srcLabel=eventSourceLabel(n.eventSource);
+      const impl=implementationProgress(n);
       return `<div class="noderow ${multiSelected.has(n.id)?'active':''}" data-node="${esc(n.id)}">
         <span class="tag ${n.type}">${n.type}</span>
-        <div class="nm-wrap"><span class="nm">${deadEnd?'<span title="Тупик — нет переходов и не отмечено как концовка">⛔</span> ':''}${esc(n.title||'(без названия)')}${srcLabel?` <span class="muted small">(${esc(srcLabel)})</span>`:''}</span>${summary?`<span class="affects muted small">→ ${esc(summary)}</span>`:''}</div>
+        <div class="nm-wrap"><span class="nm">${deadEnd?'<span title="Тупик — нет переходов и не отмечено как концовка">⛔</span> ':''}${esc(n.title||'(без названия)')}${srcLabel?` <span class="muted small">(${esc(srcLabel)})</span>`:''}<span class="muted small" title="Готовность к реализации (§22)"> ${impl.done}/${impl.total}${impl.done===impl.total?'✅':''}</span></span>${summary?`<span class="affects muted small">→ ${esc(summary)}</span>`:''}</div>
         <button class="del-x" data-delnode="${esc(n.id)}">✕</button>
       </div>`;
     }).join('');
@@ -329,9 +337,10 @@ function renderCanvas(){
     const varHit=varHighlightSet&&varHighlightSet.has(n.id);
     const deadEnd=!n.choices.length&&!n.ending;
     const srcLabel=eventSourceLabel(n.eventSource);
+    const impl=implementationProgress(n);
     return `<div class="node-box ${n.type} ${multiSelected.has(n.id)?'selected':''} ${dimmed?'dimmed':''} ${connectHover?'connect-hover':''} ${varHit?'var-dep-highlight':''} ${deadEnd?'dead-end':''}" data-node="${esc(n.id)}" style="left:${n.x}px;top:${n.y}px;width:${NODE_W}px;min-height:${NODE_H}px">
       <div class="nb-title">${deadEnd?'<span class="nb-deadend-badge" title="Тупик — нет переходов и не отмечено как концовка">⛔</span> ':''}${esc(n.title||'(без названия)')}</div>
-      <div class="nb-meta"><span>${triggerLabel(n.trigger)}${srcLabel?' · '+esc(srcLabel):''}</span><span>→ ${outCount}</span></div>
+      <div class="nb-meta"><span>${triggerLabel(n.trigger)}${srcLabel?' · '+esc(srcLabel):''}</span><span title="Готовность к реализации">${impl.done}/${impl.total}${impl.done===impl.total?'✅':''} · → ${outCount}</span></div>
       ${choicesHtml}
       <div class="node-handle" data-handle="${esc(n.id)}" title="Тяни на другой узел (или на пустое место — создаст новый) — переход"></div>
     </div>`;

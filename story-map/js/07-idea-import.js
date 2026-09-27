@@ -222,7 +222,7 @@ function importIdea(data,overrides){
       title:entry.title||'(из идеи)',text:entry.text||'',
       type:entry.type||'event',category:entry.category||'story',tags:Array.isArray(entry.tags)?entry.tags:[],samSystem:entry.samSystem||'',
       arc:entry.arc||'',chapter:entry.chapter||'',eventSource:entry.eventSource||'',
-      actionRef:{action:'',target:''},
+      actionRef:{action:'',target:''},implementationStatus:{},
       refs:Array.isArray(entry.refs)?entry.refs.slice():[], // пока локальные bundle-ref'ы сущностей — резолвятся ниже, после entityRefMap
       x:120+positions[i].col*240,y:startY+positions[i].row*140,
       trigger:entry.trigger||{kind:'conditions',all:[]},

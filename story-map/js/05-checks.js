@@ -191,6 +191,21 @@ function runChecks(){
       out.push({level:'warn',text:`Сущность «${entityDisplayName(e)}»: ссылка на «${e.ref.refId}» в каталоге ${kind.catalog} больше не найдена (переименовано/удалено в Object Plan?).`,entityId:e.id});
     }
   });
+  // Orphan detection (§22) — сущность, на которую вообще ничто не смотрит: ни узел сюжета (прямая
+  // ссылка или каталожное использование), ни связь мира, ни идея-предложение. info, не warn — это
+  // может быть и забытым мусором, и осознанным заделом на будущее (как "изолирован" у узлов, §5).
+  entities.forEach(e=>{
+    if(e.status==='deprecated') return; // уже отдельно помечена — не дублируем сигнал
+    const kind=entityKindDef(e.kind);
+    const usedInRefs=nodes.some(n=>(n.refs||[]).includes(e.id));
+    const usedInAction=nodes.some(n=>n.actionRef&&(n.actionRef.action===e.id||n.actionRef.target===e.id));
+    const usedInRelations=relations.some(r=>r.from===e.id||r.to===e.id);
+    const usedViaCatalog=kind.catalog&&typeof nodesUsingCatalogEntity==='function'?nodesUsingCatalogEntity(e).length>0:false;
+    const usedInProposals=proposals.some(p=>(p.relatedEntities||[]).includes(e.id));
+    if(!usedInRefs&&!usedInAction&&!usedInRelations&&!usedViaCatalog&&!usedInProposals){
+      out.push({level:'info',text:`Сущность «${entityDisplayName(e)}»: нигде не используется — ни в узлах сюжета, ни в связях, ни в идеях-предложениях.`,entityId:e.id});
+    }
+  });
   relations.forEach(r=>{
     const fromOk=entityIds.has(r.from), toOk=entityIds.has(r.to);
     const anchorEntity=fromOk?r.from:(toOk?r.to:undefined);

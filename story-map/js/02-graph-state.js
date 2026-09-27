@@ -67,7 +67,7 @@ function addNode(type,x,y){
   const n={
     id:uid('n'),title:type==='background'?'Новое фоновое событие':(type==='choice'?'Новый выбор':'Новое событие'),
     text:'',type:type||'event',category:'story',tags:[],samSystem:'',refs:[],
-    actionRef:{action:'',target:''},
+    actionRef:{action:'',target:''},implementationStatus:{},
     x:pos.x, y:pos.y,
     trigger:isFirst?{kind:'start'}:defaultTrigger(type),
     effects:[], sim:defaultSim(), choices:[], ending:''

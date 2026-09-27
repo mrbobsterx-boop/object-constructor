@@ -271,6 +271,11 @@ function inspectorTabBody(tab,n){
       <datalist id="chapterOptionsDatalist">${[...new Set(nodes.map(x=>x.chapter).filter(Boolean))].map(c=>`<option value="${esc(c)}">`).join('')}</datalist>
       <label class="small" style="margin-top:6px">Источник события (кто/что инициирует — авторская пометка, не влияет на срабатывание)</label>
       <select data-path="eventSource"><option value="">— не указано —</option>${EVENT_SOURCES.map(([id,label])=>`<option value="${id}" ${(n.eventSource||'')===id?'selected':''}>${esc(label)}</option>`).join('')}</select>
+      <label class="small" style="margin-top:6px">Готовность к реализации (продакшен-трекинг, не влияет на граф)</label>
+      <div class="row" style="flex-wrap:wrap">
+        ${NODE_IMPL_ASPECTS.map(([id,label])=>`<div style="flex:1;min-width:130px"><label class="small">${esc(label)}</label>
+          <select data-path="implementationStatus.${id}">${NODE_IMPL_STATES.map(([sid,slabel])=>`<option value="${sid}" ${((n.implementationStatus||{})[id]||'todo')===sid?'selected':''}>${esc(slabel)}</option>`).join('')}</select></div>`).join('')}
+      </div>
     </div>`;
 }
 
