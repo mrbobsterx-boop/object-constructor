@@ -41,9 +41,27 @@ document.getElementById('btnFocusMode').onclick=()=>{
   renderCanvas();
 };
 
+// Модалки, которые Escape должен уметь закрыть (§24) — общий список вместо отдельного `Escape`-
+// обработчика в каждом модуле; command-палитра (17) добавляет себя в этот же список.
+const CLOSEABLE_MODAL_IDS=['importPreviewModal','simModal','triggerExplorerModal','projectOverviewModal','commandPaletteModal'];
+function closeTopModal(){
+  for(const id of CLOSEABLE_MODAL_IDS){
+    const el=document.getElementById(id);
+    if(el&&el.style.display==='flex'){ el.style.display='none'; return true; }
+  }
+  return false;
+}
 window.addEventListener('keydown',e=>{
   const tag=(e.target.tagName||'').toLowerCase();
   if((e.ctrlKey||e.metaKey)&&e.code==='KeyS'){ e.preventDefault(); saveStoryToProject(); return; }
+  if((e.ctrlKey||e.metaKey)&&e.code==='KeyK'){ e.preventDefault(); if(typeof hideCtxMenu==='function') hideCtxMenu(); if(typeof toggleCommandPalette==='function') toggleCommandPalette(); return; }
+  if(e.code==='Escape'){
+    if(typeof hideCtxMenu==='function') hideCtxMenu();
+    if(closeTopModal()) return;
+    if(tag==='input'||tag==='textarea'||tag==='select'){ e.target.blur(); return; }
+    if(typeof viewMode!=='undefined'&&viewMode==='story') clearSelection();
+    return;
+  }
   if(tag==='input'||tag==='textarea'||tag==='select') return;
   if((e.ctrlKey||e.metaKey)&&e.code==='KeyZ'){ e.preventDefault(); if(e.shiftKey) redo(); else undo(); return; }
   if((e.ctrlKey||e.metaKey)&&e.code==='KeyY'){ e.preventDefault(); redo(); return; }
@@ -54,6 +72,12 @@ window.addEventListener('keydown',e=>{
   if((e.ctrlKey||e.metaKey)&&e.code==='KeyC'){ e.preventDefault(); copySelection(); return; }
   if((e.ctrlKey||e.metaKey)&&e.code==='KeyV'){ e.preventDefault(); pasteClipboard(); return; }
   if((e.code==='Delete'||e.code==='Backspace')&&(multiSelected.size||selectedNodeId)){ e.preventDefault(); deleteSelectedNodes(); return; }
+  // Keyboard-first (§24): N/F — те же действия, что кнопки "+ Событие"/"Fit all"; Tab — быстрый
+  // связанный дочерний узел (та же идея, что Tab-для-нового-пункта в аутлайнерах), только когда
+  // выбран ровно один узел — иначе непонятно, от кого именно вести новый переход.
+  if(e.code==='KeyN'&&!e.ctrlKey&&!e.metaKey&&!e.altKey){ e.preventDefault(); addNode('event'); return; }
+  if(e.code==='KeyF'&&!e.ctrlKey&&!e.metaKey&&!e.altKey){ e.preventDefault(); fitAll(); return; }
+  if(e.code==='Tab'&&!e.ctrlKey&&!e.metaKey&&!e.altKey&&selectedNodeId&&multiSelected.size<=1){ e.preventDefault(); addChildNode(selectedNodeId); return; }
 });
 window.addEventListener('beforeunload',e=>{ if(dirty){ e.preventDefault(); e.returnValue=''; } });
 

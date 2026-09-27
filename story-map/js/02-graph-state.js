@@ -149,6 +149,53 @@ function pasteClipboard(){
   pushHistory(); renderAll();
 }
 
+// Быстрое добавление ("Add Child", §24) — новый узел, СРАЗУ связанный переходом от исходного, одним
+// действием (контекстное меню на узле/клавиша Tab) вместо "+ Событие" + вручную протянуть связь.
+// Один pushHistory на весь жест (как у importIdea), а не два подряд (создание узла + добавление
+// перехода отдельно) — Ctrl+Z должен отменять это как один шаг, а не раскладывать на два вслепую.
+function addChildNode(nodeId){
+  if(blockIfReadOnly()) return null;
+  const src=findNode(nodeId); if(!src) return null;
+  const child={
+    id:uid('n'),title:'Новое событие',text:'',type:'event',category:'story',tags:[],samSystem:'',
+    arc:'',chapter:'',eventSource:'',actionRef:{action:'',target:''},implementationStatus:{},refs:[],
+    x:src.x+NODE_W+60,y:src.y,
+    trigger:defaultTrigger('event'),effects:[],sim:defaultSim(),choices:[],ending:''
+  };
+  nodes.push(child);
+  src.choices.push({id:uid('c'),label:'Вариант',target:child.id,requires:[],effects:[],sim:{}});
+  selectedNodeId=child.id; multiSelected=new Set([child.id]);
+  pushHistory(); renderAll();
+  return child;
+}
+// Дубликат узла — тот же приём, что и pasteClipboard (глубокий клон, новый id, сдвиг позиции,
+// стартовый триггер сбрасывается — двух стартовых узлов быть не может), но для ОДНОГО узла сразу
+// из контекстного меню, без отдельных Ctrl+C/Ctrl+V. Исходящие переходы копии указывают на ТЕ ЖЕ
+// цели, что и у оригинала (это и есть смысл дублирования разветвления), но с новыми id самих
+// choice-строк — иначе правка перехода в одной копии тайно правила бы и другую.
+function duplicateNode(nodeId){
+  if(blockIfReadOnly()) return null;
+  const src=findNode(nodeId); if(!src) return null;
+  const copy=JSON.parse(JSON.stringify(src));
+  copy.id=uid('n'); copy.x=src.x+40; copy.y=src.y+40; copy.title=(src.title||'')+' (копия)';
+  if(copy.trigger&&copy.trigger.kind==='start') copy.trigger={kind:'conditions',all:[]};
+  copy.choices=(copy.choices||[]).map(c=>({...c,id:uid('c')}));
+  nodes.push(copy);
+  selectedNodeId=copy.id; multiSelected=new Set([copy.id]);
+  pushHistory(); renderAll();
+  return copy;
+}
+// Быстрое добавление ("Add Consequence", §24) — пустая строка эффекта на узел одним действием
+// (контекстное меню), сразу переключая инспектор на вкладку "Эффекты", чтобы её сразу было видно и
+// можно было заполнить, не выбирая вкладку вручную.
+function addConsequenceToNode(nodeId){
+  if(blockIfReadOnly()) return;
+  const n=findNode(nodeId); if(!n) return;
+  addEffRow(n.effects);
+  selectedNodeId=n.id; multiSelected=new Set([n.id]);
+  if(typeof inspectorTab!=='undefined') inspectorTab='effects';
+  pushHistory(); renderAll();
+}
 function addChoice(nodeId,targetId){
   if(blockIfReadOnly()) return;
   const n=findNode(nodeId); if(!n) return;

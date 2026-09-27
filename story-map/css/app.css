@@ -43,6 +43,16 @@ header .spacer{flex:1}
 #edgeLayer path.dimmed{opacity:.12}
 #edgeLayer marker path{fill:var(--muted)}
 #boxSelectOverlay{position:absolute;display:none;border:1.5px dashed var(--accent-hi);background:rgba(107,191,144,.12);pointer-events:none}
+#edgeLayer .edge-hit{pointer-events:stroke;cursor:context-menu}
+
+.ctx-menu{position:fixed;z-index:60;background:var(--panel2);border:1px solid var(--line2);border-radius:8px;padding:4px;box-shadow:0 10px 30px rgba(0,0,0,.5);min-width:180px}
+.ctx-menu button{display:block;width:100%;text-align:left;background:transparent;border:none;border-radius:6px;padding:7px 10px;font-size:13px}
+.ctx-menu button:hover{background:var(--panel);border-color:transparent}
+.ctx-menu button.danger{color:#ffb3ad}
+.ctx-menu hr{border:none;border-top:1px solid var(--line);margin:4px 2px}
+
+.nb-title-edit{background:var(--panel2);color:var(--text);border:1px solid var(--accent-hi);border-radius:4px;padding:0 4px;font:inherit}
+.palette-row{justify-content:space-between}
 #minimap{position:absolute;right:10px;bottom:10px;border:1px solid var(--line2);border-radius:6px;background:rgba(17,21,27,.9);padding:3px;z-index:6}
 #minimapCanvas{display:block;cursor:pointer;border-radius:3px}
 

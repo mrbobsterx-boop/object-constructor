@@ -24,6 +24,7 @@
   <button id="btnSimPlay" title="Лёгкий inline-прогон логики прямо здесь: старт → выборы → переменные. Не путать с story-bot/ — полноценным ботом-симулятором в отдельном инструменте.">▶ Играть</button>
   <button id="btnTriggerExplorer" title="Все условия/расписания срабатывания узлов, их источник и что они меняют — одним экраном, без клика по каждому отдельно">🔔 Триггеры</button>
   <button id="btnProjectOverview" title="Статистика проекта (узлы/сущности/связи/готовность/проверки), версия формата файла, экспорт диагностического отчёта">📊 Обзор</button>
+  <button id="btnCommandPalette" title="Быстрый доступ к любому действию и переход к узлу по названию (Ctrl+K)">⌘ Команды</button>
   <div class="zoombar" id="storyZoombar">
     <button id="btnZoomOut" title="Уменьшить">－</button>
     <span id="zoomLabel">100%</span>
@@ -197,6 +198,15 @@
   </div>
 </div>
 
+<div id="commandPaletteModal" class="modal-overlay" style="display:none">
+  <div class="modal-card" style="width:480px">
+    <input type="text" id="commandPaletteInput" class="full" placeholder="🔎 Команда или название узла…" style="margin-bottom:8px">
+    <div id="commandPaletteList" class="nodelist" style="max-height:360px;overflow-y:auto"></div>
+  </div>
+</div>
+
+<div id="ctxMenu" class="ctx-menu" style="display:none"></div>
+
 <!-- Каталог Object Plan подключается напрямую его же скриптами — раздел/объект/предметы/навыки всегда
      совпадают с тем, что видит сам Object Plan. Даёт PLAN_ITEMS, OS_SKILLS, SYSTEMS, ACTIONS. -->
 <script src="../object-plan/js/02-vocab.js"></script>
@@ -232,5 +242,6 @@
 <script src="js/14-simulation.js"></script>
 <script src="js/15-trigger-explorer.js"></script>
 <script src="js/16-project-overview.js"></script>
+<script src="js/17-command-palette.js"></script>
 </body>
 </html>

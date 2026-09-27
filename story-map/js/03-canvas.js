@@ -353,7 +353,12 @@ function renderCanvas(){
       const target=findNode(c.target); if(!target) return;
       const b=nodeAnchorIn(target);
       const dimmed=focusSet&&(!focusSet.has(n.id)||!focusSet.has(target.id));
-      svg+=`<path class="${dimmed?'dimmed':''}" d="${edgePath(a,b)}" marker-end="url(#arrow)"></path>`;
+      const d=edgePath(a,b);
+      // Невидимая "толстая" копия под видимой линией — сама линия (2px) слишком тонкая, чтобы по ней
+      // целиться курсором; #edgeLayer в остальном pointer-events:none (иначе пустое место между
+      // линиями мешало бы панораме/рамке выделения, см. css/app.css), только .edge-hit ловит клики.
+      svg+=`<path class="edge-hit" data-fromnode="${esc(n.id)}" data-choice="${esc(c.id)}" d="${d}" stroke="transparent" stroke-width="14"></path>`;
+      svg+=`<path class="${dimmed?'dimmed':''}" d="${d}" marker-end="url(#arrow)"></path>`;
     });
   });
   if(tempConnectFrom&&tempConnectPt){
@@ -494,6 +499,12 @@ canvasOuter.addEventListener('pointerup',e=>{
 // прямо там, как в Miro: N/click там нет модальных тулов, здесь роль такого "инструмента" играет
 // сам жест двойного клика по пустоте.
 canvasOuter.addEventListener('dblclick',e=>{
+  // Двойной клик по названию узла прямо на карточке — правка на месте, без похода в инспектор
+  // (§24). Проверяем ДО общего фильтра ниже — заголовок не canvasOuter/worldEl/edgeLayer, так что
+  // обычный фильтр его и так пропустил бы, но это делает намерение явным, а не полагается на то,
+  // что чужая проверка случайно не мешает.
+  const title=e.target.closest('.nb-title');
+  if(title){ const box=title.closest('.node-box'); if(box) startInlineTitleEdit(box.dataset.node); return; }
   if(e.target!==canvasOuter&&e.target!==worldEl&&e.target.id!=='edgeLayer') return;
   // Верхний левый угол в точку клика (как и быстрое создание узла при отпускании соединения на
   // пустом месте) — а не центрирование по клику: у центрирования заметка сдвигается вверх-влево на
@@ -501,6 +512,32 @@ canvasOuter.addEventListener('dblclick',e=>{
   const p=screenToWorld(e.clientX,e.clientY);
   addStickyNote(p.x,p.y);
 });
+// Плавающий <input> поверх заголовка (а не contenteditable на самой карточке) — карточка
+// перерисовывается целиком при любом renderAll() (в т.ч. от чужого действия), а отдельный элемент
+// поверх неё это переживает спокойно, ничего не роняя на середине правки.
+function startInlineTitleEdit(nodeId){
+  if(readOnlyMode) return;
+  const n=findNode(nodeId); if(!n) return;
+  const box=worldEl.querySelector(`.node-box[data-node="${CSS.escape(nodeId)}"]`); if(!box) return;
+  const titleEl=box.querySelector('.nb-title'); if(!titleEl) return;
+  const rect=titleEl.getBoundingClientRect();
+  const input=document.createElement('input');
+  input.type='text'; input.value=n.title||''; input.className='nb-title-edit';
+  input.style.cssText=`position:fixed;left:${rect.left}px;top:${rect.top}px;width:${Math.max(rect.width,80)}px;height:${rect.height}px;z-index:70`;
+  document.body.appendChild(input);
+  input.focus(); input.select();
+  let done=false;
+  const commit=()=>{
+    if(done) return; done=true; input.remove();
+    const v=input.value.trim();
+    if(v&&v!==n.title) updateNode(nodeId,{title:v});
+  };
+  input.addEventListener('blur',commit);
+  input.addEventListener('keydown',e=>{
+    if(e.key==='Enter'){ e.preventDefault(); e.stopPropagation(); input.blur(); }
+    else if(e.key==='Escape'){ e.preventDefault(); e.stopPropagation(); done=true; input.remove(); }
+  });
+}
 
 worldEl.addEventListener('input',e=>{
   if(readOnlyMode) return;
@@ -523,6 +560,58 @@ worldEl.addEventListener('click',e=>{
   }
 });
 canvasOuter.addEventListener('wheel',e=>{ e.preventDefault(); setZoom(zoom*(e.deltaY<0?1.1:0.9)); },{passive:false});
+
+/* ---------- Контекстное меню на узле/переходе (§24) — те же действия, что уже доступны кнопками/
+   горячими клавишами, просто под рукой в точке правого клика ---------- */
+function hideCtxMenu(){ const el=document.getElementById('ctxMenu'); if(el){ el.style.display='none'; el._items=null; } }
+function showCtxMenu(x,y,items){
+  const el=document.getElementById('ctxMenu'); if(!el) return;
+  el.innerHTML=items.map(it=>it===null?'<hr>':`<button data-ctxaction="${esc(it.id)}"${it.danger?' class="danger"':''}>${esc(it.label)}</button>`).join('');
+  el.style.display='block';
+  // Сначала показываем (чтобы offsetWidth/Height были настоящими), потом прижимаем к границам экрана —
+  // иначе правый клик у самого края холста рисовал бы меню наполовину за пределами окна.
+  el.style.left='0px'; el.style.top='0px';
+  const w=el.offsetWidth, h=el.offsetHeight;
+  el.style.left=Math.max(4,Math.min(x,window.innerWidth-w-4))+'px';
+  el.style.top=Math.max(4,Math.min(y,window.innerHeight-h-4))+'px';
+  el._items=items;
+}
+const ctxMenuEl=document.getElementById('ctxMenu');
+if(ctxMenuEl) ctxMenuEl.addEventListener('click',e=>{
+  const btn=e.target.closest('[data-ctxaction]'); if(!btn) return;
+  const item=(ctxMenuEl._items||[]).find(it=>it&&it.id===btn.dataset.ctxaction);
+  hideCtxMenu();
+  if(item&&item.run) item.run();
+});
+document.addEventListener('click',e=>{ if(!e.target.closest('#ctxMenu')) hideCtxMenu(); });
+document.addEventListener('scroll',hideCtxMenu,true);
+canvasOuter.addEventListener('contextmenu',e=>{
+  if(readOnlyMode) return; // как и запуск перетаскивания/соединения — меню предлагает только мутации, в режиме чтения им нечего делать
+  const box=e.target.closest('.node-box');
+  if(box){
+    e.preventDefault();
+    const id=box.dataset.node;
+    selectNode(id);
+    showCtxMenu(e.clientX,e.clientY,[
+      {id:'rename',label:'✏️ Переименовать',run:()=>startInlineTitleEdit(id)},
+      {id:'child',label:'➕ Дочерний узел',run:()=>addChildNode(id)},
+      {id:'consequence',label:'⚡ Добавить эффект',run:()=>addConsequenceToNode(id)},
+      {id:'dup',label:'📋 Дублировать',run:()=>duplicateNode(id)},
+      {id:'focus',label:'🔦 Фокус отсюда',run:()=>{ focusMode=true; document.getElementById('btnFocusMode').classList.add('active'); renderCanvas(); }},
+      null,
+      {id:'del',label:'🗑 Удалить узел',danger:true,run:()=>deleteNode(id)}
+    ]);
+    return;
+  }
+  const hit=e.target.closest('.edge-hit');
+  if(hit){
+    e.preventDefault();
+    const fromId=hit.dataset.fromnode, choiceId=hit.dataset.choice;
+    showCtxMenu(e.clientX,e.clientY,[
+      {id:'del',label:'🗑 Удалить переход',danger:true,run:()=>deleteChoice(fromId,choiceId)}
+    ]);
+  }
+});
 
 function screenToWorld(clientX,clientY){
   const r=canvasOuter.getBoundingClientRect();
