@@ -80,11 +80,42 @@ const DEFAULT_RELATION_TYPES=[
 ];
 const RELATION_STATUS=[['confirmed','подтверждено'],['proposed','предположение'],['deprecated','устарело']];
 
-let entities=[], relationTypes=[], relations=[], proposals=[];
-let selectedEntityId=null, selectedRelationId=null, selectedProposalId=null;
+let entities=[], relationTypes=[], relations=[], proposals=[], worldEvents=[];
+let selectedEntityId=null, selectedRelationId=null, selectedProposalId=null, selectedWorldEventId=null;
 const PROPOSAL_STATUS=[['idea','идея'],['planned','запланировано'],['accepted','принято'],['implemented','реализовано'],['rejected','отклонено']];
 const PROPOSAL_PRIORITY=[['low','низкий'],['normal','обычный'],['high','высокий']];
 function proposalStatusLabel(status){ const e=PROPOSAL_STATUS.find(([id])=>id===status); return e?e[1]:status; }
+function entityLifecycleLabel(id){ const e=ENTITY_LIFECYCLE_STATES.find(([x])=>x===id); return e?e[1]:''; }
+
+// Автономные события мира (§26) — что происходит БЕЗ участия игрока (actor действует на target неким
+// action), в отличие от узлов сюжета (Story Graph), которые всегда про то, что видит и выбирает игрок.
+// Это ДЕКЛАРАТИВНЫЕ записи для дизайна/трассировки ("рейдеры периодически нападают на бункер, это
+// портит запасы и может убить NPC") — они НЕ "стреляют" сами внутри lightweight-симулятора (§18/§25):
+// у симулятора вообще нет модели времени/мира вне графа choices, куда это можно было бы честно
+// встроить, не изобретая по сути отдельный игровой движок внутри Story Map. effects используют тот же
+// формат {var,op,value}, что и везде (condRowsHtml/condListPreviewText, §25) — не новый язык эффектов.
+function findWorldEvent(id){ return worldEvents.find(x=>x.id===id); }
+function worldEventsForEntity(entityId){ return worldEvents.filter(ev=>ev.actor===entityId||ev.target===entityId); }
+function addWorldEvent(){
+  if(blockIfReadOnly()) return;
+  const ev={id:uid('we'),title:'Новое событие',actor:'',action:'',target:'',resultLifecycle:'',effects:[],comment:''};
+  worldEvents.push(ev);
+  selectedWorldEventId=ev.id; selectedEntityId=null; selectedProposalId=null; selectedRelationId=null;
+  pushHistory(); renderAll();
+  return ev;
+}
+function updateWorldEvent(id,patch){
+  if(blockIfReadOnly()) return;
+  const ev=findWorldEvent(id); if(!ev) return;
+  Object.assign(ev,patch);
+  pushHistory(); renderAll();
+}
+function deleteWorldEvent(id){
+  if(blockIfReadOnly()) return;
+  worldEvents=worldEvents.filter(x=>x.id!==id);
+  if(selectedWorldEventId===id) selectedWorldEventId=null;
+  pushHistory(); renderAll();
+}
 
 function findEntity(id){ return entities.find(e=>e.id===id); }
 function findRelationType(id){ return relationTypes.find(t=>t.id===id); }
@@ -157,7 +188,7 @@ function entityDisplayName(ent){
 function addEntity(kindId){
   if(blockIfReadOnly()) return;
   const kind=entityKindDef(kindId);
-  const e={id:uid('e'),kind:kind.id,name:kind.catalog?'':'Новая сущность',ref:kind.catalog?{catalog:kind.catalog,refId:''}:null,note:'',status:'active'};
+  const e={id:uid('e'),kind:kind.id,name:kind.catalog?'':'Новая сущность',ref:kind.catalog?{catalog:kind.catalog,refId:''}:null,note:'',status:'active',lifecycle:''};
   if(kind.catalog){
     const opts=catalogOptionsFor(kind.catalog);
     const used=new Set(entities.filter(x=>x.kind===kind.id).map(x=>x.ref&&x.ref.refId));

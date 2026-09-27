@@ -77,7 +77,7 @@ function renderEntityListHtml(q){
       return `
       <div class="noderow ${selectedEntityId===e.id?'active':''} ${deprecated?'deprecated':''}" data-entity="${esc(e.id)}">
         <span class="tag entity">${esc(kindId)}</span>
-        <div class="nm-wrap"><span class="nm">${esc(entityDisplayName(e))}${deprecated?' <span class="muted small">(устарело)</span>':''}</span></div>
+        <div class="nm-wrap"><span class="nm">${esc(entityDisplayName(e))}${e.lifecycle?` <span class="muted small">(${esc(entityLifecycleLabel(e.lifecycle))})</span>`:''}${deprecated?' <span class="muted small">(устарело)</span>':''}</span></div>
         <button class="del-x" data-delentity="${esc(e.id)}" title="${deprecated?'Удалить навсегда':'Архивировать (устарело)'}">✕</button>
       </div>`;
     }).join('');
@@ -103,6 +103,16 @@ function renderWorldLeft(){
       <div class="nm-wrap"><span class="nm">${esc(p.title)}${p.priority==='high'?' <span class="muted small" title="Высокий приоритет">🔺</span>':''}</span></div>
       <button class="del-x" data-delproposal="${esc(p.id)}">✕</button>
     </div>`).join(''):'<div class="hint">Пока нет идей — закинь мысль текстом, потом при желании оформи как сущность или узел сюжета.</div>';
+
+  const weCountEl=document.getElementById('worldEventCount'); if(weCountEl) weCountEl.textContent=worldEvents.length;
+  const weListEl=document.getElementById('worldEventList');
+  if(weListEl) weListEl.innerHTML=worldEvents.length?worldEvents.map(ev=>{
+    const actorName=ev.actor?entityDisplayName(findEntity(ev.actor)):'?', targetName=ev.target?entityDisplayName(findEntity(ev.target)):'?';
+    return `<div class="noderow ${selectedWorldEventId===ev.id?'active':''}" data-worldevent="${esc(ev.id)}">
+      <div class="nm-wrap"><span class="nm">${esc(ev.title||'(без названия)')}</span><span class="affects muted small">${esc(actorName)} → ${esc(ev.action||'?')} → ${esc(targetName)}</span></div>
+      <button class="del-x" data-delworldevent="${esc(ev.id)}">✕</button>
+    </div>`;
+  }).join(''):'<div class="hint">Пока нет автономных событий мира.</div>';
 
   const rtEl=document.getElementById('relationTypeList');
   if(rtEl) rtEl.innerHTML=relationTypes.map(t=>`
@@ -153,7 +163,14 @@ document.getElementById('entityList').addEventListener('click',e=>{
     return;
   }
   const row=e.target.closest('[data-entity]');
-  if(row){ selectedEntityId=row.dataset.entity; selectedRelationId=null; selectedProposalId=null; renderAll(); }
+  if(row){ selectedEntityId=row.dataset.entity; selectedRelationId=null; selectedProposalId=null; selectedWorldEventId=null; renderAll(); }
+});
+document.getElementById('btnAddWorldEvent').onclick=()=>{ addWorldEvent(); };
+document.getElementById('worldEventList').addEventListener('click',e=>{
+  const del=e.target.closest('[data-delworldevent]');
+  if(del){ if(!readOnlyMode&&confirm('Удалить событие мира?')) deleteWorldEvent(del.dataset.delworldevent); return; }
+  const row=e.target.closest('[data-worldevent]');
+  if(row){ selectedWorldEventId=row.dataset.worldevent; selectedEntityId=null; selectedProposalId=null; selectedRelationId=null; renderAll(); }
 });
 document.getElementById('btnAddProposal').onclick=()=>{
   const input=document.getElementById('newProposalTitle');
@@ -166,7 +183,7 @@ document.getElementById('proposalList').addEventListener('click',e=>{
   const del=e.target.closest('[data-delproposal]');
   if(del){ if(confirm('Удалить идею?')) deleteProposal(del.dataset.delproposal); return; }
   const row=e.target.closest('[data-proposal]');
-  if(row){ selectedProposalId=row.dataset.proposal; selectedEntityId=null; selectedRelationId=null; renderAll(); }
+  if(row){ selectedProposalId=row.dataset.proposal; selectedEntityId=null; selectedRelationId=null; selectedWorldEventId=null; renderAll(); }
 });
 document.getElementById('btnAddRelType').onclick=()=>{
   const input=document.getElementById('newRelTypeName');
@@ -277,9 +294,41 @@ function renderProposalDetail(){
     </div>
   `;
 }
+// Автономное событие мира (§26) — та же центральная панель #entityDetail, что и у сущности/идеи,
+// взаимоисключающе через selectedWorldEventId (тот же принцип, что уже развёл entity/proposal).
+function renderWorldEventDetail(){
+  const el=document.getElementById('entityDetail'); if(!el) return;
+  const ev=findWorldEvent(selectedWorldEventId);
+  if(!ev){ selectedWorldEventId=null; renderWorldCanvas(); return; }
+  el.innerHTML=`
+    <div class="group">
+      <h3>Автономное событие мира</h3>
+      <label class="small">Название</label>
+      <input type="text" class="full" id="weTitleInput" value="${esc(ev.title)}">
+      <div class="row" style="margin-top:6px">
+        <div style="flex:1"><label class="small">Actor (кто действует)</label>
+          <select id="weActorSelect">${entitySelectOptionsHtml(ev.actor)}</select></div>
+        <div style="flex:1"><label class="small">Action (что делает)</label>
+          <input type="text" class="full" id="weActionInput" value="${esc(ev.action)}" placeholder="напр. нападает на"></div>
+        <div style="flex:1"><label class="small">Target (на кого)</label>
+          <select id="weTargetSelect">${entitySelectOptionsHtml(ev.target)}</select></div>
+      </div>
+      <label class="small" style="margin-top:6px">Итог для target — справочно, НЕ применяется автоматически (задать вручную на карточке сущности, когда событие «случилось» в сюжете)</label>
+      <select id="weResultLifecycleSelect"><option value="">— без итога —</option>${ENTITY_LIFECYCLE_STATES.map(([id,label])=>`<option value="${id}" ${ev.resultLifecycle===id?'selected':''}>${label}</option>`).join('')}</select>
+      <label class="small" style="margin-top:6px">Комментарий</label>
+      <textarea id="weCommentInput">${esc(ev.comment||'')}</textarea>
+      <button class="full danger" id="btnDeleteWorldEventHere" style="margin-top:8px">🗑 Удалить событие</button>
+    </div>
+    <div class="group">
+      <h3>Эффекты на мировые переменные (если событие случилось)</h3>
+      ${condRowsHtml('effects',ev.effects,true)}
+    </div>
+  `;
+}
 function renderWorldCanvas(){
   const el=document.getElementById('entityDetail'); if(!el) return;
   if(selectedProposalId){ renderProposalDetail(); return; }
+  if(selectedWorldEventId){ renderWorldEventDetail(); return; }
   const e=findEntity(selectedEntityId);
   if(!e){ el.innerHTML='<div class="hint">Выбери сущность или идею слева — или добавь новую.</div>'; return; }
   const kind=entityKindDef(e.kind);
@@ -299,6 +348,8 @@ function renderWorldCanvas(){
         <input type="text" class="full" id="entityNameInput" value="${esc(e.name)}">`}
       <label class="small" style="margin-top:6px">Заметка</label>
       <textarea id="entityNoteInput">${esc(e.note||'')}</textarea>
+      <label class="small" style="margin-top:6px">Жизненный цикл в игровом мире (§26 — отдельно от «устарело» ниже, это про АВТОРСКИЙ архив)</label>
+      <select id="entityLifecycleSelect"><option value="">— не отслеживается —</option>${ENTITY_LIFECYCLE_STATES.map(([id,label])=>`<option value="${id}" ${e.lifecycle===id?'selected':''}>${label}</option>`).join('')}</select>
       ${deprecated?`
       <div class="row" style="margin-top:8px">
         <button class="full" id="btnRestoreEntity">♻ Восстановить</button>
@@ -321,6 +372,13 @@ function renderWorldCanvas(){
       <h3>Упоминается в сюжете (${refNodes.length})</h3>
       ${entityNodesHtml(refNodes,'Пока ни один узел сюжета не ссылается на эту сущность (вкладка «Ссылки» в инспекторе узла).')}
     </div>
+    ${(()=>{ const we=worldEventsForEntity(e.id); return `
+    <div class="group">
+      <h3>Автономные события мира (${we.length})</h3>
+      ${we.length?we.map(ev=>`<div class="noderow" data-jumpworldevent="${esc(ev.id)}">
+        <div class="nm-wrap"><span class="nm">${esc(ev.title||'(без названия)')}</span><span class="affects muted small">${ev.actor===e.id?'actor':''}${ev.actor===e.id&&ev.target===e.id?' · ':''}${ev.target===e.id?'target':''}</span></div>
+      </div>`).join(''):'<div class="hint">Пока не участвует ни в одном автономном событии мира.</div>'}
+    </div>`; })()}
     ${kind.catalog?`
     <div class="group">
       <h3>Используется в сюжете (${usedNodes.length})</h3>
@@ -347,6 +405,15 @@ document.getElementById('entityDetail').addEventListener('input',e=>{
     if(e.target.id==='proposalSourceInput') p.source=e.target.value;
     return;
   }
+  if(selectedWorldEventId){
+    const ev=findWorldEvent(selectedWorldEventId); if(!ev) return;
+    if(e.target.id==='weTitleInput') ev.title=e.target.value;
+    if(e.target.id==='weActionInput') ev.action=e.target.value;
+    if(e.target.id==='weCommentInput') ev.comment=e.target.value;
+    const path=e.target.dataset.path;
+    if(path) setByPath(ev,path,e.target.type==='number'?num(e.target.value):e.target.value);
+    return;
+  }
   const ent=findEntity(selectedEntityId); if(!ent) return;
   if(e.target.id==='entityNameInput') ent.name=e.target.value;
   if(e.target.id==='entityNoteInput') ent.note=e.target.value;
@@ -360,8 +427,17 @@ document.getElementById('entityDetail').addEventListener('change',e=>{
     if(e.target.id==='proposalPrioritySelect'){ p.priority=e.target.value; pushHistory(); renderAll(); return; }
     return;
   }
+  if(selectedWorldEventId){
+    const ev=findWorldEvent(selectedWorldEventId); if(!ev) return;
+    if(e.target.id==='weActorSelect'){ ev.actor=e.target.value; pushHistory(); renderAll(); return; }
+    if(e.target.id==='weTargetSelect'){ ev.target=e.target.value; pushHistory(); renderAll(); return; }
+    if(e.target.id==='weResultLifecycleSelect'){ ev.resultLifecycle=e.target.value; pushHistory(); renderAll(); return; }
+    if(['weTitleInput','weActionInput','weCommentInput'].includes(e.target.id)||e.target.dataset.path){ pushHistory(); renderAll(); return; }
+    return;
+  }
   const ent=findEntity(selectedEntityId); if(!ent) return;
   if(e.target.id==='entityRefSelect'){ ent.ref={catalog:ent.ref.catalog,refId:e.target.value}; pushHistory(); renderAll(); return; }
+  if(e.target.id==='entityLifecycleSelect'){ ent.lifecycle=e.target.value; pushHistory(); renderAll(); return; }
   if(e.target.id==='entityNameInput'||e.target.id==='entityNoteInput'){ pushHistory(); renderAll(); }
 });
 document.getElementById('entityDetail').addEventListener('click',e=>{
@@ -408,6 +484,22 @@ document.getElementById('entityDetail').addEventListener('click',e=>{
     }
     return;
   }
+  if(selectedWorldEventId){
+    const ev=findWorldEvent(selectedWorldEventId); if(!ev) return;
+    if(e.target.id==='btnDeleteWorldEventHere'){ if(!readOnlyMode&&confirm('Удалить событие мира?')) deleteWorldEvent(ev.id); return; }
+    const addRow=e.target.closest('[data-addrow]');
+    if(addRow){ if(readOnlyMode) return; addEffRow(getByPath(ev,addRow.dataset.addrow)); pushHistory(); renderAll(); return; }
+    const delRow=e.target.closest('[data-delrow]');
+    if(delRow){
+      if(readOnlyMode) return;
+      const path=delRow.dataset.delrow, idx=path.lastIndexOf('.');
+      getByPath(ev,path.slice(0,idx)).splice(Number(path.slice(idx+1)),1);
+      pushHistory(); renderAll(); return;
+    }
+    return;
+  }
+  const jumpWorldEvent=e.target.closest('[data-jumpworldevent]');
+  if(jumpWorldEvent){ selectedWorldEventId=jumpWorldEvent.dataset.jumpworldevent; selectedEntityId=null; selectedProposalId=null; renderAll(); return; }
   if(e.target.id==='btnDeleteEntity'){ if(!readOnlyMode&&confirm('Архивировать сущность («устарело»)? Существующие ссылки не сломаются, но она перестанет предлагаться для новых.')) deprecateEntity(selectedEntityId); return; }
   if(e.target.id==='btnRestoreEntity'){ restoreEntity(selectedEntityId); return; }
   if(e.target.id==='btnDeleteEntityForever'){ if(!readOnlyMode&&confirm('Удалить сущность НАВСЕГДА? Связи с ней тоже удалятся. Отменить будет нельзя (кроме Ctrl+Z).')) deleteEntity(selectedEntityId); return; }
