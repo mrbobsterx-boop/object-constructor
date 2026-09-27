@@ -47,62 +47,169 @@ function layoutIdeaEntries(entries){
 // (без учёта регистра), каталожная — при совпадении kind+ref.refId. mutate=false — для превью
 // (analyzeIdea), mutate=true — для реального слияния (importIdea). entry.ref (если есть) — локальный
 // id внутри бандла идеи, тот же приём, что и node.ref/target_ref у узлов.
-function resolveOrCreateEntity(entry,refMap,mutate){
+// override (необязательный, из выбора пользователя в превью — см. showImportPreview/importOverrides):
+// 'new' — создать новую сущность, даже если найдено совпадение (это "не тот Иван"); 'skip' — не
+// создавать и не резолвить refMap для неё вовсе (relations/refs, ссылающиеся на неё, естественно
+// отвалятся — так же, как уже отваливаются ссылки на несуществующий id).
+function resolveOrCreateEntity(entry,refMap,mutate,override){
   const kind=entityKindDef(entry.kind);
+  if(override==='skip') return {entity:null,isNew:false,skipped:true};
   let existing=null;
-  if(kind.catalog&&entry.refId) existing=entities.find(e=>e.kind===kind.id&&e.ref&&e.ref.refId===entry.refId);
-  else if(!kind.catalog&&entry.name) existing=entities.find(e=>e.kind===kind.id&&(e.name||'').trim().toLowerCase()===entry.name.trim().toLowerCase());
+  if(override!=='new'){
+    if(kind.catalog&&entry.refId) existing=entities.find(e=>e.kind===kind.id&&e.ref&&e.ref.refId===entry.refId);
+    else if(!kind.catalog&&entry.name) existing=entities.find(e=>e.kind===kind.id&&(e.name||'').trim().toLowerCase()===entry.name.trim().toLowerCase());
+  }
   if(existing){ if(entry.ref) refMap[entry.ref]=existing.id; return {entity:existing,isNew:false}; }
   const e={id:uid('e'),kind:kind.id,name:kind.catalog?'':(entry.name||'Без имени'),ref:kind.catalog?{catalog:kind.catalog,refId:entry.refId||''}:null,note:entry.note||''};
   if(mutate) entities.push(e);
   if(entry.ref) refMap[entry.ref]=e.id;
   return {entity:e,isNew:true};
 }
+// Показать пользователю, с какой ИМЕННО существующей сущностью совпал бандл-элемент, а не только
+// голое число в сводке — иначе "1 сущность совпала" ничего не говорит о том, тот ли это Иван.
+function entityMatchLabel(entry){
+  const kind=entityKindDef(entry.kind);
+  if(kind.catalog&&entry.refId){
+    const opt=catalogOptionsFor(kind.catalog).find(o=>o.id===entry.refId);
+    return opt?opt.label:entry.refId;
+  }
+  return entry.name||'(без имени)';
+}
+
+// Единая логика авто-связей по тегу/разделу — используется и в реальном импорте (mutate:true,
+// действительно толкает choices), и в превью (mutate:false, просто считает), одной и той же веткой
+// кода — тот же приём, что и у resolveOrCreateEntity выше, чтобы число в превью и то, что реально
+// создастся, не могли разойтись. resolveFrom(link) возвращает node-подобный объект {id,choices} —
+// либо настоящий узел (findNode), либо "фантомный" для узла, которого ещё нет (превью нового узла
+// бандла, см. analyzeIdea). candidateNodes — по чему искать совпадения (реальные nodes при импорте;
+// nodes+фантомы бандла при превью, чтобы бандл мог линковаться сам на себя, как и при реальном
+// импорте, где newNodes уже лежат в общем nodes к моменту этого шага).
+const LINK_FANOUT_CAP=30;
+function applyAutoLinks(linksData,resolveFrom,candidateNodes,mutate){
+  let linkCount=0;
+  // Множество "уже назначенных целей" на источник живёт ЗА ПРЕДЕЛАМИ forEach (не пересоздаётся на
+  // каждый link) и обновляется независимо от mutate — иначе в режиме превью (mutate:false, куда
+  // ничего реально не пишется в from.choices) второй link с тем же from не увидел бы, что первый уже
+  // "занял" эту цель, и посчитал бы её дважды — расхождение с реальным импортом, где from.choices
+  // физически накапливается между link-записями одного вызова.
+  const assignedPerFrom=new Map();
+  (linksData||[]).forEach(link=>{
+    const from=resolveFrom(link); if(!from) return;
+    const mode=link.mode==='first'?'first':'all';
+    if(!assignedPerFrom.has(from.id)) assignedPerFrom.set(from.id,new Set(from.choices.map(c=>c.target)));
+    const existingTargets=assignedPerFrom.get(from.id);
+    for(const target of candidateNodes){
+      if(target.id===from.id||existingTargets.has(target.id)) continue;
+      const catMatch=link.match_category&&target.category===link.match_category;
+      const tagMatch=link.match_tag&&(target.tags||[]).includes(link.match_tag);
+      if(!catMatch&&!tagMatch) continue;
+      if(mutate) from.choices.push({id:uid('c'),label:link.label||'(связано по тегу)',target:target.id,requires:[],effects:[],sim:{}});
+      existingTargets.add(target.id);
+      linkCount++;
+      if(mode==='first') break;
+      if(linkCount>=LINK_FANOUT_CAP){ if(mutate) console.warn('Story Map: авто-связей по "'+(link.match_tag||link.match_category)+'" больше '+LINK_FANOUT_CAP+', остальные пропущены — сузь тег или используй mode:"first".'); break; }
+    }
+  });
+  return linkCount;
+}
+// Повторяющиеся описания связи в самом файле (одинаковые from_ref/from+match_category+match_tag+mode)
+// — почти всегда copy-paste в JSON, а не намеренное дублирование; сами дубли-переходы это не создаст
+// (applyAutoLinks и так не даёт двух choices на одну и ту же пару from→target), но стоит предупредить
+// автора идеи, что в файле есть два одинаковых описания.
+function countDuplicateLinkSpecs(linksData){
+  const seen=new Set(); let dup=0;
+  (linksData||[]).forEach(link=>{
+    if(!link) return;
+    const key=JSON.stringify([link.from_ref||'',link.from||'',link.match_category||'',link.match_tag||'',link.mode||'all']);
+    if(seen.has(key)) dup++; else seen.add(key);
+  });
+  return dup;
+}
 
 // Не мутирующий разбор — считает "что будет добавлено / что совпадёт с уже существующим", чтобы
 // показать это пользователю ДО реального importIdea(). Логика сопоставления та же самая
-// (resolveOrCreateEntity с mutate=false), поэтому цифры превью гарантированно совпадают с реальным
-// слиянием — не отдельная, потенциально расходящаяся оценка "на глаз".
-function analyzeIdea(data){
+// (resolveOrCreateEntity/applyAutoLinks с mutate=false), поэтому цифры превью гарантированно совпадают
+// с реальным слиянием — не отдельная, потенциально расходящаяся оценка "на глаз". overrides — то же,
+// что попадёт в importIdea() при подтверждении (см. showImportPreview) — превью должно уметь
+// пересчитаться под текущий выбор пользователя, а не только под "чистую" автоматику.
+function analyzeIdea(data,overrides){
   data=data||{};
-  const existingVarIds=new Set(variables.map(v=>v.id));
+  overrides=overrides||{entities:{},variables:{}};
+  const existingVarIds=new Map(variables.map(v=>[v.id,v]));
   const varList=data.variables||[];
   const newVarCount=varList.filter(v=>v&&v.id&&!existingVarIds.has(v.id)).length;
+  // Конфликт — тот же id уже есть, но параметры отличаются (не просто "уже есть", а "уже есть
+  // ДРУГОЕ") — единственный случай, где автоматическое "существующее побеждает" молча прячет
+  // содержательную разницу от автора идеи.
+  const variableConflicts=varList.filter(v=>v&&v.id&&existingVarIds.has(v.id)).map(v=>{
+    const ex=existingVarIds.get(v.id);
+    const differs=ex.name!==(v.name||ex.name)||ex.type!==(v.type||ex.type)||num(ex.min)!==num(v.min,ex.min)||num(ex.max)!==num(v.max,ex.max)||num(ex.start)!==num(v.start,ex.start);
+    return {id:v.id,existingName:ex.name,incomingName:v.name||ex.name,differs};
+  }).filter(c=>c.differs);
 
   const refMap={};
-  let newEntityCount=0, existingEntityCount=0;
-  (data.entities||[]).forEach(entry=>{
-    const {isNew}=resolveOrCreateEntity(entry,refMap,false);
-    if(isNew) newEntityCount++; else existingEntityCount++;
+  let newEntityCount=0, existingEntityCount=0, skippedEntityCount=0;
+  const entityDetails=(data.entities||[]).map(entry=>{
+    const override=entry.ref?overrides.entities[entry.ref]:undefined;
+    const {isNew,entity,skipped}=resolveOrCreateEntity(entry,refMap,false,override);
+    if(skipped) skippedEntityCount++; else if(isNew) newEntityCount++; else existingEntityCount++;
+    // matchedId/matchedName всегда describe что БЫ совпало автоматически (override==='new' в
+    // resolveOrCreateEntity уже не искал existing) — считаем отдельно, чтобы предложить выбор в
+    // превью даже когда пользователь до этого выбрал "создать новую".
+    let matchedId=null,matchedName=null;
+    const kind=entityKindDef(entry.kind);
+    const auto=kind.catalog&&entry.refId?entities.find(e=>e.kind===kind.id&&e.ref&&e.ref.refId===entry.refId):(!kind.catalog&&entry.name?entities.find(e=>e.kind===kind.id&&(e.name||'').trim().toLowerCase()===entry.name.trim().toLowerCase()):null);
+    if(auto){ matchedId=auto.id; matchedName=entityDisplayName(auto); }
+    return {ref:entry.ref||'',kind:entry.kind,kindLabel:entityKindLabel(entry.kind),label:entityMatchLabel(entry),matchedId,matchedName,override:override||(auto?'match':'new'),skipped:!!skipped};
   });
 
   const existingTypeNames=new Set(relationTypes.map(t=>t.name));
   const typeNamesInBundle=new Set((data.relations||[]).map(r=>r&&r.type).filter(Boolean));
   const newRelationTypeNames=[...typeNamesInBundle].filter(n=>!existingTypeNames.has(n));
 
+  // Проекция авто-связей: узлы бандла ещё не существуют, поэтому подставляем лёгкие "фантомы" с теми
+  // же category/tags, что будут у настоящих узлов — этого достаточно для того же самого сопоставления
+  // match_category/match_tag, что использует реальный импорт.
+  const phantomRefMap={};
+  const phantomNodes=(data.nodes||[]).map(entry=>{
+    const ph={id:'__phantom_'+(entry.ref||Math.random()),category:entry.category||'story',tags:Array.isArray(entry.tags)?entry.tags:[],choices:[]};
+    if(entry.ref) phantomRefMap[entry.ref]=ph;
+    return ph;
+  });
+  const projectedLinkCount=applyAutoLinks(data.links,link=>link.from_ref?phantomRefMap[link.from_ref]:(link.from?findNode(link.from):undefined),nodes.concat(phantomNodes),false);
+  const duplicateLinkSpecCount=countDuplicateLinkSpecs(data.links);
+
   return {
     title:data.title||data.idea_id||'(без названия)',
     nodeCount:Array.isArray(data.nodes)?data.nodes.length:0,
-    newVarCount, existingVarCount:varList.length-newVarCount,
-    newEntityCount, existingEntityCount,
+    newVarCount, existingVarCount:varList.length-newVarCount, variableConflicts,
+    newEntityCount, existingEntityCount, skippedEntityCount, entityDetails,
     relationCount:Array.isArray(data.relations)?data.relations.length:0,
     newRelationTypeCount:newRelationTypeNames.length, newRelationTypeNames,
-    proposalCount:Array.isArray(data.proposals)?data.proposals.length:0
+    proposalCount:Array.isArray(data.proposals)?data.proposals.length:0,
+    projectedLinkCount, duplicateLinkSpecCount
   };
 }
 
-function importIdea(data){
+function importIdea(data,overrides){
   // Импорт — явное, высокоинтентное действие (пользователь уже прошёл превью и нажал "Добавить в
   // граф"), поэтому в отличие от тихих no-op у mutators выше — здесь честная ошибка с понятным
   // текстом, а не молчаливое "ничего не произошло".
   if(readOnlyMode) throw new Error('Включён режим «только чтение» — импорт отключён. Выключи его в шапке.');
   if(!data||!Array.isArray(data.nodes)) throw new Error('Файл не похож на шаблон идеи: нет массива "nodes".');
+  overrides=overrides||{entities:{},variables:{}};
   const refMap={};
   const startY=nextIdeaY();
   const positions=layoutIdeaEntries(data.nodes);
 
   (data.variables||[]).forEach(v=>{
-    if(v&&v.id&&!findVariable(v.id)) variables.push({id:v.id,name:v.name||v.id,type:v.type||'counter',start:num(v.start,0),min:num(v.min,0),max:num(v.max,100)});
+    if(!v||!v.id) return;
+    const existing=findVariable(v.id);
+    if(!existing){ variables.push({id:v.id,name:v.name||v.id,type:v.type||'counter',start:num(v.start,0),min:num(v.min,0),max:num(v.max,100)}); return; }
+    // Конфликт (тот же id, другие параметры) — по умолчанию оставляем как в графе (старое поведение);
+    // 'replace' — осознанный выбор в превью, перезаписывает ПАРАМЕТРЫ на месте (тот же id, все ссылки
+    // на переменную остаются рабочими — заменяется только определение, не сама переменная как объект).
+    if(overrides.variables[v.id]==='replace') Object.assign(existing,{name:v.name||existing.name,type:v.type||existing.type,start:num(v.start,existing.start),min:num(v.min,existing.min),max:num(v.max,existing.max)});
   });
 
   data.nodes.forEach(entry=>{ if(entry.ref) refMap[entry.ref]=uid('n'); });
@@ -132,35 +239,20 @@ function importIdea(data){
   });
   nodes.push(...newNodes);
 
-  // Ограничение веера: по умолчанию "all" (все совпадения) — но с защитой от дублей (одна и та же
-  // пара from→target не создаётся дважды, даже при повторном импорте того же файла) и жёстким
-  // потолком LINK_FANOUT_CAP на один link — если тег общий для полусотни узлов, один импорт не
-  // должен молча породить полсотни новых переходов. mode:"first" — только первое совпадение.
-  const LINK_FANOUT_CAP=30;
-  let linkCount=0;
-  (data.links||[]).forEach(link=>{
-    const fromId=link.from_ref?refMap[link.from_ref]:link.from;
-    const from=findNode(fromId); if(!from) return;
-    const mode=link.mode==='first'?'first':'all';
-    const existingTargets=new Set(from.choices.map(c=>c.target));
-    for(const target of nodes){
-      if(target.id===from.id||existingTargets.has(target.id)) continue;
-      const catMatch=link.match_category&&target.category===link.match_category;
-      const tagMatch=link.match_tag&&(target.tags||[]).includes(link.match_tag);
-      if(!catMatch&&!tagMatch) continue;
-      from.choices.push({id:uid('c'),label:link.label||'(связано по тегу)',target:target.id,requires:[],effects:[],sim:{}});
-      existingTargets.add(target.id);
-      linkCount++;
-      if(mode==='first') break;
-      if(linkCount>=LINK_FANOUT_CAP){ console.warn('Story Map: авто-связей по "'+(link.match_tag||link.match_category)+'" больше '+LINK_FANOUT_CAP+', остальные пропущены — сузь тег или используй mode:"first".'); break; }
-    }
-  });
+  // Ограничение веера + защита от дублей + подсчёт — applyAutoLinks (см. выше), та же самая ветка
+  // кода, что и в превью (analyzeIdea), только mutate:true и по настоящим nodes (newNodes уже внутри).
+  const linkCount=applyAutoLinks(data.links,link=>findNode(link.from_ref?refMap[link.from_ref]:link.from),nodes,true);
 
   // Сущности/связи/идеи-предложения — тот же принцип "только добавляем", что и у узлов/переменных:
-  // resolveOrCreateEntity сам решает "это уже есть" vs "это новое" (см. analyzeIdea выше — числа
-  // в превью и то, что реально будет добавлено здесь, посчитаны одной и той же функцией).
+  // resolveOrCreateEntity сам решает "это уже есть" vs "это новое" vs override пользователя из превью
+  // (см. analyzeIdea выше — числа в превью и то, что реально будет добавлено здесь, посчитаны одной и
+  // той же функцией).
   const entityRefMap={};
-  (data.entities||[]).forEach(entry=>{ resolveOrCreateEntity(entry,entityRefMap,true); });
+  let resolvedEntityCount=0;
+  (data.entities||[]).forEach(entry=>{
+    const {skipped}=resolveOrCreateEntity(entry,entityRefMap,true,entry.ref?overrides.entities[entry.ref]:undefined);
+    if(!skipped) resolvedEntityCount++;
+  });
 
   // Теперь, когда entityRefMap заполнена, можно превратить локальные bundle-ref'ы в node.refs
   // (проставленные выше как временные "сырые" значения) в настоящие id сущностей.
@@ -185,9 +277,9 @@ function importIdea(data){
     addedProposalCount++;
   });
 
-  ideaLog.unshift({title:data.title||data.idea_id||'(без названия)',at:new Date(),nodeCount:newNodes.length,varCount:(data.variables||[]).length,linkCount,entityCount:(data.entities||[]).length,relationCount:addedRelationCount,proposalCount:addedProposalCount});
+  ideaLog.unshift({title:data.title||data.idea_id||'(без названия)',at:new Date(),nodeCount:newNodes.length,varCount:(data.variables||[]).length,linkCount,entityCount:resolvedEntityCount,relationCount:addedRelationCount,proposalCount:addedProposalCount});
   pushHistory(); renderAll(); renderIdeaLog();
-  return {nodeCount:newNodes.length,linkCount,entityCount:(data.entities||[]).length,relationCount:addedRelationCount,proposalCount:addedProposalCount};
+  return {nodeCount:newNodes.length,linkCount,entityCount:resolvedEntityCount,relationCount:addedRelationCount,proposalCount:addedProposalCount};
 }
 
 function renderIdeaLog(){
@@ -247,9 +339,12 @@ document.getElementById('btnDownloadTemplate').onclick=()=>{
 };
 document.getElementById('btnImportIdea').onclick=()=>document.getElementById('ideaFileInput').click();
 
-// Импорт → Анализ (не мутирует граф) → Превью (эта карточка) → Слияние (только по кнопке
-// "Добавить в граф") — чтобы файл с идеей нельзя было случайно "впаять" в граф одним кликом мимо.
+// Импорт → Анализ (не мутирует граф) → Превью (эта карточка, теперь интерактивная — можно выбрать
+// reuse/new/skip на конфликтующих сущностях и keep/replace на конфликтующих переменных, см. ниже) →
+// Слияние (только по кнопке "Добавить в граф") — чтобы файл с идеей нельзя было случайно "впаять" в
+// граф одним кликом мимо.
 let pendingIdeaData=null;
+let pendingOverrides={entities:{},variables:{}};
 document.getElementById('ideaFileInput').addEventListener('change',async e=>{
   const file=e.target.files[0]; e.target.value='';
   if(!file) return;
@@ -257,31 +352,68 @@ document.getElementById('ideaFileInput').addEventListener('change',async e=>{
     const data=JSON.parse(await file.text());
     if(!data||!Array.isArray(data.nodes)) throw new Error('Файл не похож на шаблон идеи: нет массива "nodes".');
     pendingIdeaData=data;
-    showImportPreview(analyzeIdea(data));
+    pendingOverrides={entities:{},variables:{}};
+    renderImportPreview();
   }catch(err){ alert('Не удалось прочитать идею: '+err.message); }
 });
-function showImportPreview(summary){
+// Перерисовывается на каждый выбор в списках ниже (не только один раз при открытии) — числа в
+// сводке (в т.ч. спроецированный счётчик автосвязей) должны отражать ТЕКУЩИЙ выбор пользователя,
+// иначе превью соврёт о том, что реально добавится после нажатия "Добавить в граф".
+function renderImportPreview(){
+  if(!pendingIdeaData) return;
+  const summary=analyzeIdea(pendingIdeaData,pendingOverrides);
+  const entityRows=summary.entityDetails.filter(d=>d.ref).map(d=>{
+    const options=[];
+    if(d.matchedId) options.push(`<option value="match" ${d.override==='match'?'selected':''}>Использовать существующую: ${esc(d.matchedName)}</option>`);
+    options.push(`<option value="new" ${d.override==='new'?'selected':''}>Создать новую</option>`);
+    options.push(`<option value="skip" ${d.override==='skip'?'selected':''}>Пропустить (не создавать)</option>`);
+    return `<div class="row" style="margin-bottom:4px">
+      <span class="tag entity" style="flex:none">${esc(d.kindLabel)}</span>
+      <span class="nm" style="flex:1;font-size:12px">${esc(d.label)}</span>
+      <select data-entityoverride="${esc(d.ref)}" style="flex:none">${options.join('')}</select>
+    </div>`;
+  }).join('');
+  const varConflictRows=summary.variableConflicts.map(c=>{
+    const choice=pendingOverrides.variables[c.id]||'keep';
+    return `<div class="row" style="margin-bottom:4px">
+      <span class="nm" style="flex:1;font-size:12px">${esc(c.existingName)} → ${esc(c.incomingName)}</span>
+      <select data-varoverride="${esc(c.id)}" style="flex:none">
+        <option value="keep" ${choice==='keep'?'selected':''}>Оставить как в графе</option>
+        <option value="replace" ${choice==='replace'?'selected':''}>Заменить параметрами из идеи</option>
+      </select>
+    </div>`;
+  }).join('');
   document.getElementById('importPreviewBody').innerHTML=`
     <div class="hint">«${esc(summary.title)}»</div>
     <ul style="margin:8px 0;padding-left:18px;font-size:12.5px;line-height:1.6">
       <li>Узлов: ${summary.nodeCount}</li>
-      <li>Переменных: новых ${summary.newVarCount}, уже существующих ${summary.existingVarCount}</li>
-      <li>Сущностей: новых ${summary.newEntityCount}, совпало с существующими ${summary.existingEntityCount}</li>
+      <li>Переменных: новых ${summary.newVarCount}, уже существующих ${summary.existingVarCount-summary.variableConflicts.length}${summary.variableConflicts.length?`, конфликтующих ${summary.variableConflicts.length}`:''}</li>
+      <li>Сущностей: новых ${summary.newEntityCount}, совпало с существующими ${summary.existingEntityCount}${summary.skippedEntityCount?`, пропущено ${summary.skippedEntityCount}`:''}</li>
       <li>Связей: ${summary.relationCount}${summary.newRelationTypeCount?` (новых типов связи: ${summary.newRelationTypeCount} — ${esc(summary.newRelationTypeNames.join(', '))})`:''}</li>
+      <li>Автосвязей по тегу/разделу будет создано: ${summary.projectedLinkCount}${summary.duplicateLinkSpecCount?` <span class="muted">(⚠ ${summary.duplicateLinkSpecCount} повторяющихся описаний связи в файле)</span>`:''}</li>
       <li>Идей/предложений: ${summary.proposalCount}</li>
-    </ul>`;
+    </ul>
+    ${entityRows?`<div class="hint" style="margin-top:6px">Сущности бандла — что делать с каждой:</div>${entityRows}`:''}
+    ${varConflictRows?`<div class="hint" style="margin-top:6px">⚠ Переменные с тем же id, но другими параметрами:</div>${varConflictRows}`:''}
+  `;
   document.getElementById('importPreviewModal').style.display='flex';
 }
+document.getElementById('importPreviewBody').addEventListener('change',e=>{
+  const eo=e.target.closest('[data-entityoverride]');
+  if(eo){ pendingOverrides.entities[eo.dataset.entityoverride]=eo.value; renderImportPreview(); return; }
+  const vo=e.target.closest('[data-varoverride]');
+  if(vo){ pendingOverrides.variables[vo.dataset.varoverride]=vo.value; renderImportPreview(); }
+});
 document.getElementById('btnImportCancel').onclick=()=>{
   pendingIdeaData=null;
   document.getElementById('importPreviewModal').style.display='none';
 };
 document.getElementById('btnImportConfirm').onclick=()=>{
-  const data=pendingIdeaData; pendingIdeaData=null;
+  const data=pendingIdeaData, overrides=pendingOverrides; pendingIdeaData=null; pendingOverrides={entities:{},variables:{}};
   document.getElementById('importPreviewModal').style.display='none';
   if(!data) return;
   try{
-    const r=importIdea(data);
+    const r=importIdea(data,overrides);
     alert(`Готово: добавлено ${r.nodeCount} узлов, ${r.linkCount} автосвязей, ${r.entityCount} сущностей, ${r.relationCount} связей, ${r.proposalCount} идей.`);
   }catch(err){ alert('Не удалось импортировать идею: '+err.message); }
 };
