@@ -9,7 +9,9 @@ function readParams(){
     critical:num(document.getElementById('pCritical').value,15),
     dangerMul:num(document.getElementById('pDangerMul').value,1),
     seed:num(document.getElementById('pSeed').value,1),
-    maxSteps:num(document.getElementById('pMaxSteps').value,500)
+    maxSteps:num(document.getElementById('pMaxSteps').value,500),
+    startItems:parseCsvList(document.getElementById('pStartItems').value),
+    startSkills:parseCsvList(document.getElementById('pStartSkills').value)
   };
 }
 const OUTCOME_LABEL={death:'☠ смерть',stuck:'⛔ застрял (нет доступных переходов)',timeout:'⏱ не завершился за отведённые шаги',
@@ -25,6 +27,7 @@ function stepHtml(s){
     <div class="hdr"><span>${label}</span><span class="t">день ${s.day}, час ${Math.round(s.hour)}</span></div>
     ${s.why?`<div class="why">${esc(s.why)}</div>`:''}
     ${deltasTxt?`<div class="deltas">${deltasTxt}</div>`:''}
+    ${s.warnings&&s.warnings.length?`<div class="why warn-text">⚠ ${s.warnings.map(esc).join(' · ')}</div>`:''}
     ${s.ending?`<div class="deltas">🏁 концовка: ${esc(s.ending)}</div>`:''}
   </div>`;
 }

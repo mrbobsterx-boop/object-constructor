@@ -26,6 +26,9 @@
     <label class="small" style="margin-top:6px">Множитель опасности от world_danger</label><input type="number" step="0.1" class="full" id="pDangerMul" value="1">
     <label class="small" style="margin-top:6px">Зерно случайности (для повтора)</label><input type="number" class="full" id="pSeed" value="1">
     <label class="small" style="margin-top:6px">Предел шагов на прогон</label><input type="number" class="full" id="pMaxSteps" value="500">
+    <label class="small" style="margin-top:6px">Стартовые предметы (id через запятую, из Object Plan)</label><input type="text" class="full" id="pStartItems" placeholder="напр. axe_01, battery_cell">
+    <label class="small" style="margin-top:6px">Стартовые навыки (id через запятую)</label><input type="text" class="full" id="pStartSkills" placeholder="напр. crafting, medicine">
+    <div class="hint" style="margin-top:4px">Один и тот же набор на весь прогон — бот не подбирает и не крафтит предметы по ходу игры, только проверяет, что нужное для перехода уже есть с самого начала (раньше «нужны предметы/навыки» вообще не проверялись — см. §6 справочника).</div>
   </div>
   <div class="group">
     <h3>Один прогон</h3>

@@ -37,6 +37,7 @@ label.small{font-size:11px;color:var(--muted);display:block;margin-bottom:2px}
 .step.death{border-color:var(--danger)}
 .step.warn-row{border-color:var(--warn)}
 .step .why{color:var(--muted);font-size:11px;margin-top:3px}
+.step .warn-text{color:var(--warn)}
 .step .deltas{color:var(--accent-hi);font-size:11px;margin-top:3px}
 .stat{background:#0e1217;border:1px solid var(--line2);border-radius:6px;padding:10px;text-align:center}
 .stat .n{font-size:20px}

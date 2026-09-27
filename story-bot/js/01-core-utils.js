@@ -5,6 +5,7 @@
 
 function esc(s){ return String(s===undefined||s===null?'':s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
 function num(v,def){ const n=Number(v); return Number.isFinite(n)?n:(def===undefined?0:def); }
+function parseCsvList(s){ return String(s||'').split(',').map(x=>x.trim()).filter(Boolean); }
 function opTest(a,op,b){
   a=Number(a)||0; b=Number(b)||0;
   if(op==='>=')return a>=b; if(op==='<=')return a<=b; if(op==='==')return a===b;

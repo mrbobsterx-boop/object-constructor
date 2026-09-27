@@ -20,6 +20,23 @@ function opApply(cur,op,value){
   if(op==='set')return value; if(op==='add')return cur+value; if(op==='subtract')return cur-value; return cur;
 }
 function conditionsPass(ws,list){ return (list||[]).every(c=>opTest(ws.vars[c.var],c.op,num(c.value))); }
+// Стартовый инвентарь/навыки — статичный набор на весь прогон (см. параметры симуляции): в текущей
+// модели story.json нет способа "выдать" предмет через effects (только переменные меняются), поэтому
+// это не полная экономика предметов, а точная проверка того единственного, что sim.requiresItems/
+// requiresSkills реально означают — "доступен ли этот переход БЕЗ учёта того, что предмет мог бы
+// появиться по ходу прогона". Раньше эти поля не проверялись вовсе (см. журнал изменений §6).
+function hasAll(have,need){ have=have||[]; return (need||[]).every(x=>have.includes(x)); }
+function choiceAvailable(ws,c,params){
+  return !!c.target&&conditionsPass(ws,c.requires)&&hasAll(params.startItems,c.sim&&c.sim.requiresItems)&&hasAll(params.startSkills,c.sim&&c.sim.requiresSkills);
+}
+function whyUnavailable(ws,c,params){
+  if(!conditionsPass(ws,c.requires)) return (c.label||'?')+': не выполнены условия';
+  const missingItems=((c.sim&&c.sim.requiresItems)||[]).filter(x=>!(params.startItems||[]).includes(x));
+  if(missingItems.length) return (c.label||'?')+': не хватает предметов ('+missingItems.join(', ')+')';
+  const missingSkills=((c.sim&&c.sim.requiresSkills)||[]).filter(x=>!(params.startSkills||[]).includes(x));
+  if(missingSkills.length) return (c.label||'?')+': не хватает навыков ('+missingSkills.join(', ')+')';
+  return (c.label||'?')+': недоступен';
+}
 
 function urgencyOf(level,critical){ return level<=critical?3:(level<=45?1:0.25); }
 function scoreChoice(ws,choice,params,rng){
@@ -101,8 +118,12 @@ function runOnce(story,params,seed){
 
     if(ws.health<=0){ log[log.length-1].warnings=['здоровье упало до нуля']; return finish('death'); }
 
-    const options=(current.choices||[]).filter(c=>c.target&&conditionsPass(ws,c.requires));
-    if(!options.length) return finish('stuck');
+    const rawChoices=(current.choices||[]).filter(c=>c.target);
+    const options=rawChoices.filter(c=>choiceAvailable(ws,c,params));
+    if(!options.length){
+      if(rawChoices.length) log[log.length-1].warnings=(log[log.length-1].warnings||[]).concat(['нет доступных переходов: '+rawChoices.map(c=>whyUnavailable(ws,c,params)).join('; ')]);
+      return finish('stuck');
+    }
     let best=options[0], bestScore=-Infinity;
     options.forEach(c=>{ const s=scoreChoice(ws,c,params,rng); if(s>bestScore){ bestScore=s; best=c; } });
     const choiceDeltas=applyEffects(ws,best.effects);
