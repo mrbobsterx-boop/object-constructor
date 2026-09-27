@@ -8,20 +8,23 @@ let viewMode='story';
 
 function setViewMode(mode){
   viewMode=mode;
-  const isWorld=mode==='world';
-  if(isWorld){ selectedNodeId=null; multiSelected=new Set(); }
-  document.getElementById('viewStoryBtn').classList.toggle('active',!isWorld);
+  const isStory=mode==='story', isWorld=mode==='world', isTimeline=mode==='timeline';
+  if(!isStory){ selectedNodeId=null; multiSelected=new Set(); }
+  document.getElementById('viewStoryBtn').classList.toggle('active',isStory);
   document.getElementById('viewWorldBtn').classList.toggle('active',isWorld);
-  document.getElementById('storyLeftPanels').style.display=isWorld?'none':'';
+  document.getElementById('viewTimelineBtn').classList.toggle('active',isTimeline);
+  document.getElementById('storyLeftPanels').style.display=isStory?'':'none';
   document.getElementById('worldLeftPanels').style.display=isWorld?'':'none';
-  document.getElementById('canvasOuter').style.display=isWorld?'none':'';
+  document.getElementById('canvasOuter').style.display=isStory?'':'none';
   document.getElementById('worldCanvas').style.display=isWorld?'':'none';
-  document.getElementById('storyZoombar').style.display=isWorld?'none':'';
-  document.getElementById('storyHint').style.display=isWorld?'none':'';
+  document.getElementById('timelineCanvas').style.display=isTimeline?'':'none';
+  document.getElementById('storyZoombar').style.display=isStory?'':'none';
+  document.getElementById('storyHint').style.display=isStory?'':'none';
   renderAll();
 }
 document.getElementById('viewStoryBtn').onclick=()=>setViewMode('story');
 document.getElementById('viewWorldBtn').onclick=()=>setViewMode('world');
+document.getElementById('viewTimelineBtn').onclick=()=>setViewMode('timeline');
 
 // Story → World: вызывается из инспектора узла (04-inspector.js) кликом по фишке-ссылке на сущность.
 function jumpToWorldEntity(id){

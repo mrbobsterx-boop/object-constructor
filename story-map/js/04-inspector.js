@@ -170,6 +170,15 @@ function inspectorTabBody(tab,n){
       </div>
       <label class="small" style="margin-top:6px">Доп. теги (другие системы, которых это тоже касается — по ним подключаются идеи-импорты)</label>
       ${chipPickerHtml('tags',n.tags||[],'systems')}
+      <div class="row" style="margin-top:6px">
+        <div><label class="small">Арка</label>
+          <input type="text" list="arcOptionsDatalist" data-path="arc" value="${esc(n.arc||'')}" placeholder="напр. Арка бункера"></div>
+        <div><label class="small">Глава</label>
+          <input type="text" list="chapterOptionsDatalist" data-path="chapter" value="${esc(n.chapter||'')}" placeholder="напр. Глава 2: Вылазка"></div>
+      </div>
+      <div class="hint">Арка/глава — только группировка для навигации (левая панель, фильтры), не меняет сам граф и не видна боту-симулятору.</div>
+      <datalist id="arcOptionsDatalist">${[...new Set(nodes.map(x=>x.arc).filter(Boolean))].map(a=>`<option value="${esc(a)}">`).join('')}</datalist>
+      <datalist id="chapterOptionsDatalist">${[...new Set(nodes.map(x=>x.chapter).filter(Boolean))].map(c=>`<option value="${esc(c)}">`).join('')}</datalist>
     </div>`;
 }
 

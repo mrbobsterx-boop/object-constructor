@@ -125,6 +125,8 @@ function nodeMatchesSearch(n,q){
   if((n.id||'').toLowerCase().includes(q)) return true;
   if(categoryName(n.category).toLowerCase().includes(q)) return true;
   if((n.tags||[]).some(t=>categoryName(t).toLowerCase().includes(q)||t.toLowerCase().includes(q))) return true;
+  if((n.arc||'').toLowerCase().includes(q)) return true;
+  if((n.chapter||'').toLowerCase().includes(q)) return true;
   const varIds=new Set();
   (n.effects||[]).forEach(e=>{ if(e.var) varIds.add(e.var); });
   (n.choices||[]).forEach(c=>(c.effects||[]).forEach(e=>{ if(e.var) varIds.add(e.var); }));
@@ -138,14 +140,41 @@ function nodeMatchesStatus(n,status,reachable){
   if(status==='unreachable') return n.trigger.kind==='conditions'&&!reachable.has(n.id);
   return true;
 }
+// Арка/глава — свободный текст, не закрытый каталог (в отличие от раздела/SYSTEMS), поэтому список
+// вариантов в фильтре собирается из того, что уже реально встречается в графе, и пересобирается при
+// каждом рендере левой панели — переименовали/добавили главу на узле, фильтр сразу это подхватывает.
+// Текущий выбор явно возвращается на место — иначе он молча сбросился бы на "все" при любой правке.
+function updateArcChapterFilterOptions(){
+  const arcSel=document.getElementById('filterArc'), chapterSel=document.getElementById('filterChapter');
+  if(arcSel){
+    const cur=arcSel.value;
+    const arcs=[...new Set(nodes.map(n=>n.arc).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'ru'));
+    arcSel.innerHTML='<option value="">Арка: все</option>'+arcs.map(a=>`<option value="${esc(a)}">${esc(a)}</option>`).join('');
+    if(cur&&arcs.includes(cur)) arcSel.value=cur;
+  }
+  if(chapterSel){
+    const cur=chapterSel.value;
+    const chapters=[...new Set(nodes.map(n=>n.chapter).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'ru'));
+    chapterSel.innerHTML='<option value="">Глава: все</option>'+chapters.map(c=>`<option value="${esc(c)}">${esc(c)}</option>`).join('');
+    if(cur&&chapters.includes(cur)) chapterSel.value=cur;
+  }
+}
+function nodeMatchesArcChapter(n,arc,chapter){
+  if(arc&&(n.arc||'')!==arc) return false;
+  if(chapter&&(n.chapter||'')!==chapter) return false;
+  return true;
+}
 let collapsedCats=new Set();
 function renderNodesByCategory(){
+  updateArcChapterFilterOptions();
   if(!nodes.length) return '<div class="hint">Пока нет узлов.</div>';
   const q=(document.getElementById('nodeSearch')||{}).value||'';
   const typeFilter=(document.getElementById('filterType')||{}).value||'';
   const statusFilter=(document.getElementById('filterStatus')||{}).value||'';
+  const arcFilter=(document.getElementById('filterArc')||{}).value||'';
+  const chapterFilter=(document.getElementById('filterChapter')||{}).value||'';
   const reachable=computeReachable();
-  const filtered=nodes.filter(n=>(!typeFilter||n.type===typeFilter)&&nodeMatchesSearch(n,q)&&nodeMatchesStatus(n,statusFilter,reachable));
+  const filtered=nodes.filter(n=>(!typeFilter||n.type===typeFilter)&&nodeMatchesSearch(n,q)&&nodeMatchesStatus(n,statusFilter,reachable)&&nodeMatchesArcChapter(n,arcFilter,chapterFilter));
   if(!filtered.length) return '<div class="hint">Ничего не найдено по этому запросу/фильтру.</div>';
   const byCat=new Map();
   filtered.forEach(n=>{ const cat=n.category||'story'; if(!byCat.has(cat)) byCat.set(cat,[]); byCat.get(cat).push(n); });
@@ -167,6 +196,8 @@ function renderNodesByCategory(){
 document.getElementById('nodeSearch').addEventListener('input',()=>{ document.getElementById('nodeList').innerHTML=renderNodesByCategory(); });
 document.getElementById('filterType').addEventListener('change',()=>{ document.getElementById('nodeList').innerHTML=renderNodesByCategory(); });
 document.getElementById('filterStatus').addEventListener('change',()=>{ document.getElementById('nodeList').innerHTML=renderNodesByCategory(); });
+document.getElementById('filterArc').addEventListener('change',()=>{ document.getElementById('nodeList').innerHTML=renderNodesByCategory(); });
+document.getElementById('filterChapter').addEventListener('change',()=>{ document.getElementById('nodeList').innerHTML=renderNodesByCategory(); });
 
 // Центрирует узел на текущем масштабе (не сбрасывает zoom) — резкий скачок при переходе между узлами
 // на большой карте раздражает сильнее, чем сохранённый масштаб.

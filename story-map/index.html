@@ -13,6 +13,7 @@
   <div class="viewswitch">
     <button id="viewStoryBtn" class="active" title="Узлы сюжета: события, выборы, переходы">📖 Сюжет</button>
     <button id="viewWorldBtn" title="Сущности мира и типизированные связи между ними">🌍 Мир</button>
+    <button id="viewTimelineBtn" title="Узлы сюжета в порядке игрового времени — старт и фоновые узлы по таймеру">🕐 Таймлайн</button>
   </div>
   <button id="btnConnect" class="primary">📁 Подключить папку проекта</button>
   <button id="btnRegrant" style="display:none">Разрешить доступ</button>
@@ -48,10 +49,18 @@
         <button id="btnAddBackground">+ Фоновое</button>
         <button id="btnAddNote" title="Заметка-стикер на холсте — авторская пометка, не часть сюжета. Двойной клик по пустому месту холста делает то же самое.">📝 Заметка</button>
       </div>
+      <div class="row" style="margin-bottom:6px">
+        <select id="storyTemplateSelect" style="flex:1"></select>
+        <button id="btnInsertTemplate" title="Вставить готовый структурный паттерн (несколько связанных узлов сразу) от текущей точки">🧩 Вставить шаблон</button>
+      </div>
       <input type="text" id="nodeSearch" class="full" placeholder="🔎 Найти узел — название, текст, тег, id, переменная…" style="margin-bottom:6px">
       <div class="row" id="nodeFilterRow" style="margin-bottom:6px">
         <select id="filterType"><option value="">Тип: все</option><option value="event">Событие</option><option value="choice">Выбор</option><option value="background">Фоновое</option></select>
         <select id="filterStatus"><option value="">Статус: все</option><option value="deadend">Тупики</option><option value="ending">Концовки</option><option value="unreachable">Недостижимые</option></select>
+      </div>
+      <div class="row" id="nodeFilterRow2" style="margin-bottom:6px">
+        <select id="filterArc"><option value="">Арка: все</option></select>
+        <select id="filterChapter"><option value="">Глава: все</option></select>
       </div>
       <div id="nodeList" class="nodelist"></div>
     </div>
@@ -133,6 +142,8 @@
   <div id="entityDetail"><div class="hint">Выбери сущность слева — или добавь новую.</div></div>
 </div>
 
+<div class="canvas-outer" id="timelineCanvas" style="display:none;overflow:auto;padding:16px"></div>
+
 <div class="side-right" id="inspector">
   <div class="hint">Выбери узел на холсте или в списке слева, чтобы редактировать его.</div>
 </div>
@@ -179,5 +190,7 @@
 <script src="js/09-world-model.js"></script>
 <script src="js/10-world-view.js"></script>
 <script src="js/11-init.js"></script>
+<script src="js/12-story-templates.js"></script>
+<script src="js/13-timeline.js"></script>
 </body>
 </html>

@@ -253,6 +253,8 @@ function renderAll(){
   renderLeft(); renderCanvas(); renderChecks();
   if(typeof renderWorldLeft==='function') renderWorldLeft();
   if(typeof renderWorldCanvas==='function') renderWorldCanvas();
+  if(typeof renderTimeline==='function') renderTimeline();
   if(typeof viewMode!=='undefined'&&viewMode==='world'&&typeof renderWorldInspector==='function') renderWorldInspector();
+  else if(typeof viewMode!=='undefined'&&viewMode==='timeline'){ const el=document.getElementById('inspector'); if(el) el.innerHTML='<div class="hint">Клик по узлу на хронологии переключит на «Сюжет» и откроет его здесь.</div>'; }
   else renderInspector();
 }

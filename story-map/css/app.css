@@ -158,3 +158,11 @@ body.read-only .app{outline:3px solid var(--warn);outline-offset:-3px}
 .modal-overlay{position:fixed;inset:0;background:rgba(10,13,17,.6);display:flex;align-items:center;justify-content:center;z-index:50}
 .modal-card{background:var(--panel);border:1px solid var(--line2);border-radius:10px;padding:18px 20px;width:420px;max-width:92vw;max-height:80vh;overflow-y:auto;box-shadow:0 10px 40px rgba(0,0,0,.5)}
 .modal-card h3{margin:0 0 8px;font-size:14px}
+
+.timeline-track{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
+.timeline-node{border:1px solid var(--line2);border-radius:8px;padding:8px 10px;background:var(--panel2);min-width:140px;cursor:pointer}
+.timeline-node:hover{border-color:var(--accent-hi)}
+.timeline-node .tl-hour{font-size:11px;color:var(--accent-hi);font-weight:600}
+.timeline-node .tl-title{font-size:12.5px;margin-top:2px}
+.timeline-node .tl-chapter{margin-top:2px}
+.timeline-arrow{color:var(--muted);font-size:16px;flex:none}
