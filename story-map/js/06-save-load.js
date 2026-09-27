@@ -16,6 +16,7 @@ function collectStoryJSON(){
       choices:n.choices.map(c=>({id:c.id,label:c.label,target:c.target,requires:c.requires,effects:c.effects,sim:c.sim||{}})),
       ending:n.ending||''
     })),
+    stickyNotes:stickyNotes.map(s=>({id:s.id,x:num(s.x),y:num(s.y),text:s.text||'',color:s.color||STICKY_COLORS[0]})),
     entities:entities.map(e=>({id:e.id,kind:e.kind,name:e.name||'',ref:e.ref?{catalog:e.ref.catalog,refId:e.ref.refId||''}:null,note:e.note||''})),
     relationTypes:relationTypes.map(t=>({id:t.id,name:t.name})),
     relations:relations.map(r=>({id:r.id,type:r.type,from:r.from,to:r.to,status:r.status||'confirmed',source:r.source||'',comment:r.comment||'',conditions:r.conditions||[],effects:r.effects||[]})),
@@ -64,6 +65,7 @@ async function loadStoryFromProject(){
         ending:n.ending||''
       };
     });
+    stickyNotes=Array.isArray(data.stickyNotes)?data.stickyNotes.map(s=>({id:s.id||uid('note'),x:num(s.x,0),y:num(s.y,0),text:s.text||'',color:STICKY_COLORS.includes(s.color)?s.color:STICKY_COLORS[0]})):[];
     entities=Array.isArray(data.entities)?data.entities.map(e=>({id:e.id||uid('e'),kind:e.kind||'concept',name:e.name||'',ref:e.ref?{catalog:e.ref.catalog||'',refId:e.ref.refId||''}:null,note:e.note||''})):[];
     relationTypes=Array.isArray(data.relationTypes)?data.relationTypes.map(t=>({id:t.id||uid('rt'),name:t.name||''})):[];
     seedRelationTypesIfEmpty();

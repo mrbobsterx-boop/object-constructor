@@ -9,6 +9,8 @@
 
 let variables=[];
 let nodes=[];
+let stickyNotes=[]; // заметки-стикеры на холсте — чисто авторские пометки, не часть сюжетного графа
+  // (не видны боту, не участвуют в проверках): "как в Miro", комментарий к месту, а не к узлу
 let selectedNodeId=null;
 let multiSelected=new Set(); // всегда синхронизирован с selectedNodeId для одиночного выбора — это цель для групповых операций
 let clipboard=null;
@@ -148,6 +150,29 @@ function deleteChoice(nodeId,choiceId){
   pushHistory(); renderAll();
 }
 
+const STICKY_COLORS=['yellow','pink','blue','green'];
+function addStickyNote(x,y){
+  const n={id:uid('note'),x:num(x,0),y:num(y,0),text:'',color:STICKY_COLORS[0]};
+  stickyNotes.push(n);
+  pushHistory(); renderAll();
+  return n;
+}
+function updateStickyNote(id,patch){
+  const n=stickyNotes.find(s=>s.id===id); if(!n) return;
+  Object.assign(n,patch);
+  pushHistory(); renderAll();
+}
+function moveStickyNote(id,x,y){
+  const n=stickyNotes.find(s=>s.id===id); if(!n) return;
+  n.x=x; n.y=y;
+  renderCanvas(); // как moveNode — перетаскивание не должно засорять историю на каждый пиксель
+}
+function commitStickyMove(){ pushHistory(); }
+function deleteStickyNote(id){
+  stickyNotes=stickyNotes.filter(s=>s.id!==id);
+  pushHistory(); renderAll();
+}
+
 function addCondRow(list){ list.push({var:(variables[0]&&variables[0].id)||'',op:'>=',value:0}); }
 function addEffRow(list){ list.push({var:(variables[0]&&variables[0].id)||'',op:'add',value:0}); }
 
@@ -159,12 +184,13 @@ function markClean(){ dirty=false; if(typeof renderDirtyStatus==='function') ren
 let history=[], historyIndex=-1;
 // entities/relationTypes/relations/proposals — слой мира (модуль 09), но переиспользуют ту же
 // историю отмены/возврата, что и сюжетный граф: пользователю не нужны два разных Ctrl+Z.
-function snapshot(){ return JSON.stringify({variables,nodes,selectedNodeId,entities,relationTypes,relations,proposals,selectedEntityId}); }
+function snapshot(){ return JSON.stringify({variables,nodes,selectedNodeId,entities,relationTypes,relations,proposals,selectedEntityId,stickyNotes}); }
 function restoreSnapshot(s){
   const d=JSON.parse(s);
   variables=d.variables; nodes=d.nodes; selectedNodeId=d.selectedNodeId;
   entities=d.entities||[]; relationTypes=d.relationTypes||[]; relations=d.relations||[]; proposals=d.proposals||[];
   selectedEntityId=d.selectedEntityId||null;
+  stickyNotes=d.stickyNotes||[];
 }
 function pushHistory(){
   history=history.slice(0,historyIndex+1);

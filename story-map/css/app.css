@@ -37,7 +37,7 @@ header .spacer{flex:1}
   background-size:24px 24px;background-position:0 0,0 12px,12px -12px,-12px 0;background-color:var(--bg);touch-action:none;cursor:grab}
 .canvas-outer.panning{cursor:grabbing}
 #world{position:absolute;left:0;top:0;transform-origin:0 0}
-#edgeLayer{position:absolute;left:0;top:0;overflow:visible;pointer-events:none}
+#edgeLayer{position:absolute;left:0;top:0;overflow:visible;pointer-events:none;transform-origin:0 0}
 #edgeLayer path{fill:none;stroke:var(--muted);stroke-width:2}
 #edgeLayer path.temp{stroke:var(--accent-hi);stroke-dasharray:5 4}
 #edgeLayer path.dimmed{opacity:.12}
@@ -92,6 +92,7 @@ label.small{font-size:11px;color:var(--muted);display:block;margin-bottom:2px}
 .node-box.background{border-color:var(--warn)}
 .node-box.selected{outline:2px solid var(--accent-hi);outline-offset:2px;box-shadow:0 0 0 4px rgba(107,191,144,.15)}
 .node-box.dimmed{opacity:.22}
+.node-box.connect-hover{outline:3px solid var(--accent-hi);outline-offset:3px;box-shadow:0 0 0 7px rgba(107,191,144,.28);transition:box-shadow .08s ease}
 .node-box .nb-title{font-size:12.5px;font-weight:600;margin-bottom:4px;word-break:break-word}
 .node-box .nb-meta{font-size:10.5px;color:var(--muted);display:flex;justify-content:space-between;align-items:center}
 .node-box .nb-choices{margin-top:5px;border-top:1px solid var(--line2);padding-top:4px;display:flex;flex-direction:column;gap:2px}
@@ -99,6 +100,20 @@ label.small{font-size:11px;color:var(--muted);display:block;margin-bottom:2px}
 .node-box .nb-choice::before{content:'↳';position:absolute;left:0;color:var(--muted)}
 .node-box .nb-choice.muted{color:var(--muted);font-style:italic}
 .node-handle{position:absolute;right:-9px;top:50%;transform:translateY(-50%);width:16px;height:16px;border-radius:50%;background:var(--accent);border:2px solid var(--accent-hi);cursor:crosshair}
+
+/* Заметки-стикеры — авторские пометки на холсте, не часть сюжетного графа: намеренно "бумажный",
+   пастельный вид, чтобы визуально не путаться с узлами (тёмные прямоугольники) даже мельком. */
+.sticky-note{position:absolute;border-radius:6px;padding:6px;box-shadow:0 3px 10px rgba(0,0,0,.35);display:flex;flex-direction:column;gap:4px;cursor:grab;color:#3a3320}
+.sticky-note:active{cursor:grabbing}
+.sticky-note.yellow{background:#f5e08a}
+.sticky-note.pink{background:#f2b8d0}
+.sticky-note.blue{background:#a9d3f5}
+.sticky-note.green{background:#b7e3b0}
+.sticky-toolbar{display:flex;justify-content:flex-end;gap:2px}
+.sticky-btn{padding:1px 6px;font-size:11px;background:rgba(0,0,0,.12);border:none;border-radius:4px;color:#3a3320;cursor:pointer}
+.sticky-btn:hover{background:rgba(0,0,0,.25)}
+.sticky-text{flex:1;resize:none;background:transparent;border:none;color:#2a2415;font:inherit;font-size:12.5px;padding:2px 4px;outline:none}
+.sticky-text::placeholder{color:rgba(42,36,21,.5)}
 
 .insp-tabs{display:flex;gap:4px;margin-bottom:12px;flex-wrap:wrap}
 .insp-tab{padding:6px 10px;font-size:12px}

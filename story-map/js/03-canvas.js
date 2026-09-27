@@ -6,6 +6,7 @@
    ============================================================ */
 
 const NODE_W=220, NODE_H=58;
+const STICKY_W=180, STICKY_H=140;
 const canvasOuter=document.getElementById('canvasOuter');
 const worldEl=document.getElementById('world');
 const edgeLayer=document.getElementById('edgeLayer');
@@ -119,9 +120,13 @@ function focusNode(id){
   applyWorldTransform();
 }
 function fitAll(){
-  if(!nodes.length) return;
-  const minX=Math.min(...nodes.map(n=>n.x)), maxX=Math.max(...nodes.map(n=>n.x+NODE_W));
-  const minY=Math.min(...nodes.map(n=>n.y)), maxY=Math.max(...nodes.map(n=>n.y+NODE_H));
+  if(!nodes.length&&!stickyNotes.length) return;
+  const xs=[...nodes.map(n=>n.x),...stickyNotes.map(s=>s.x)];
+  const xe=[...nodes.map(n=>n.x+NODE_W),...stickyNotes.map(s=>s.x+STICKY_W)];
+  const ys=[...nodes.map(n=>n.y),...stickyNotes.map(s=>s.y)];
+  const ye=[...nodes.map(n=>n.y+NODE_H),...stickyNotes.map(s=>s.y+STICKY_H)];
+  const minX=Math.min(...xs), maxX=Math.max(...xe);
+  const minY=Math.min(...ys), maxY=Math.max(...ye);
   const rect=canvasOuter.getBoundingClientRect();
   const pad=60;
   const scaleX=(rect.width-pad*2)/Math.max(1,maxX-minX), scaleY=(rect.height-pad*2)/Math.max(1,maxY-minY);
@@ -182,7 +187,7 @@ function edgePath(a,b){
   return `M${a.x},${a.y} C${c1x},${c1y} ${c2x},${c2y} ${b.x},${b.y}`;
 }
 
-let tempConnectFrom=null, tempConnectPt=null;
+let tempConnectFrom=null, tempConnectPt=null, connectHoverId=null;
 let focusMode=false;
 
 // "Режим фокуса": подсвечивает ветку, растущую ВПЕРЁД от выбранного узла (обычный BFS по choices),
@@ -199,6 +204,17 @@ function computeFocusSet(){
   return set;
 }
 
+// Заметки рендерятся в том же проходе и в том же контейнере (#world), что и узлы — тот же
+// pan/zoom-transform, никакого отдельного слоя/пересчёта координат заводить не нужно.
+function stickyNoteHtml(s){
+  return `<div class="sticky-note ${esc(s.color)}" data-note="${esc(s.id)}" style="left:${s.x}px;top:${s.y}px;width:${STICKY_W}px;min-height:${STICKY_H}px">
+    <div class="sticky-toolbar">
+      <button class="sticky-btn" data-cyclecolor="${esc(s.id)}" title="Сменить цвет">🎨</button>
+      <button class="sticky-btn" data-delnote="${esc(s.id)}" title="Удалить заметку">✕</button>
+    </div>
+    <textarea class="sticky-text" data-notetext="${esc(s.id)}" placeholder="Заметка…">${esc(s.text)}</textarea>
+  </div>`;
+}
 function renderCanvas(){
   const focusSet=computeFocusSet();
   worldEl.innerHTML=`<div id="boxSelectOverlay"></div>`+nodes.map(n=>{
@@ -207,13 +223,14 @@ function renderCanvas(){
     const more=outCount>3?`<div class="nb-choice muted">+${outCount-3} ещё</div>`:'';
     const choicesHtml=outCount?`<div class="nb-choices">${shown}${more}</div>`:'';
     const dimmed=focusSet&&!focusSet.has(n.id);
-    return `<div class="node-box ${n.type} ${multiSelected.has(n.id)?'selected':''} ${dimmed?'dimmed':''}" data-node="${esc(n.id)}" style="left:${n.x}px;top:${n.y}px;width:${NODE_W}px;min-height:${NODE_H}px">
+    const connectHover=connectHoverId===n.id;
+    return `<div class="node-box ${n.type} ${multiSelected.has(n.id)?'selected':''} ${dimmed?'dimmed':''} ${connectHover?'connect-hover':''}" data-node="${esc(n.id)}" style="left:${n.x}px;top:${n.y}px;width:${NODE_W}px;min-height:${NODE_H}px">
       <div class="nb-title">${esc(n.title||'(без названия)')}</div>
       <div class="nb-meta"><span>${triggerLabel(n.trigger)}</span><span>→ ${outCount}</span></div>
       ${choicesHtml}
       <div class="node-handle" data-handle="${esc(n.id)}" title="Тяни на другой узел (или на пустое место — создаст новый) — переход"></div>
     </div>`;
-  }).join('');
+  }).join('')+stickyNotes.map(stickyNoteHtml).join('');
 
   let svg=`<defs><marker id="arrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 Z"></path></marker></defs>`;
   nodes.forEach(n=>{
@@ -244,14 +261,39 @@ function triggerLabel(t){
 
 /* ---------- взаимодействие: клик/мультивыбор, перетаскивание (в т.ч. группой), панорама, зум,
    соединение (с быстрым созданием узла, если отпустить на пустом месте), рамка выделения ---------- */
-let dragIds=null, dragStart=null, panDrag=null, boxSelectStart=null, boxSelectRect=null;
+let dragIds=null, dragStart=null, panDrag=null, boxSelectStart=null, boxSelectRect=null, stickyDrag=null;
+
+// Общий поиск цели соединения — один и тот же во время наведения (подсветка) и при отпускании
+// (собственно создание перехода), чтобы то, что подсвечено, и то, что реально свяжется, никогда не
+// расходились. Сам источник соединения никогда не считается своей же целью; если под точкой
+// оказалось несколько перекрывающихся узлов — берём последний (визуально верхний, т.к. .node-box
+// рисуются в порядке nodes[] без z-index и более поздний перекрывает более ранний).
+function connectTargetIdAt(worldPt){
+  const candidates=[...worldEl.querySelectorAll('.node-box')].filter(b=>{
+    if(b.dataset.node===tempConnectFrom) return false;
+    const n=findNode(b.dataset.node);
+    return n&&worldPt.x>=n.x&&worldPt.x<=n.x+NODE_W&&worldPt.y>=n.y&&worldPt.y<=n.y+NODE_H;
+  });
+  const box=candidates[candidates.length-1];
+  return box?box.dataset.node:null;
+}
 
 worldEl.addEventListener('pointerdown',e=>{
+  const stickyEl=e.target.closest('.sticky-note');
+  // Перетаскивание заметки — но не когда целятся в её текст (иначе клик по textarea двигал бы
+  // заметку вместо того, чтобы поставить туда курсор) и не по кнопкам её мини-панели.
+  if(stickyEl&&!e.target.closest('textarea')&&!e.target.closest('button')){
+    const id=stickyEl.dataset.note;
+    const n=stickyNotes.find(s=>s.id===id); if(!n) return;
+    stickyDrag={id,startPt:screenToWorld(e.clientX,e.clientY),baseX:n.x,baseY:n.y};
+    e.stopPropagation(); canvasOuter.setPointerCapture(e.pointerId);
+    return;
+  }
   const handle=e.target.closest('[data-handle]');
   const box=e.target.closest('.node-box');
   const worldPt=screenToWorld(e.clientX,e.clientY);
   if(handle){
-    tempConnectFrom=handle.dataset.handle; tempConnectPt=worldPt;
+    tempConnectFrom=handle.dataset.handle; tempConnectPt=worldPt; connectHoverId=null;
     e.stopPropagation(); canvasOuter.setPointerCapture(e.pointerId);
     return;
   }
@@ -279,7 +321,17 @@ canvasOuter.addEventListener('pointerdown',e=>{
   canvasOuter.setPointerCapture(e.pointerId);
 });
 canvasOuter.addEventListener('pointermove',e=>{
-  if(tempConnectFrom){ tempConnectPt=screenToWorld(e.clientX,e.clientY); renderCanvas(); return; }
+  if(stickyDrag){
+    const p=screenToWorld(e.clientX,e.clientY);
+    moveStickyNote(stickyDrag.id,stickyDrag.baseX+(p.x-stickyDrag.startPt.x),stickyDrag.baseY+(p.y-stickyDrag.startPt.y));
+    return;
+  }
+  if(tempConnectFrom){
+    tempConnectPt=screenToWorld(e.clientX,e.clientY);
+    connectHoverId=connectTargetIdAt(tempConnectPt);
+    renderCanvas();
+    return;
+  }
   if(boxSelectStart){
     const p=screenToWorld(e.clientX,e.clientY);
     boxSelectRect={x0:Math.min(boxSelectStart.x,p.x),y0:Math.min(boxSelectStart.y,p.y),x1:Math.max(boxSelectStart.x,p.x),y1:Math.max(boxSelectStart.y,p.y)};
@@ -298,19 +350,10 @@ canvasOuter.addEventListener('pointermove',e=>{
 canvasOuter.addEventListener('pointerup',e=>{
   if(tempConnectFrom){
     const worldPt=screenToWorld(e.clientX,e.clientY);
-    // Исключаем сам источник соединения из кандидатов (а не отбрасываем совпадение постфактум) и,
-    // если под точкой оказалось НЕСКОЛЬКО перекрывающихся узлов (свежедобавленные рядом, вставленные
-    // копии со сдвигом +40/+40 и т.п.), берём последний из совпавших — он же визуально верхний, т.к.
-    // .node-box рисуются в порядке nodes[] без z-index и более поздний перекрывает более ранний.
-    const candidates=[...worldEl.querySelectorAll('.node-box')].filter(b=>{
-      if(b.dataset.node===tempConnectFrom) return false;
-      const n=findNode(b.dataset.node);
-      return n&&worldPt.x>=n.x&&worldPt.x<=n.x+NODE_W&&worldPt.y>=n.y&&worldPt.y<=n.y+NODE_H;
-    });
-    const targetBox=candidates[candidates.length-1];
-    if(targetBox) addChoice(tempConnectFrom,targetBox.dataset.node);
+    const targetId=connectTargetIdAt(worldPt);
+    if(targetId) addChoice(tempConnectFrom,targetId);
     else { const created=addNode('event',worldPt.x,worldPt.y); addChoice(tempConnectFrom,created.id); }
-    tempConnectFrom=null; tempConnectPt=null; renderCanvas();
+    tempConnectFrom=null; tempConnectPt=null; connectHoverId=null; renderCanvas();
   }
   if(boxSelectStart){
     const r=boxSelectRect;
@@ -322,7 +365,38 @@ canvasOuter.addEventListener('pointerup',e=>{
     renderAll();
   }
   if(dragIds){ dragIds=null; dragStart=null; commitMove(); }
+  if(stickyDrag){ stickyDrag=null; commitStickyMove(); }
   if(panDrag){ panDrag=null; canvasOuter.classList.remove('panning'); }
+});
+// Двойной клик по пустому месту холста (не по узлу и не по заметке) — быстро поставить заметку
+// прямо там, как в Miro: N/click там нет модальных тулов, здесь роль такого "инструмента" играет
+// сам жест двойного клика по пустоте.
+canvasOuter.addEventListener('dblclick',e=>{
+  if(e.target!==canvasOuter&&e.target!==worldEl&&e.target.id!=='edgeLayer') return;
+  // Верхний левый угол в точку клика (как и быстрое создание узла при отпускании соединения на
+  // пустом месте) — а не центрирование по клику: у центрирования заметка сдвигается вверх-влево на
+  // половину своего размера, и клик у самого края холста мог бы увести её кнопки за видимую область.
+  const p=screenToWorld(e.clientX,e.clientY);
+  addStickyNote(p.x,p.y);
+});
+
+worldEl.addEventListener('input',e=>{
+  const ta=e.target.closest('[data-notetext]'); if(!ta) return;
+  const n=stickyNotes.find(s=>s.id===ta.dataset.notetext); if(!n) return;
+  n.text=ta.value; // не грузим историю на каждую букву — коммит на blur (см. 'change' ниже)
+});
+worldEl.addEventListener('change',e=>{
+  if(e.target.closest('[data-notetext]')) pushHistory();
+});
+worldEl.addEventListener('click',e=>{
+  const del=e.target.closest('[data-delnote]');
+  if(del){ deleteStickyNote(del.dataset.delnote); return; }
+  const cyc=e.target.closest('[data-cyclecolor]');
+  if(cyc){
+    const n=stickyNotes.find(s=>s.id===cyc.dataset.cyclecolor); if(!n) return;
+    const i=STICKY_COLORS.indexOf(n.color);
+    updateStickyNote(n.id,{color:STICKY_COLORS[(i+1)%STICKY_COLORS.length]});
+  }
 });
 canvasOuter.addEventListener('wheel',e=>{ e.preventDefault(); setZoom(zoom*(e.deltaY<0?1.1:0.9)); },{passive:false});
 

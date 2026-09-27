@@ -10,6 +10,11 @@ document.getElementById('btnAddVar').onclick=addVariable;
 document.getElementById('btnAddEvent').onclick=()=>addNode('event');
 document.getElementById('btnAddChoice').onclick=()=>addNode('choice');
 document.getElementById('btnAddBackground').onclick=()=>addNode('background');
+document.getElementById('btnAddNote').onclick=()=>{
+  const rect=canvasOuter.getBoundingClientRect();
+  const center=screenToWorld(rect.left+rect.width/2,rect.top+rect.height/2);
+  addStickyNote(center.x-STICKY_W/2,center.y-STICKY_H/2);
+};
 
 document.getElementById('btnZoomIn').onclick=()=>setZoom(zoom*1.15);
 document.getElementById('btnZoomOut').onclick=()=>setZoom(zoom*0.87);
