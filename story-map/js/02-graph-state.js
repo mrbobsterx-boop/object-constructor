@@ -39,12 +39,24 @@ function deleteVariable(id){
   pushHistory(); renderAll();
 }
 
+// Без явных координат (кнопки "+ Событие/Выбор/Фоновое" в левой панели, а не перетаскивание
+// соединения на пустое место — там x,y уже переданы) новый узел ставится СПРАВА от текущего узла
+// (выбранного, а если выбора нет — последнего добавленного), а не в фиксированную точку канваса —
+// иначе при накоплении узлов они садятся друг на друга в одном месте (что вдобавок ломает попадание
+// мышью при последующем соединении: см. targetBox в 03-canvas.js). Раз новый узел сам становится
+// выбранным (см. ниже), повторные клики выстраиваются цепочкой вправо, а не грудой на одном месте.
+function nextNodeSpawnPos(){
+  const anchor=findNode(selectedNodeId)||nodes[nodes.length-1];
+  if(!anchor) return {x:120,y:120};
+  return {x:anchor.x+NODE_W+60,y:anchor.y};
+}
 function addNode(type,x,y){
   const isFirst=nodes.length===0;
+  const pos=(x===undefined||y===undefined)?nextNodeSpawnPos():{x,y};
   const n={
     id:uid('n'),title:type==='background'?'Новое фоновое событие':(type==='choice'?'Новый выбор':'Новое событие'),
     text:'',type:type||'event',category:'story',tags:[],samSystem:'',
-    x:x!==undefined?x:120+Math.random()*40, y:y!==undefined?y:120+Math.random()*40,
+    x:pos.x, y:pos.y,
     trigger:isFirst?{kind:'start'}:defaultTrigger(type),
     effects:[], sim:defaultSim(), choices:[], ending:''
   };

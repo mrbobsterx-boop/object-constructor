@@ -298,12 +298,18 @@ canvasOuter.addEventListener('pointermove',e=>{
 canvasOuter.addEventListener('pointerup',e=>{
   if(tempConnectFrom){
     const worldPt=screenToWorld(e.clientX,e.clientY);
-    const targetBox=[...worldEl.querySelectorAll('.node-box')].find(b=>{
+    // Исключаем сам источник соединения из кандидатов (а не отбрасываем совпадение постфактум) и,
+    // если под точкой оказалось НЕСКОЛЬКО перекрывающихся узлов (свежедобавленные рядом, вставленные
+    // копии со сдвигом +40/+40 и т.п.), берём последний из совпавших — он же визуально верхний, т.к.
+    // .node-box рисуются в порядке nodes[] без z-index и более поздний перекрывает более ранний.
+    const candidates=[...worldEl.querySelectorAll('.node-box')].filter(b=>{
+      if(b.dataset.node===tempConnectFrom) return false;
       const n=findNode(b.dataset.node);
       return n&&worldPt.x>=n.x&&worldPt.x<=n.x+NODE_W&&worldPt.y>=n.y&&worldPt.y<=n.y+NODE_H;
     });
-    if(targetBox&&targetBox.dataset.node!==tempConnectFrom) addChoice(tempConnectFrom,targetBox.dataset.node);
-    else if(!targetBox){ const created=addNode('event',worldPt.x,worldPt.y); addChoice(tempConnectFrom,created.id); }
+    const targetBox=candidates[candidates.length-1];
+    if(targetBox) addChoice(tempConnectFrom,targetBox.dataset.node);
+    else { const created=addNode('event',worldPt.x,worldPt.y); addChoice(tempConnectFrom,created.id); }
     tempConnectFrom=null; tempConnectPt=null; renderCanvas();
   }
   if(boxSelectStart){
