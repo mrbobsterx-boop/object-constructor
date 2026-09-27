@@ -1,0 +1,209 @@
+# Story Map — Backlog (полный список рекомендаций)
+
+Единый список того, что признано полезным добавить/улучшить в Story Map с учётом `postapocalyptic_survival_master_game_design.md` и Object Plan — без деления на «сейчас»/«потом». Пункты пронумерованы как в исходном списке (409.md — не файл, просто нумерация для ссылок в обсуждении). Статус выполнения по каждой группе отмечается по мере работы; список не переписывается, только помечается.
+
+**Приоритетный блок** (по мнению автора списка): пункты 1–5, 75–120, 190–230, 330–404 — именно они должны превратить Story Map из графового редактора в центральный слой проектирования игры.
+
+---
+
+## A. Story ↔ World: прямые связи (1–5)
+
+1. Связать Story Map и World Model напрямую — событие ссылается на конкретного персонажа/локацию/фракцию/предмет/ресурс/систему, а не хранит их текстом.
+2. Story ↔ World links в Inspector (`Marcus`, `Bunker`, `Raiders`, `Medkit`, `Injury`) — клик по сущности переходит к ней в «Мир».
+3. Не превращать World в универсальный редактор всего проекта — Story Map знает, что сущность существует и как связана с историей; подробное редактирование остаётся в своих инструментах.
+4. Сохранить разделение инструментов: Story Map (повествование), Object Plan (планирование объектов/систем), Character/Object/Part/Rig (реализация).
+5. World Model — отдельный полноценный слой данных, не просто режим визуализации.
+
+## B. Навигация, поиск, фильтры, масштаб (6–21, 25–31)
+
+6. Глобальный поиск: node ID, название, текст, tag, system, variable, entity.
+7. Фильтр по типу узла.
+8. Фильтр по системе.
+9. Фильтр по статусу (ошибки/warnings/dead-end/unreachable/без связей/без текста).
+10. Рабочая миникарта (видно viewport, клик — переход).
+11. `Fit All`.
+12. `Focus Selected`.
+13. `Center Selected`.
+14. Нормальное масштабирование, желательно с сохранением позиции/zoom между режимами.
+15. Не сбрасывать zoom при `focusNode()`.
+16. Multi-select.
+17. Рамочное выделение мышью.
+18. Групповое перемещение узлов.
+19. `Ctrl+A`.
+20. `Delete`/`Backspace` для выбранных.
+21. `Ctrl+C`/`Ctrl+V`.
+25. Focus Mode.
+26. Три варианта Focus Mode: вперёд / назад / вся цепочка.
+27. «Вперёд» — descendants.
+28. «Назад» — все nodes, ведущие к выбранному.
+29. «Вся цепочка» — объединённый подграф.
+30. При Focus приглушать остальные, а не просто подсвечивать выбранные.
+31. Родителей и детей подсвечивать разными визуальными состояниями.
+
+## C. Copy/paste подграфов (22–24)
+
+22. Развить Copy/Paste до копирования целой ветки.
+23. Copy Subgraph — небольшой кусок графа со всеми внутренними связями.
+24. При копировании подграфа — новые ID, автоматическое переназначение внутренних references.
+
+## D. Визуальная информативность связей и узлов (32–52)
+
+32. Связи информативнее — не только `→ 3`.
+33. На связи — название choice/transition.
+34–36. Badge для condition/effect/нескольких условий.
+37. Визуально различать обычный/условный/с эффектом переход.
+38. Понятное направление перехода для сложных графов.
+39. Auto Arrange (хотя бы базовый).
+40. Layout: vertical / horizontal / tree.
+41–44. Группировка узлов (`Chapter 1`, `Shelter`, `Raiders`, `Ending`), сворачивание группы, счётчик nodes/проблем на свёрнутой группе.
+45–46. Цвет/иконка системы на node, тип узла различим, но не перегружен.
+47–48. Ширина node под текст, компактный preview текста.
+49–51. Счётчики choices/conditions/effects, мелкие error-индикаторы.
+52. Клик по error-индикатору открывает проблему.
+
+## E. Inspector: вкладки и быстрые действия (53–60)
+
+53–58. Вкладки: General / Logic / Choices / Simulation / Links. *(Частично сделано — вкладки Основное/Доступность/Эффекты/Симулятор/Переходы уже есть; вкладки Links пока нет.)*
+59. Сворачиваемые секции, если вкладок не хватит.
+60. Быстрые действия: duplicate, focus, copy, delete, add choice.
+
+## F. Dirty state, история, централизация мутаций (61–73)
+
+61–66. Dirty state, `Unsaved changes`/`Saved`, время сохранения, `Ctrl+S`, предупреждение при закрытии. *(Сделано.)*
+67–69. Централизовать mutation — единый механизм изменения state, который сам обеспечивает `dirty → history → render`, не полагаясь на то, что каждая кнопка вызовет `markDirty()`. *(Частично: `pushHistory()`/`renderAll()` уже единообразны, но это соглашение, а не принудительный механизм.)*
+70–73. Именованная история (`Create Node`, `Move Node`…), не плодить history entry на каждое движение мыши, объединять серии мелких изменений.
+
+## G. Проверки целостности графа (74–93)
+
+74–82. Missing references, duplicate IDs, duplicate transitions, invalid targets, cycles, isolated nodes, dead-end, unreachable. *(Частично сделано — dangling target/var, MULTIPLE_START, dead-end, unreachable-по-структуре уже есть; duplicate ID/transitions и cycles — нет.)*
+83–86. **Разделить Graph Reachability и Runtime Availability** — структурный путь vs реальная выполнимость условия; не считать scheduled/conditional node reachable только по факту существования. *(Сейчас есть только структурная проверка с честной формулировкой; настоящего runtime-availability анализа нет.)*
+87–93. Логические проверки переменных/условий: пишется-не-читается, читается-не-пишется, недостижимое нужное значение, логически невыполнимое условие, противоречащие условия, effect делает ветку недостижимой.
+
+## H. World-ссылки в проверках + Checks как навигация (94–113)
+
+94–100. Missing character/faction/location/item/Object Plan reference, устаревшая ссылка.
+101–106. Checks — навигационный инструмент: клик по World error открывает entity, по variable error — dependency view; уровни Error/Warning/Info со счётчиками.
+107–113. **Dependency Explorer для variables**: кто пишет/читает, начальное/потенциальные конечные значения, подсветка на канвасе, вид `reputation: writes: Event 12 +5 … reads: Choice 18 >=10 …`.
+
+## I. Dependency/Impact для World-сущностей (114–122)
+
+114–118. Dependency Explorer для World entities (персонаж → events, faction → events, location → events, item → events использования/потери/создания).
+119–122. Impact View — узел → что меняет; entity → что на неё влияет; важно для автономного мира.
+
+## J. World Relations: inverse/symmetric, фильтры, Focus Entity (123–134)
+
+123–130. Inverse relation type (`member_of ↔ has_member`), `symmetric` (`friend_of`), централизованная relation-metadata, авто-создание inverse, защита от некорректного направления.
+131. Фильтр World Graph по relation type.
+132–134. Focus Entity с глубиной (Depth 1/2/3/All).
+
+## K. Proposals как backlog (135–144)
+
+135–141. Proposal получает status (idea/planned/accepted/implemented/rejected), priority, source, дату, связь с node/entity/system. *(Сейчас статус только idea/accepted/rejected и связь `relatedEntities` — нет priority/source/даты/явной привязки к story node.)*
+142–144. Proposal → Story Node, Proposal → Object Plan (что ещё нужно построить).
+
+## L. Импорт (145–157)
+
+145–152. Preview импорта: новые nodes/variables/entities, найденные существующие ID, конфликты, выбор reuse/create/skip. *(Preview уже есть — §8 Story Map; выбора «reuse/create/skip» вручную пока нет, сопоставление автоматическое.)*
+153–157. Защита автосвязей по tags: `first/all/manual` уже есть, но нет проверки duplicate links и явного счётчика «сколько связей будет создано» ДО импорта в самом preview.
+
+## M. Шаблоны и структура повествования (158–170)
+
+158–163. Story Templates (Encounter/Decision/Combat/Discovery/…), автосоздание структуры, переиспользуемые narrative patterns.
+164–166. Chapter/Arc как metadata/группировка, не меняющая базовую модель nodes.
+167–170. Timeline View как отдельный режим (не вместо графа) — привязка к игровому времени.
+
+## N. Симуляция внутри Story Map (171–178)
+
+171–178. Simulation Preview: стартовые значения → Play → пошаговый проход с изменением переменных прямо в Story Map (это не story-bot, а лёгкий inline-прогон логики).
+
+## O. Ending/Start/Entry Points, автономный мир (179–197)
+
+179–189. Dead-end visualization, `node.role = ending` metadata → dead-end+ending = OK, dead-end без ending = warning; явные start-узлы, проверка наличия старта.
+190–197. **Story Entry Points** (Game Start / World Event / Faction Event / NPC Event / Scheduled Event) и **Event Source** (Player/NPC/Faction/World/Location/Timer/System) — мир должен генерировать события не только из `Start → Choice → Event`.
+
+## P. Event Trigger Explorer, Consequence Chain (198–203)
+
+198–199. Event Trigger Explorer: trigger/conditions/source/cooldown/effects одним экраном.
+200–203. **Consequence chain** — от выбора игрока видеть не только следующий узел, но и цепочку долгосрочных последствий (`Trust −10 → Marcus leaves → Faction relation −20 → …`).
+
+## Q. World Event Sources, system tags, Resource/Action/Requirements слои (204–218)
+
+204–209. World Event Sources (player/npc/faction/resource shortage/time/weather/location/relationship/random), system tags (survival/water/energy/combat/faction/…).
+210–212. Story ↔ Resource Model (water/food/medicine/fuel/energy/metal…).
+213–215. Story ↔ Action Model (`TAKE/DROP/OPEN/EAT/…`, `perform_action(action_id, target)`).
+216–218. Story ↔ Requirements (item/quantity/skill/state/location/time/tool) — не изобретать свою систему условий, если общий Requirements-слой уже есть.
+
+## R. Story ↔ Object Plan: статус реализации, трассировка (219–236)
+
+219–225. Ссылка на Object Plan-объект в событии; статус `planned`/`available` прямо в Story Map; implementation status на узле (Logic/Characters/Object/Animation/Text).
+226–231. **Traceability**: Story → World Entity → Object Plan → Game System, и обратная трассировка (кто использует `water_tank`).
+232–236. Orphan Detection: неиспользуемые World entities/variables/nodes/Object Plan объекты.
+
+## S. Обзор проекта, версии, надёжность (237–256)
+
+237–242. Статистика проекта и отдельная стартовая страница Project Overview (не сам граф).
+243–246. `schemaVersion` + миграции.
+247–248. Бэкап предыдущей версии перед импортом. *(Бэкап перед сохранением уже есть — §9; перед ИМПОРТОМ отдельно — нет.)*
+249–250. Экспорт диагностического отчёта.
+251–256. JSON validation перед сохранением, восстановление после повреждённого файла, version history (`story.backup.01.json`, `.02.json`…).
+
+## T. Иерархия интерфейса, keyboard-first, command palette, context menu (257–277)
+
+257–260. Не добавлять функции без группировки; главные зоны — Navigator/Canvas/Inspector/Checks.
+261–262. Keyboard-first (N/F/A/C/V/Delete/Ctrl+S/Ctrl+Z/Space…).
+263–265. Command palette (`Ctrl+K`).
+266–269. Context menu на node и на connection.
+270–272. Inline editing названия node прямо на канвасе.
+273–277. Быстрый `Add Child`, быстрый `Add Consequence`.
+
+## U. Runtime-состояния, структурные condition/effect (278–304)
+
+278–280. Визуальные runtime-состояния узла (available/conditional/blocked/completed/failed/ending) как metadata.
+281–288. Структурная модель условий (`subject/operator/value`, `AND/OR`) и эффектов (`type/variable/operation/value`) вместо вольных строк — чтобы Checks могли анализировать их автоматически.
+289–290. Human-readable preview условий/эффектов.
+291–299. Тест отдельного node/сценария с заданным state, детерминированный seed.
+300–305. Probability/Balance Preview со ссылкой на централизованный `probability_id` — не дублировать баланс внутри Story Map.
+
+## V. Lifecycle сущностей, автономные события, Consequence/Relation Graph (306–329)
+
+306–309. Lifecycle entity (planned/active/dead/destroyed/removed/archived).
+310–319. События без игрока (`actor/action/target`), World Simulation events как класс, consequence propagation.
+320–329. Три отдельных вида одной модели: Story Graph («что дальше»), Consequence Graph («что меняется в мире»), Relation Graph (World-связи) — переключаемые без изменения данных.
+
+## W. Унификация ссылок, стабильные ID, миграции, массовые правки (330–357)
+
+330–333. Единый механизм `Entity Reference` вместо отдельных story/world/object/variable reference.
+334–338. Стабильные UUID, не зависящие от названия; `alias`/`displayName` отдельно от `id`.
+339–342. `deprecated` вместо немедленного удаления; migration tooling при переименовании.
+343–348. Массовое редактирование (tag/system/chapter на выделении), массовый rename/replace.
+349–357. Экспорт изображения графа/ветки, импорт/экспорт subgraph, read-only mode, project lock на будущее.
+
+## X. Производительность (358–373)
+
+358–365. Rerender только затронутых nodes/edges, viewport culling, lazy rendering для World Graph.
+366–373. Предупреждение перед массовыми операциями (500+ auto-links), snapshot перед bulk-операциями (импорт/auto-link/bulk delete = один undo step), recovery после ошибочной bulk-операции, атомарное сохранение *(уже есть)*, автобэкап перед импортом, schema validation при открытии, миграция старых Story Map-проектов.
+
+## Y. Документация внутри инструмента, decision log, unresolved state (374–399)
+
+374–379. Страница `Architecture` внутри приложения, ссылка на Master Game Design, поле `source` у решений (master-design/object-plan/story/prototype/decision).
+380–386. `defined/tentative/unknown/deprecated` — Story Map не должен заставлять преждевременно фиксировать то, что в Master Design сознательно не определено; Decision Log.
+387–399. Decision → system, Change Impact («используется 17 nodes / 4 relations / 2 Object Plan items»), «Where used?» везде, «Create from reference» (через World Model, не вручную), «Open in Object Plan» / «Open in Story Map» в обе стороны.
+
+## Z. Общее направление (400–405)
+
+400–405. Не добавлять новых крупных сущностей — следующий этап есть связывание уже существующих систем; целевая схема: `STORY → WORLD/VARIABLES/ACTIONS → CONSEQUENCES → WORLD STATE → FUTURE EVENTS`; Object Plan отвечает на «что нужно построить, чтобы этот мир и эти события могли существовать».
+
+---
+
+## Уже закрыто в этой сессии (для справки, не переносить в работу заново)
+
+- Мультивыбор, box-select, групповое перетаскивание, `Ctrl+A/C/V`, `Delete` (п. 16–21).
+- Focus Mode «вперёд» (BFS по choices), приглушение остального (п. 25, 27, 30 — частично: только «вперёд», без «назад»/«вся цепочка», без раздельной подсветки родителей/детей).
+- `Fit All`, миникарта с viewport и кликом (п. 10–11) — **и её фикс** (edge/node transform-origin рассинхронизация после Fit All).
+- Dirty state, `Ctrl+S`, предупреждение при закрытии, время сохранения (п. 61–66).
+- Вкладки Inspector: Основное/Доступность/Эффекты/Симулятор/Переходы (п. 53–58, без Links-вкладки).
+- Бэкап `story.backup.json` перед каждым сохранением, атомарная запись через File System Access API (п. 247, 370).
+- Checks: клик по проблеме → выбор+центрирование узла, уровни err/warn/info, сводка (п. 101–102, 105–106 — частично, World-переходы пока не кликабельны).
+- World Model как отдельный слой (сущности + типизированные связи + relationTypes), но пока БЕЗ inverse/symmetric (п. 123–127) и без Focus Entity (п. 132–134).
+- Import preview (Analyze → Preview → Merge) с числами новое/существующее (п. 145–151, частично — без ручного reuse/create/skip).
+- Заметки-стикеры на холсте (не из этого списка изначально, но того же духа — авторские пометки).
