@@ -347,22 +347,59 @@ document.getElementById('btnImportIdea').onclick=()=>document.getElementById('id
 // граф одним кликом мимо.
 let pendingIdeaData=null;
 let pendingOverrides={entities:{},variables:{}};
+let pendingIdeaName='';
+// Несколько файлов за раз — очередь; текущий уже вынут из неё в pendingIdeaData/pendingIdeaName, тут
+// остаются только ЕЩЁ не показанные. Каждый файл всё равно проходит через свои Анализ/Превью/Слияние
+// по отдельности (importIdea сам решает "новое/уже есть" относительно ТЕКУЩЕГО состояния графа —
+// значит после файла №1 файл №2 уже увидит то, что добавил №1, и не задвоит совпадающее). Один
+// битый файл в пачке не должен ронять всю остальную пачку — ошибки парсинга собираются и показываются
+// одним алертом, остальные файлы всё равно встают в очередь.
+let ideaImportQueue=[];
+let ideaImportBatchTotal=0;
+let ideaImportBatchSummary=null; // копится только когда файлов больше одного — иначе как раньше, alert на каждый
+function advanceIdeaImportQueue(){
+  if(!ideaImportQueue.length){
+    if(ideaImportBatchSummary){
+      const s=ideaImportBatchSummary;
+      alert(`Импорт пачки завершён (файлов: ${ideaImportBatchTotal}): добавлено ${s.nodeCount} узлов, ${s.linkCount} автосвязей, ${s.entityCount} сущностей, ${s.relationCount} связей, ${s.proposalCount} идей.`);
+      ideaImportBatchSummary=null;
+    }
+    return;
+  }
+  const next=ideaImportQueue.shift();
+  pendingIdeaData=next.data;
+  pendingIdeaName=next.name;
+  pendingOverrides={entities:{},variables:{}};
+  renderImportPreview();
+}
 document.getElementById('ideaFileInput').addEventListener('change',async e=>{
-  const file=e.target.files[0]; e.target.value='';
-  if(!file) return;
-  try{
-    const data=JSON.parse(await file.text());
-    if(!data||!Array.isArray(data.nodes)) throw new Error('Файл не похож на шаблон идеи: нет массива "nodes".');
-    pendingIdeaData=data;
-    pendingOverrides={entities:{},variables:{}};
-    renderImportPreview();
-  }catch(err){ alert('Не удалось прочитать идею: '+err.message); }
+  const files=[...e.target.files]; e.target.value='';
+  if(!files.length) return;
+  const parsed=[]; const readErrors=[];
+  for(const file of files){
+    try{
+      const data=JSON.parse(await file.text());
+      if(!data||!Array.isArray(data.nodes)) throw new Error('нет массива "nodes"');
+      parsed.push({name:file.name,data});
+    }catch(err){ readErrors.push(`«${file.name}»: ${err.message}`); }
+  }
+  if(readErrors.length) alert(`Не удалось прочитать ${readErrors.length} файл(ов) как идею:\n`+readErrors.join('\n'));
+  if(!parsed.length) return;
+  ideaImportQueue=parsed;
+  ideaImportBatchTotal=parsed.length;
+  ideaImportBatchSummary=parsed.length>1?{nodeCount:0,linkCount:0,entityCount:0,relationCount:0,proposalCount:0}:null;
+  advanceIdeaImportQueue();
 });
 // Перерисовывается на каждый выбор в списках ниже (не только один раз при открытии) — числа в
 // сводке (в т.ч. спроецированный счётчик автосвязей) должны отражать ТЕКУЩИЙ выбор пользователя,
 // иначе превью соврёт о том, что реально добавится после нажатия "Добавить в граф".
 function renderImportPreview(){
   if(!pendingIdeaData) return;
+  const titleEl=document.getElementById('importPreviewTitle');
+  if(titleEl){
+    const posInBatch=ideaImportBatchTotal-ideaImportQueue.length; // 1-based номер текущего файла в пачке
+    titleEl.textContent=ideaImportBatchTotal>1?`Импорт идеи «${pendingIdeaName}» (${posInBatch} из ${ideaImportBatchTotal})`:'Импорт идеи';
+  }
   const summary=analyzeIdea(pendingIdeaData,pendingOverrides);
   const entityRows=summary.entityDetails.filter(d=>d.ref).map(d=>{
     const options=[];
@@ -409,17 +446,27 @@ document.getElementById('importPreviewBody').addEventListener('change',e=>{
 document.getElementById('btnImportCancel').onclick=()=>{
   pendingIdeaData=null;
   document.getElementById('importPreviewModal').style.display='none';
+  advanceIdeaImportQueue(); // в пачке — "Отмена" пропускает только текущий файл, не всю очередь
 };
 document.getElementById('btnImportConfirm').onclick=async ()=>{
-  const data=pendingIdeaData, overrides=pendingOverrides; pendingIdeaData=null; pendingOverrides={entities:{},variables:{}};
+  const data=pendingIdeaData, overrides=pendingOverrides, name=pendingIdeaName;
+  pendingIdeaData=null; pendingOverrides={entities:{},variables:{}};
   document.getElementById('importPreviewModal').style.display='none';
-  if(!data) return;
+  if(!data){ advanceIdeaImportQueue(); return; }
   try{
     // Бэкап ТЕКУЩЕГО (пока ещё не слитого с идеей) состояния — отдельно от бэкапа-перед-сохранением
     // (§9/§23): импорт сам на диск не пишет, поэтому без этого «до импорта» на диске неотличимо от
     // «после последнего обычного сохранения», если между ними были ещё не сохранённые правки.
     await backupCurrentStateBeforeImport();
     const r=importIdea(data,overrides);
-    alert(`Готово: добавлено ${r.nodeCount} узлов, ${r.linkCount} автосвязей, ${r.entityCount} сущностей, ${r.relationCount} связей, ${r.proposalCount} идей.`);
-  }catch(err){ alert('Не удалось импортировать идею: '+err.message); }
+    // В пачке (>1 файла) — не алерт на каждый файл (это утомляет и блокирует поток), а один
+    // накопленный алерт в конце всей очереди (advanceIdeaImportQueue).
+    if(ideaImportBatchSummary){
+      const s=ideaImportBatchSummary;
+      s.nodeCount+=r.nodeCount; s.linkCount+=r.linkCount; s.entityCount+=r.entityCount; s.relationCount+=r.relationCount; s.proposalCount+=r.proposalCount;
+    }else{
+      alert(`Готово: добавлено ${r.nodeCount} узлов, ${r.linkCount} автосвязей, ${r.entityCount} сущностей, ${r.relationCount} связей, ${r.proposalCount} идей.`);
+    }
+  }catch(err){ alert(`Не удалось импортировать идею «${name}»: `+err.message); }
+  advanceIdeaImportQueue();
 };
