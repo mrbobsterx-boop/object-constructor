@@ -142,12 +142,14 @@
 
 Подробности — `09-Story-Map.md` §20.
 
-## Q. World Event Sources, system tags, Resource/Action/Requirements слои (204–218)
+## Q. World Event Sources, system tags, Resource/Action/Requirements слои (204–218) — ✅ сделано (с уточнением объёма)
 
-204–209. World Event Sources (player/npc/faction/resource shortage/time/weather/location/relationship/random), system tags (survival/water/energy/combat/faction/…).
-210–212. Story ↔ Resource Model (water/food/medicine/fuel/energy/metal…).
-213–215. Story ↔ Action Model (`TAKE/DROP/OPEN/EAT/…`, `perform_action(action_id, target)`).
-216–218. Story ↔ Requirements (item/quantity/skill/state/location/time/tool) — не изобретать свою систему условий, если общий Requirements-слой уже есть.
+204–209. ✅ World Event Sources — `EVENT_SOURCES` (группа O) расширен добавлением `resource_shortage`/`weather`/`relationship`/`random` (только добавление, старые значения не тронуты). ✅ System tags (survival/water/energy/combat/faction/…) — уже было сделано раньше: `node.category`/`node.tags` и есть SYSTEMS из Object Plan (§3 Story Map).
+210–212. ✅ Story ↔ Resource Model — исследование показало, что в Object Plan нет отдельного каталога «ресурсов»: вода/энергия/топливо/лом — это просто `os.resourceType` на предметах-контейнерах внутри `PLAN_ITEMS`, без единого перечня где-либо. Вместо изобретения своего списка Story Map вычисляет типы ресурсов из уже загруженного `PLAN_ITEMS` (`getResourceTypes()`) и даёт узлу обобщённые `sim.resourceEffects` (эффект на любой найденный тип ресурса, не только жёстко захардкоженные еду/воду).
+213–215. ✅ Story ↔ Action Model — `node.actionRef:{action,target}`: структурная связка «действие (сущность вида «Действие», один из `ACTIONS`) → цель (любая сущность мира)», отдельная от общего списка `node.refs`. Совпадает по смыслу с конвенцией `perform_action(action_id, target)` из мастер design-документа (сама функция — только описание в документе, кода `perform_action` в репозитории нет нигде, проверено).
+216–218. ❌ Story ↔ Requirements (item/quantity/skill/state/location/time/tool) — сознательно НЕ реализовано: несмотря на формулировку пункта, общего Requirements-слоя, с которым можно было бы сойтись, в репозитории не существует (ближайшее — `OS_ACTION_FIELDS` в Object Plan, конфигурация конкретного действия на конкретном предмете, а не переиспользуемая структура условия, и тоже без локации/времени суток). Построить весь слой означало бы либо ломать уже рабочий формат `sim.requiresItems` (плоский массив id → массив с quantity), либо изобретать с нуля локацию игрока и время суток — механизмы, которых в Story Map пока нет вообще ни в каком виде. Слишком большой и рискованный кусок для одного захода.
+
+Подробности — `09-Story-Map.md` §21.
 
 ## R. Story ↔ Object Plan: статус реализации, трассировка (219–236)
 

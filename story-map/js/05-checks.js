@@ -203,6 +203,10 @@ function runChecks(){
     (n.refs||[]).forEach(rid=>{
       if(rid&&!entityIds.has(rid)) out.push({level:'warn',text:`«${n.title}»: ссылается на сущность мира, которой больше нет (удалена в режиме «Мир»?).`,nodeId:n.id});
     });
+    // Действие → Цель (§21) — та же дырка, что и у node.refs выше, только для отдельной пары полей.
+    const ar=n.actionRef;
+    if(ar&&ar.action&&!entityIds.has(ar.action)) out.push({level:'warn',text:`«${n.title}»: «Действие» ссылается на сущность мира, которой больше нет.`,nodeId:n.id});
+    if(ar&&ar.target&&!entityIds.has(ar.target)) out.push({level:'warn',text:`«${n.title}»: «Цель» действия ссылается на сущность мира, которой больше нет.`,nodeId:n.id});
   });
 
   const errCount=out.filter(p=>p.level==='err').length;

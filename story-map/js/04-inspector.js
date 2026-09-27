@@ -30,6 +30,23 @@ function condRowsHtml(basePath,list,isEffects){
   return rows+`<button data-addrow="${basePath}">+ ${isEffects?'эффект':'условие'}</button>`;
 }
 
+// Эффекты на ресурсы (§21) — тот же принцип строки, что и condRowsHtml, но по resourceType
+// (вычисляется динамически из PLAN_ITEMS, getResourceTypes() в 09-world-model.js) вместо мировой
+// переменной; свои data-addresourcefx/data-delresourcefx (не data-addrow/data-delrow) — иначе общий
+// обработчик перепутал бы это с обычным добавлением условия по имени пути (см. inspectorEl click).
+function resourceFxRowsHtml(list){
+  const types=(typeof getResourceTypes==='function'?getResourceTypes():[]);
+  const ops=[['set','='],['add','+'],['subtract','−']];
+  const rows=list.map((row,i)=>`
+    <div class="row" style="margin-bottom:4px">
+      <select data-path="sim.resourceEffects.${i}.resourceType">${types.map(t=>`<option value="${esc(t.id)}" ${row.resourceType===t.id?'selected':''}>${esc(t.label)}</option>`).join('')||'<option value="">(типы ресурсов не найдены в Object Plan)</option>'}</select>
+      <select data-path="sim.resourceEffects.${i}.op">${ops.map(([id,label])=>`<option value="${id}" ${row.op===id?'selected':''}>${label}</option>`).join('')}</select>
+      <input type="number" data-path="sim.resourceEffects.${i}.value" value="${num(row.value)}" style="width:64px">
+      <button class="del-x" data-delresourcefx="sim.resourceEffects.${i}">✕</button>
+    </div>`).join('');
+  return rows+`<button data-addresourcefx="sim.resourceEffects">+ эффект на ресурс</button>`;
+}
+
 // Пикер «фишками» + даталист-автодополнение — общий для тегов раздела (SYSTEMS), нужных предметов
 // (PLAN_ITEMS из Object Plan) и нужных навыков (OS_SKILLS из Object Plan). Выбор кликом по «+» ищет
 // точное совпадение по подписи среди вариантов; если не нашёл — добавляет как есть (не блокирует
@@ -183,6 +200,8 @@ function inspectorTabBody(tab,n){
       ${chipPickerHtml('sim.requiresItems',n.sim.requiresItems||[],'items')}
       <label class="small" style="margin-top:6px">Нужны навыки (из каталога Object Plan)</label>
       ${chipPickerHtml('sim.requiresSkills',n.sim.requiresSkills||[],'skills')}
+      <label class="small" style="margin-top:6px">Эффекты на ресурсы (топливо/энергия/лом и т. п. — из Object Plan, §21)</label>
+      ${resourceFxRowsHtml(n.sim.resourceEffects||[])}
     </div>`;
   if(tab==='choices') return `
     <div class="group">
@@ -190,12 +209,29 @@ function inspectorTabBody(tab,n){
       ${n.choices.map((c,i)=>choiceCardHtml(c,i)).join('')||'<div class="hint">Нет переходов — потяни за кружок на холсте на другой узел, или добавь вручную.</div>'}
       <button class="full" id="btnAddChoiceHere" style="margin-top:6px">+ добавить переход</button>
     </div>`;
-  if(tab==='links') return `
+  if(tab==='links'){
+    const ar=n.actionRef||{action:'',target:''};
+    const actionEntities=entities.filter(e=>e.kind==='action'&&(e.status!=='deprecated'||e.id===ar.action));
+    const targetEntities=entities.filter(e=>e.status!=='deprecated'||e.id===ar.target);
+    const actionEnt=findEntity(ar.action), targetEnt=findEntity(ar.target);
+    return `
     <div class="group">
       <h3>Связано с миром</h3>
       <div class="hint" style="margin-bottom:6px">Персонажи, локации, фракции, предметы и т. п. из режима «Мир», которых касается это событие — событие на них ссылается, а не хранит копию данных. Клик по имени фишки переходит к сущности.</div>
       ${chipPickerHtml('refs',n.refs||[],'worldEntities',true)}
+    </div>
+    <div class="group">
+      <h3>Действие → Цель</h3>
+      <div class="hint" style="margin-bottom:6px">Структурная связка «что делает игрок → над чем» (design-doc: <code>perform_action(action_id, target)</code>) — отдельно от общих ссылок выше, чтобы не гадать, какая из фишек действие, а какая цель. «Действие» — сущность вида «Действие (Object Plan)» (§12); заведи такую в «Мире», если ещё нет.</div>
+      <div class="row">
+        <div style="flex:1"><label class="small">Действие</label>
+          <select data-path="actionRef.action"><option value="">— не указано —</option>${actionEntities.map(e=>`<option value="${esc(e.id)}" ${ar.action===e.id?'selected':''}>${esc(entityDisplayName(e))}</option>`).join('')}</select></div>
+        <div style="flex:1"><label class="small">Цель</label>
+          <select data-path="actionRef.target"><option value="">— не указано —</option>${targetEntities.map(e=>`<option value="${esc(e.id)}" ${ar.target===e.id?'selected':''}>${esc(entityKindLabel(e.kind))}: ${esc(entityDisplayName(e))}</option>`).join('')}</select></div>
+      </div>
+      ${ar.action?`<div class="hint" style="margin-top:6px">Читается как: <b>${esc(actionEnt?entityDisplayName(actionEnt):'?')}</b>${ar.target?` → <b>${esc(targetEnt?entityDisplayName(targetEnt):'?')}</b>`:''}</div>`:''}
     </div>`;
+  }
   return `
     <div class="group">
       <h3>Узел</h3>
@@ -338,6 +374,20 @@ inspectorEl.addEventListener('click',e=>{
   if(delRow){
     if(readOnlyMode) return;
     const path=delRow.dataset.delrow, idx=path.lastIndexOf('.');
+    const arr=getByPath(n,path.slice(0,idx));
+    arr.splice(Number(path.slice(idx+1)),1);
+    pushHistory(); renderAll(); return;
+  }
+  const addResourceFx=e.target.closest('[data-addresourcefx]');
+  if(addResourceFx){
+    const arr=getByPath(n,addResourceFx.dataset.addresourcefx);
+    addResourceFxRow(arr);
+    pushHistory(); renderAll(); return;
+  }
+  const delResourceFx=e.target.closest('[data-delresourcefx]');
+  if(delResourceFx){
+    if(readOnlyMode) return;
+    const path=delResourceFx.dataset.delresourcefx, idx=path.lastIndexOf('.');
     const arr=getByPath(n,path.slice(0,idx));
     arr.splice(Number(path.slice(idx+1)),1);
     pushHistory(); renderAll(); return;

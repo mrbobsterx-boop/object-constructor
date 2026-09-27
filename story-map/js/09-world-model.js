@@ -32,6 +32,19 @@ function catalogOptionsFor(catalog){
   return [];
 }
 
+// Object Plan не хранит отдельный каталог "ресурсов" — вода/энергия/топливо/лом это просто
+// os.resourceType на предметах-контейнерах/баках (PLAN_ITEMS), без единого перечня где-либо. Вместо
+// того чтобы завести свой список и рисковать разойтись с тем, что реально есть в Object Plan,
+// вычисляем список типов из уже загруженного PLAN_ITEMS — появится в Object Plan новый тип, здесь он
+// подхватится сам, без правки Story Map (§21).
+const RESOURCE_TYPE_LABELS={water:'Вода',energy:'Энергия',fuel:'Топливо',scrap:'Металлолом'};
+function getResourceTypes(){
+  const seen=new Set();
+  (typeof PLAN_ITEMS!=='undefined'?PLAN_ITEMS:[]).forEach(i=>{ const rt=i.os&&i.os.resourceType; if(rt) seen.add(rt); });
+  return [...seen].map(id=>({id,label:RESOURCE_TYPE_LABELS[id]||id}));
+}
+function resourceTypeLabel(id){ return RESOURCE_TYPE_LABELS[id]||id||''; }
+
 // inverseName — как читается ЭТА ЖЕ связь с точки зрения второй сущности (member_of → has_member),
 // вместо голого "← member_of"; symmetric — связь читается одинаково с обеих сторон (friend_of), без
 // направления вовсе. Оба поля — необязательные, редактируются в списке "Типы связей" (§14).

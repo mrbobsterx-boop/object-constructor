@@ -16,7 +16,12 @@ let multiSelected=new Set(); // всегда синхронизирован с s
 let clipboard=null;
 let pan={x:60,y:60}, zoom=1;
 
-function defaultSim(){ return {durationHours:1,dangerChance:0,foodCost:0,waterCost:0,requiresItems:[],requiresSkills:[]}; }
+// resourceEffects — обобщение foodCost/waterCost на ЛЮБОЙ ресурс из Object Plan (топливо, энергия,
+// металлолом/лом — os.resourceType на предметах-контейнерах, §21), а не только на еду/воду, которые
+// были захардкожены изначально. foodCost/waterCost остаются как есть (уже используются, ломать
+// незачем) — resourceEffects просто покрывает всё остальное тем же принципом {resourceType,op,value},
+// что и обычные effects на переменные.
+function defaultSim(){ return {durationHours:1,dangerChance:0,foodCost:0,waterCost:0,requiresItems:[],requiresSkills:[],resourceEffects:[]}; }
 function defaultTrigger(type){
   if(type==='background') return {kind:'scheduled',afterHours:24,sinceNode:'',repeat:false};
   return {kind:'conditions',all:[]};
@@ -62,6 +67,7 @@ function addNode(type,x,y){
   const n={
     id:uid('n'),title:type==='background'?'Новое фоновое событие':(type==='choice'?'Новый выбор':'Новое событие'),
     text:'',type:type||'event',category:'story',tags:[],samSystem:'',refs:[],
+    actionRef:{action:'',target:''},
     x:pos.x, y:pos.y,
     trigger:isFirst?{kind:'start'}:defaultTrigger(type),
     effects:[], sim:defaultSim(), choices:[], ending:''
@@ -192,6 +198,10 @@ function deleteStickyNote(id){
 
 function addCondRow(list){ if(blockIfReadOnly()) return; list.push({var:(variables[0]&&variables[0].id)||'',op:'>=',value:0}); }
 function addEffRow(list){ if(blockIfReadOnly()) return; list.push({var:(variables[0]&&variables[0].id)||'',op:'add',value:0}); }
+// getResourceTypes() определена позже (09-world-model.js, читает PLAN_ITEMS Object Plan) — вызывается
+// только из обработчика клика после полной загрузки страницы, поэтому порядок файлов не важен (см.
+// договорённость о классических скриптах в начале документации).
+function addResourceFxRow(list){ if(blockIfReadOnly()) return; const types=(typeof getResourceTypes==='function'?getResourceTypes():[]); list.push({resourceType:(types[0]&&types[0].id)||'',op:'add',value:0}); }
 
 /* ---------- групповые действия (выделено несколько узлов) и переименование тега/раздела по всему графу ---------- */
 function bulkAddTagToSelected(tag){

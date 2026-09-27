@@ -12,6 +12,7 @@ function collectStoryJSON(){
     nodes:nodes.map(n=>({
       id:n.id,title:n.title,text:n.text,type:n.type,category:n.category||'story',tags:n.tags||[],samSystem:n.samSystem||'',
       arc:n.arc||'',chapter:n.chapter||'',eventSource:n.eventSource||'',
+      actionRef:{action:(n.actionRef&&n.actionRef.action)||'',target:(n.actionRef&&n.actionRef.target)||''},
       refs:n.refs||[],
       x:num(n.x),y:num(n.y),
       trigger:n.trigger,effects:n.effects,sim:n.sim,
@@ -56,10 +57,12 @@ async function loadStoryFromProject(){
       const sim=Object.assign(defaultSim(),n.sim||{});
       sim.requiresItems=coerceStringList(sim.requiresItems);
       sim.requiresSkills=coerceStringList(sim.requiresSkills);
+      sim.resourceEffects=Array.isArray(sim.resourceEffects)?sim.resourceEffects:[];
       return {
         id:n.id,title:n.title||'',text:n.text||'',type:n.type||'event',
         category:n.category||'story',tags:Array.isArray(n.tags)?n.tags:[],samSystem:n.samSystem||'',
         arc:n.arc||'',chapter:n.chapter||'',eventSource:n.eventSource||'',
+        actionRef:{action:(n.actionRef&&n.actionRef.action)||'',target:(n.actionRef&&n.actionRef.target)||''},
         refs:Array.isArray(n.refs)?n.refs:[],
         x:num(n.x,120),y:num(n.y,120),
         trigger:n.trigger||{kind:'conditions',all:[]},
