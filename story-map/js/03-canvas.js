@@ -24,12 +24,58 @@ function renderDirtyStatus(){
   el.className='status '+(dirty?'dirty':'clean');
 }
 
-/* ---------- левая панель: переменные и список узлов ---------- */
+/* ---------- левая панель: переменные (+ Dependency Explorer) и список узлов ---------- */
+// Dependency Explorer переменной — кто её меняет (effects узлов/переходов/связей мира) и кто читает
+// (условия узлов/переходов/связей). Раскрыта не более одной переменной за раз — это же множество
+// узлов подсвечивается на холсте (см. computeVarHighlightSet), поэтому один активный фокус проще
+// читать, чем несколько одновременно наложенных подсветок.
+let expandedVarId=null;
+function effectLabel(e){ const sym={set:'=',add:'+',subtract:'−'}[e.op]||e.op; return `${sym}${e.value}`; }
+function variableDependents(varId){
+  const writers=[], readers=[];
+  nodes.forEach(n=>{
+    n.effects.forEach(e=>{ if(e.var===varId) writers.push({nodeId:n.id,label:n.title,detail:effectLabel(e)}); });
+    (n.trigger.kind==='conditions'?n.trigger.all:[]).forEach(c=>{ if(c.var===varId) readers.push({nodeId:n.id,label:n.title,detail:`${opSymbol(c.op)} ${c.value}`}); });
+    n.choices.forEach(c=>{
+      c.effects.forEach(e=>{ if(e.var===varId) writers.push({nodeId:n.id,label:`${n.title} → ${c.label||'?'}`,detail:effectLabel(e)}); });
+      c.requires.forEach(r=>{ if(r.var===varId) readers.push({nodeId:n.id,label:`${n.title} → ${c.label||'?'}`,detail:`${opSymbol(r.op)} ${r.value}`}); });
+    });
+  });
+  (typeof relations!=='undefined'?relations:[]).forEach(r=>{
+    (r.effects||[]).forEach(e=>{ if(e.var===varId) writers.push({relationId:r.id,fromEntity:r.from,label:`Связь: ${relationTypeLabel(r.type)}`,detail:effectLabel(e)}); });
+    (r.conditions||[]).forEach(c=>{ if(c.var===varId) readers.push({relationId:r.id,fromEntity:r.from,label:`Связь: ${relationTypeLabel(r.type)}`,detail:`${opSymbol(c.op)} ${c.value}`}); });
+  });
+  return {writers,readers};
+}
+function varDepRowHtml(d){
+  const attr=d.nodeId?`data-jumpnode="${esc(d.nodeId)}"`:(d.relationId?`data-jumprel="${esc(d.relationId)}" data-jumprelentity="${esc(d.fromEntity)}"`:'');
+  return `<div class="var-dep-row" ${attr}><span class="nm">${esc(d.label)}</span><span class="val">${esc(d.detail)}</span></div>`;
+}
+function varDepsHtml(v){
+  const {writers,readers}=variableDependents(v.id);
+  return `<div class="var-deps">
+    <div class="var-deps-col"><div class="var-deps-h">Меняют (${writers.length})</div>${writers.map(varDepRowHtml).join('')||'<div class="hint small">нигде</div>'}</div>
+    <div class="var-deps-col"><div class="var-deps-h">Читают (${readers.length})</div>${readers.map(varDepRowHtml).join('')||'<div class="hint small">нигде</div>'}</div>
+  </div>`;
+}
+// Клик по проблеме в "Проверках" (§5) с varId — раскрывает Dependency Explorer этой переменной и
+// прокручивает её в поле зрения, вместо того чтобы молча выделять что-то за кадром.
+function focusVariableDependencies(varId){
+  expandedVarId=varId;
+  renderLeft(); renderCanvas();
+  const row=document.querySelector(`.varrow[data-var="${CSS.escape(varId)}"]`);
+  if(row) row.scrollIntoView({block:'center',behavior:'smooth'});
+}
 function renderLeft(){
   const varEl=document.getElementById('varList');
-  varEl.innerHTML=variables.map(v=>`
+  varEl.innerHTML=variables.map(v=>{
+    const expanded=expandedVarId===v.id;
+    return `
     <div class="varrow" data-var="${esc(v.id)}">
-      <input type="text" value="${esc(v.name)}" data-vfield="name" placeholder="Название переменной">
+      <div class="row" style="margin:0">
+        <input type="text" value="${esc(v.name)}" data-vfield="name" placeholder="Название переменной" style="flex:1">
+        <button class="dep-toggle ${expanded?'active':''}" data-depvar="${esc(v.id)}" title="Кто читает/меняет эту переменную">🔗</button>
+      </div>
       <div class="row">
         <select data-vfield="type">
           <option value="counter" ${v.type==='counter'?'selected':''}>число</option>
@@ -38,11 +84,23 @@ function renderLeft(){
         <input type="number" value="${v.start}" data-vfield="start" title="начальное значение" style="width:64px">
         <button class="del-x" data-delvar="${esc(v.id)}">✕</button>
       </div>
-    </div>`).join('') || '<div class="hint">Нет переменных — добавь репутацию фракции, уровень опасности, счётчик дней и т.п.</div>';
+      ${expanded?varDepsHtml(v):''}
+    </div>`;
+  }).join('') || '<div class="hint">Нет переменных — добавь репутацию фракции, уровень опасности, счётчик дней и т.п.</div>';
 
   const nodeEl=document.getElementById('nodeList');
   document.getElementById('nodeCount').textContent=nodes.length;
   nodeEl.innerHTML=renderNodesByCategory();
+}
+// Множество узлов, которые пишут/читают текущую раскрытую (Dependency Explorer) переменную — холст
+// подсвечивает их отдельным классом (не путать с .dimmed из режима фокуса — это активная подсветка,
+// не приглушение остального).
+function computeVarHighlightSet(){
+  if(!expandedVarId) return null;
+  const {writers,readers}=variableDependents(expandedVarId);
+  const set=new Set();
+  writers.concat(readers).forEach(d=>{ if(d.nodeId) set.add(d.nodeId); });
+  return set;
 }
 // Группировка левой панели по разделу (SYSTEMS из Object Plan) — «раздел + ветки с тем, на что они
 // влияют», чтобы список не превращался в кашу по мере роста графа.
@@ -147,7 +205,14 @@ document.getElementById('varList').addEventListener('change',e=>{
   if(e.target.dataset.vfield){ pushHistory(); renderChecks(); }
 });
 document.getElementById('varList').addEventListener('click',e=>{
-  const del=e.target.closest('[data-delvar]'); if(del){ deleteVariable(del.dataset.delvar); }
+  const del=e.target.closest('[data-delvar]');
+  if(del){ if(expandedVarId===del.dataset.delvar) expandedVarId=null; deleteVariable(del.dataset.delvar); return; }
+  const dep=e.target.closest('[data-depvar]');
+  if(dep){ expandedVarId=expandedVarId===dep.dataset.depvar?null:dep.dataset.depvar; renderLeft(); renderCanvas(); return; }
+  const jumpNode=e.target.closest('[data-jumpnode]');
+  if(jumpNode){ selectNode(jumpNode.dataset.jumpnode); focusNode(jumpNode.dataset.jumpnode); return; }
+  const jumpRel=e.target.closest('[data-jumprel]');
+  if(jumpRel&&typeof setViewMode==='function'){ selectedEntityId=jumpRel.dataset.jumprelentity; selectedRelationId=jumpRel.dataset.jumprel; setViewMode('world'); }
 });
 document.getElementById('nodeList').addEventListener('click',e=>{
   const del=e.target.closest('[data-delnode]');
@@ -217,6 +282,7 @@ function stickyNoteHtml(s){
 }
 function renderCanvas(){
   const focusSet=computeFocusSet();
+  const varHighlightSet=computeVarHighlightSet();
   worldEl.innerHTML=`<div id="boxSelectOverlay"></div>`+nodes.map(n=>{
     const outCount=n.choices.length;
     const shown=n.choices.slice(0,3).map(c=>`<div class="nb-choice">${esc(c.label||'(без текста)')}</div>`).join('');
@@ -224,7 +290,8 @@ function renderCanvas(){
     const choicesHtml=outCount?`<div class="nb-choices">${shown}${more}</div>`:'';
     const dimmed=focusSet&&!focusSet.has(n.id);
     const connectHover=connectHoverId===n.id;
-    return `<div class="node-box ${n.type} ${multiSelected.has(n.id)?'selected':''} ${dimmed?'dimmed':''} ${connectHover?'connect-hover':''}" data-node="${esc(n.id)}" style="left:${n.x}px;top:${n.y}px;width:${NODE_W}px;min-height:${NODE_H}px">
+    const varHit=varHighlightSet&&varHighlightSet.has(n.id);
+    return `<div class="node-box ${n.type} ${multiSelected.has(n.id)?'selected':''} ${dimmed?'dimmed':''} ${connectHover?'connect-hover':''} ${varHit?'var-dep-highlight':''}" data-node="${esc(n.id)}" style="left:${n.x}px;top:${n.y}px;width:${NODE_W}px;min-height:${NODE_H}px">
       <div class="nb-title">${esc(n.title||'(без названия)')}</div>
       <div class="nb-meta"><span>${triggerLabel(n.trigger)}</span><span>→ ${outCount}</span></div>
       ${choicesHtml}

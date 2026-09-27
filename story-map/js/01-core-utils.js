@@ -13,6 +13,7 @@ function sanitizeSlug(s){ return translit(String(s||'')).replace(/[^a-z0-9]+/g,'
 function uid(prefix){ return prefix+'_'+Date.now().toString(36)+Math.random().toString(36).slice(2,6); }
 
 const OP_LIST=[['>=','≥'],['<=','≤'],['==','='],['!=','≠'],['>','>'],['<','<']];
+function opSymbol(op){ const p=OP_LIST.find(x=>x[0]===op); return p?p[1]:op; }
 function opTest(a,op,b){
   a=Number(a)||0; b=Number(b)||0;
   if(op==='>=')return a>=b; if(op==='<=')return a<=b; if(op==='==')return a===b;
