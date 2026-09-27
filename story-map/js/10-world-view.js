@@ -33,13 +33,37 @@ function jumpToWorldEntity(id){
 function nodesReferencingEntity(entityId){
   return nodes.filter(n=>(n.refs||[]).includes(entityId));
 }
+// Dependency Explorer для World-сущностей (группа I бэклога): та же идея, что и у переменных
+// (§1) — список узлов сюжета, куда сущность "дотягивается", плюс краткая сводка её эффектов
+// (nodeAffectsSummary из 03-canvas.js), чтобы видеть не только САМ факт связи, но и что она
+// значит для игры, не открывая каждый узел по одному.
+function entityNodesHtml(nodesList,emptyHint){
+  return nodesList.map(n=>`<div class="noderow" data-jumpstory="${esc(n.id)}">
+    <span class="tag ${esc(n.type)}">${esc(n.type)}</span>
+    <div class="nm-wrap"><span class="nm">${esc(n.title||'(без названия)')}</span>${nodeAffectsSummary(n)?`<span class="affects muted small">→ ${esc(nodeAffectsSummary(n))}</span>`:''}</div>
+  </div>`).join('')||`<div class="hint">${esc(emptyHint)}</div>`;
+}
 
 /* ---------- левая панель режима «Мир»: сущности / идеи-предложения / типы связей ---------- */
+// Focus Entity (группа J бэклога) — сужает список сущностей до кластера в N связях от выбранной,
+// БЕЗ учёта направления (см. пояснение у computeEntityFocusSet в 09-world-model.js). Список, а не
+// подсветка на холсте — режим "Мир" сознательно без пространственного холста (карточка+список), так
+// что сужение видимого множества и есть здешний эквивалент притушивания в §6/§7.
+let entityFocusMode=false;
+function computeEntityFocusVisibleSet(){
+  if(!entityFocusMode||!selectedEntityId) return null;
+  const depth=(document.getElementById('entityFocusDepth')||{}).value||'1';
+  return computeEntityFocusSet(selectedEntityId,depth);
+}
 function renderEntityListHtml(q){
   if(!entities.length) return '<div class="hint">Пока нет сущностей — добавь персонажа, локацию, или сошлись на предмет/навык/действие из Object Plan.</div>';
   q=(q||'').toLowerCase();
-  const filtered=entities.filter(e=>!q||entityDisplayName(e).toLowerCase().includes(q)||entityKindLabel(e.kind).toLowerCase().includes(q)||(e.note||'').toLowerCase().includes(q));
-  if(!filtered.length) return '<div class="hint">Ничего не найдено по этому запросу.</div>';
+  const relTypeFilter=(document.getElementById('entityRelTypeFilter')||{}).value||'';
+  const focusSet=computeEntityFocusVisibleSet();
+  let filtered=entities.filter(e=>!q||entityDisplayName(e).toLowerCase().includes(q)||entityKindLabel(e.kind).toLowerCase().includes(q)||(e.note||'').toLowerCase().includes(q));
+  if(relTypeFilter) filtered=filtered.filter(e=>relationsForEntity(e.id).some(r=>r.type===relTypeFilter));
+  if(focusSet) filtered=filtered.filter(e=>focusSet.has(e.id));
+  if(!filtered.length) return '<div class="hint">Ничего не найдено по этому запросу/фильтру.</div>';
   const byKind=new Map();
   filtered.forEach(e=>{ if(!byKind.has(e.kind)) byKind.set(e.kind,[]); byKind.get(e.kind).push(e); });
   const order=[...byKind.keys()].sort((a,b)=>entityKindLabel(a).localeCompare(entityKindLabel(b),'ru'));
@@ -81,15 +105,40 @@ function renderWorldLeft(){
   if(rtEl) rtEl.innerHTML=relationTypes.map(t=>`
     <div class="varrow" data-reltype="${esc(t.id)}">
       <div class="row" style="margin:0">
-        <input type="text" value="${esc(t.name)}" data-rtfield="name" style="flex:1">
+        <input type="text" value="${esc(t.name)}" data-rtfield="name" style="flex:1" title="Имя типа">
         <button class="del-x" data-delreltype="${esc(t.id)}">✕</button>
       </div>
+      <div class="row">
+        <input type="text" value="${esc(t.inverseName||'')}" data-rtfield="inverseName" placeholder="обратное имя (member_of → has_member)" style="flex:1" ${t.symmetric?'disabled':''}>
+        <label class="small" title="Связь читается одинаково в обе стороны, без направления (friend_of)"><input type="checkbox" data-rtfield="symmetric" ${t.symmetric?'checked':''}> симметрична</label>
+      </div>
     </div>`).join('')||'<div class="hint">Нет типов связей.</div>';
+
+  // Опции пересобираются на каждый renderAll() (тип связи мог переименоваться/удалиться), поэтому
+  // явно возвращаем текущее выбранное значение — иначе фильтр молча сбрасывался бы на "Все" при
+  // любой правке где-либо в интерфейсе, а не только когда меняется сам список типов.
+  const relFilterEl=document.getElementById('entityRelTypeFilter');
+  if(relFilterEl){
+    const cur=relFilterEl.value;
+    relFilterEl.innerHTML='<option value="">Все типы связей</option>'+relationTypes.map(t=>`<option value="${esc(t.id)}">${esc(t.name)}</option>`).join('');
+    if(cur&&relationTypes.some(t=>t.id===cur)) relFilterEl.value=cur;
+  }
 }
 
 document.getElementById('btnAddEntity').onclick=()=>addEntity(document.getElementById('newEntityKind').value);
 document.getElementById('entitySearch').addEventListener('input',()=>{
   document.getElementById('entityList').innerHTML=renderEntityListHtml(document.getElementById('entitySearch').value);
+});
+document.getElementById('entityRelTypeFilter').addEventListener('change',()=>{
+  document.getElementById('entityList').innerHTML=renderEntityListHtml(document.getElementById('entitySearch').value);
+});
+document.getElementById('btnEntityFocus').onclick=()=>{
+  entityFocusMode=!entityFocusMode;
+  document.getElementById('btnEntityFocus').classList.toggle('active',entityFocusMode);
+  document.getElementById('entityList').innerHTML=renderEntityListHtml(document.getElementById('entitySearch').value);
+};
+document.getElementById('entityFocusDepth').addEventListener('change',()=>{
+  if(entityFocusMode) document.getElementById('entityList').innerHTML=renderEntityListHtml(document.getElementById('entitySearch').value);
 });
 document.getElementById('entityList').addEventListener('click',e=>{
   const del=e.target.closest('[data-delentity]');
@@ -126,25 +175,41 @@ document.getElementById('relationTypeList').addEventListener('input',e=>{
   if(readOnlyMode) return;
   const row=e.target.closest('[data-reltype]'); if(!row) return;
   const t=findRelationType(row.dataset.reltype); if(!t) return;
-  if(e.target.dataset.rtfield==='name') t.name=e.target.value;
+  const field=e.target.dataset.rtfield;
+  if(field==='name') t.name=e.target.value;
+  else if(field==='inverseName') t.inverseName=e.target.value;
 });
 document.getElementById('relationTypeList').addEventListener('change',e=>{
   if(readOnlyMode) return;
-  if(e.target.closest('[data-reltype]')){ pushHistory(); renderAll(); }
+  const row=e.target.closest('[data-reltype]'); if(!row) return;
+  const t=findRelationType(row.dataset.reltype); if(!t) return;
+  if(e.target.dataset.rtfield==='symmetric') t.symmetric=e.target.checked;
+  pushHistory(); renderAll();
 });
 document.getElementById('relationTypeList').addEventListener('click',e=>{
   const del=e.target.closest('[data-delreltype]'); if(del) deleteRelationType(del.dataset.delreltype);
 });
 
 /* ---------- карточка сущности + её связей (центральная область режима «Мир») ---------- */
+// Направление связи на карточке ДРУГОЙ (не from) стороны читается неудобно как голое "← member_of" —
+// если у типа задан inverseName (member_of ↔ has_member), показываем связь с точки зрения ЭТОЙ
+// сущности как "→ has_member", а не "← member_of" (та же связь, тот же id — просто более честная для
+// чтения формулировка). symmetric (friend_of) вообще не имеет направления — всегда "↔".
 function relationRowHtml(r,fromPerspectiveId){
   const isOutgoing=r.from===fromPerspectiveId;
   const otherId=isOutgoing?r.to:r.from;
   const other=findEntity(otherId);
-  const arrow=isOutgoing?'→':'←';
+  const type=findRelationType(r.type);
+  let arrow=isOutgoing?'→':'←', label=relationTypeLabel(r.type);
+  if(!isOutgoing&&type){
+    if(type.symmetric) arrow='↔';
+    else if(type.inverseName){ arrow='→'; label=type.inverseName; }
+  }
+  const mechBits=[]; if((r.conditions||[]).length) mechBits.push('усл:'+r.conditions.length); if((r.effects||[]).length) mechBits.push('эфф:'+r.effects.length);
+  const mech=mechBits.length?` <span class="muted small" title="Условия/эффекты этой связи">⚙ ${esc(mechBits.join(', '))}</span>`:'';
   return `<div class="noderow ${selectedRelationId===r.id?'active':''}" data-relation="${esc(r.id)}">
-    <span class="tag ${other?'':'err'}">${arrow} ${esc(relationTypeLabel(r.type))}</span>
-    <div class="nm-wrap"><span class="nm" data-jumpentity="${esc(otherId||'')}">${esc(other?entityDisplayName(other):'(нет сущности)')}</span></div>
+    <span class="tag ${other?'':'err'}">${arrow} ${esc(label)}</span>
+    <div class="nm-wrap"><span class="nm" data-jumpentity="${esc(otherId||'')}">${esc(other?entityDisplayName(other):'(нет сущности)')}</span>${mech}</div>
     <button class="del-x" data-delrelation="${esc(r.id)}">✕</button>
   </div>`;
 }
@@ -155,6 +220,7 @@ function renderWorldCanvas(){
   const kind=entityKindDef(e.kind);
   const rels=relationsForEntity(e.id);
   const refNodes=nodesReferencingEntity(e.id);
+  const usedNodes=kind.catalog?nodesUsingCatalogEntity(e):[];
   const deprecated=e.status==='deprecated';
   const mergeCandidates=entities.filter(x=>x.id!==e.id&&x.kind===e.kind&&x.status!=='deprecated');
   el.innerHTML=`
@@ -188,8 +254,13 @@ function renderWorldCanvas(){
     </div>
     <div class="group">
       <h3>Упоминается в сюжете (${refNodes.length})</h3>
-      ${refNodes.map(n=>`<div class="noderow" data-jumpstory="${esc(n.id)}"><span class="tag ${esc(n.type)}">${esc(n.type)}</span><div class="nm-wrap"><span class="nm">${esc(n.title||'(без названия)')}</span></div></div>`).join('')||'<div class="hint">Пока ни один узел сюжета не ссылается на эту сущность (вкладка «Ссылки» в инспекторе узла).</div>'}
+      ${entityNodesHtml(refNodes,'Пока ни один узел сюжета не ссылается на эту сущность (вкладка «Ссылки» в инспекторе узла).')}
     </div>
+    ${kind.catalog?`
+    <div class="group">
+      <h3>Используется в сюжете (${usedNodes.length})</h3>
+      ${entityNodesHtml(usedNodes,'Пока не используется ни в одном узле сюжета (через «нужны предметы/навыки» — §3, или через раздел/тег узла для систем).')}
+    </div>`:''}
   `;
 }
 document.getElementById('entityDetail').addEventListener('input',e=>{

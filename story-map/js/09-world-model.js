@@ -32,7 +32,25 @@ function catalogOptionsFor(catalog){
   return [];
 }
 
-const DEFAULT_RELATION_TYPES=['member_of','located_at','contains','owns','can_perform','uses','produces','satisfies_need','has_skill','has_need','is_a','supports','friend_of','enemy_of'];
+// inverseName — как читается ЭТА ЖЕ связь с точки зрения второй сущности (member_of → has_member),
+// вместо голого "← member_of"; symmetric — связь читается одинаково с обеих сторон (friend_of), без
+// направления вовсе. Оба поля — необязательные, редактируются в списке "Типы связей" (§14).
+const DEFAULT_RELATION_TYPES=[
+  {name:'member_of',inverseName:'has_member'},
+  {name:'located_at'},
+  {name:'contains',inverseName:'part_of'},
+  {name:'owns',inverseName:'owned_by'},
+  {name:'can_perform'},
+  {name:'uses'},
+  {name:'produces'},
+  {name:'satisfies_need'},
+  {name:'has_skill'},
+  {name:'has_need'},
+  {name:'is_a'},
+  {name:'supports'},
+  {name:'friend_of',symmetric:true},
+  {name:'enemy_of',symmetric:true}
+];
 const RELATION_STATUS=[['confirmed','подтверждено'],['proposed','предположение'],['deprecated','устарело']];
 
 let entities=[], relationTypes=[], relations=[], proposals=[];
@@ -43,10 +61,55 @@ function findRelationType(id){ return relationTypes.find(t=>t.id===id); }
 function findRelation(id){ return relations.find(r=>r.id===id); }
 function relationTypeLabel(id){ const t=findRelationType(id); return t?t.name:'(?)'; }
 function relationsForEntity(id){ return relations.filter(r=>r.from===id||r.to===id); }
+// Каталожная сущность (предмет/навык/система) не имеет node.refs, но её реальное использование в
+// сюжете видно по совсем другим полям узла — sim.requiresItems/requiresSkills (совпадение по
+// каталожному id, не по id сущности) и category/tags для систем (это те же id SYSTEMS). Отдельная
+// функция, а не расширение nodesReferencingEntity(), потому что механизм связи принципиально другой
+// (совпадение по каталожному значению, а не по id сущности "Мира").
+function nodesUsingCatalogEntity(entity){
+  const kind=entityKindDef(entity.kind);
+  if(!kind.catalog||!entity.ref||!entity.ref.refId) return [];
+  const refId=entity.ref.refId;
+  if(kind.catalog==='items') return nodes.filter(n=>(n.sim&&n.sim.requiresItems||[]).includes(refId));
+  if(kind.catalog==='skills') return nodes.filter(n=>(n.sim&&n.sim.requiresSkills||[]).includes(refId));
+  if(kind.catalog==='systems') return nodes.filter(n=>n.category===refId||(n.tags||[]).includes(refId));
+  return [];
+}
+// Focus Entity: соседи считаются БЕЗ учёта направления связи — для навигации по кластеру мира
+// направление не важно, важно "с чем это связано вообще" (в отличие от Story-режима, где фокус идёт
+// строго вперёд по choices — там направление и есть весь смысл, см. computeFocusSet в 03-canvas.js).
+function computeEntityFocusSet(entityId,depth){
+  if(!entityId) return null;
+  const set=new Set([entityId]);
+  if(depth==='all'){
+    let grew=true;
+    while(grew){
+      grew=false;
+      relations.forEach(r=>{
+        if(set.has(r.from)&&!set.has(r.to)){ set.add(r.to); grew=true; }
+        if(set.has(r.to)&&!set.has(r.from)){ set.add(r.from); grew=true; }
+      });
+    }
+    return set;
+  }
+  const maxDepth=Number(depth)||1;
+  let frontier=[entityId];
+  for(let d=0;d<maxDepth&&frontier.length;d++){
+    const next=[];
+    frontier.forEach(id=>{
+      relations.forEach(r=>{
+        if(r.from===id&&!set.has(r.to)){ set.add(r.to); next.push(r.to); }
+        if(r.to===id&&!set.has(r.from)){ set.add(r.from); next.push(r.from); }
+      });
+    });
+    frontier=next;
+  }
+  return set;
+}
 
 function seedRelationTypesIfEmpty(){
   if(relationTypes.length) return;
-  relationTypes=DEFAULT_RELATION_TYPES.map(name=>({id:uid('rt'),name}));
+  relationTypes=DEFAULT_RELATION_TYPES.map(d=>({id:uid('rt'),name:d.name,inverseName:d.inverseName||'',symmetric:!!d.symmetric}));
 }
 
 // Имя каталожной сущности всегда читается из самого каталога (не хранится отдельно) — если предмет
@@ -135,7 +198,7 @@ function addRelationType(name){
   if(blockIfReadOnly()) return;
   name=(name||'').trim(); if(!name) return;
   if(relationTypes.some(t=>t.name===name)) return;
-  relationTypes.push({id:uid('rt'),name});
+  relationTypes.push({id:uid('rt'),name,inverseName:'',symmetric:false});
   pushHistory(); renderAll();
 }
 function deleteRelationType(id){

@@ -19,7 +19,7 @@ function collectStoryJSON(){
     })),
     stickyNotes:stickyNotes.map(s=>({id:s.id,x:num(s.x),y:num(s.y),text:s.text||'',color:s.color||STICKY_COLORS[0]})),
     entities:entities.map(e=>({id:e.id,kind:e.kind,name:e.name||'',ref:e.ref?{catalog:e.ref.catalog,refId:e.ref.refId||''}:null,note:e.note||'',status:e.status||'active'})),
-    relationTypes:relationTypes.map(t=>({id:t.id,name:t.name})),
+    relationTypes:relationTypes.map(t=>({id:t.id,name:t.name,inverseName:t.inverseName||'',symmetric:!!t.symmetric})),
     relations:relations.map(r=>({id:r.id,type:r.type,from:r.from,to:r.to,status:r.status||'confirmed',source:r.source||'',comment:r.comment||'',conditions:r.conditions||[],effects:r.effects||[]})),
     proposals:proposals.map(p=>({id:p.id,title:p.title,text:p.text||'',status:p.status||'idea',relatedEntities:p.relatedEntities||[],relatedSystems:p.relatedSystems||[]}))
   };
@@ -69,7 +69,7 @@ async function loadStoryFromProject(){
     });
     stickyNotes=Array.isArray(data.stickyNotes)?data.stickyNotes.map(s=>({id:s.id||uid('note'),x:num(s.x,0),y:num(s.y,0),text:s.text||'',color:STICKY_COLORS.includes(s.color)?s.color:STICKY_COLORS[0]})):[];
     entities=Array.isArray(data.entities)?data.entities.map(e=>({id:e.id||uid('e'),kind:e.kind||'concept',name:e.name||'',ref:e.ref?{catalog:e.ref.catalog||'',refId:e.ref.refId||''}:null,note:e.note||'',status:e.status==='deprecated'?'deprecated':'active'})):[];
-    relationTypes=Array.isArray(data.relationTypes)?data.relationTypes.map(t=>({id:t.id||uid('rt'),name:t.name||''})):[];
+    relationTypes=Array.isArray(data.relationTypes)?data.relationTypes.map(t=>({id:t.id||uid('rt'),name:t.name||'',inverseName:t.inverseName||'',symmetric:!!t.symmetric})):[];
     seedRelationTypesIfEmpty();
     relations=Array.isArray(data.relations)?data.relations.map(r=>({id:r.id||uid('rel'),type:r.type||'',from:r.from||'',to:r.to||'',status:r.status||'confirmed',source:r.source||'',comment:r.comment||'',conditions:Array.isArray(r.conditions)?r.conditions:[],effects:Array.isArray(r.effects)?r.effects:[]})):[];
     proposals=Array.isArray(data.proposals)?data.proposals.map(p=>({id:p.id||uid('pr'),title:p.title||'',text:p.text||'',status:p.status||'idea',relatedEntities:Array.isArray(p.relatedEntities)?p.relatedEntities:[],relatedSystems:Array.isArray(p.relatedSystems)?p.relatedSystems:[]})):[];

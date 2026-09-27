@@ -101,6 +101,7 @@ label.small{font-size:11px;color:var(--muted);display:block;margin-bottom:2px}
 
 #btnReadOnly.active{background:var(--warn);border-color:var(--warn);color:#1a1006;font-weight:600}
 body.read-only .app{outline:3px solid var(--warn);outline-offset:-3px}
+#btnEntityFocus.active{background:var(--info);border-color:var(--info);color:#0d140f;font-weight:600}
 
 .node-box{position:absolute;width:220px;border-radius:8px;border:2px solid var(--line2);background:var(--panel2);padding:8px;cursor:grab;user-select:none;box-shadow:0 2px 6px rgba(0,0,0,.3)}
 .node-box.event{border-color:#565f6c}

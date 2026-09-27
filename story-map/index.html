@@ -83,6 +83,16 @@
         <button id="btnAddEntity">+ добавить</button>
       </div>
       <input type="text" id="entitySearch" class="full" placeholder="🔎 Найти сущность…" style="margin-bottom:6px">
+      <div class="row" style="margin-bottom:6px">
+        <select id="entityRelTypeFilter" style="flex:1" title="Показать только сущности, у которых есть связь этого типа"></select>
+        <button id="btnEntityFocus" title="Показать только сущности в радиусе N связей от выбранной">🔦 Фокус</button>
+        <select id="entityFocusDepth" title="Глубина фокуса">
+          <option value="1">1</option>
+          <option value="2">2</option>
+          <option value="3">3</option>
+          <option value="all">Все</option>
+        </select>
+      </div>
       <div id="entityList" class="nodelist"></div>
     </div>
     <div class="group">
