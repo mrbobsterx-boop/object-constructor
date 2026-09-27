@@ -81,13 +81,26 @@ function simArriveAtNode(nodeId){
   simFireDueScheduled();
   if(!simState.ended&&!n.choices.length) simState.ended={type:'deadend'};
 }
+// Тест отдельного узла "как если бы игрок уже оказался здесь" (§25, контекстное меню "🧪 Тест
+// отсюда") — та же машина прогона, что и обычная "▶ Играть", просто с другой точкой входа и честной
+// пометкой об этом (testMode), а не тихой подменой обычного запуска. Переменные стартуют с обычных
+// значений по умолчанию (simInitialVars) — если нужно проверить КОНКРЕТНОЕ состояние мира, а не
+// "с нуля", их можно тут же поправить вручную в панели "Переменные" (см. renderSimulation ниже) —
+// это гибче отдельного диалога "задать состояние перед стартом": можно менять значения и посреди
+// прогона, проверяя разные ветки без пересоздания сценария с нуля.
+let simEntryNodeId=null;
+function simStartFrom(nodeId){
+  const n=findNode(nodeId); if(!n) return;
+  simEntryNodeId=nodeId;
+  simState={nodeId:null,vars:simInitialVars(),hours:0,nextDue:{},log:[],steps:0,ended:null,testMode:n.trigger.kind!=='start'};
+  simArriveAtNode(n.id);
+  document.getElementById('simModal').style.display='flex';
+  renderSimulation();
+}
 function simStart(){
   const startNode=nodes.find(n=>n.trigger.kind==='start');
   if(!startNode){ alert('Нет стартового узла — «Проверки» слева должны на это указывать.'); return; }
-  simState={nodeId:null,vars:simInitialVars(),hours:0,nextDue:{},log:[],steps:0,ended:null};
-  simArriveAtNode(startNode.id);
-  document.getElementById('simModal').style.display='flex';
-  renderSimulation();
+  simStartFrom(startNode.id);
 }
 function simPickChoice(choiceId){
   if(!simState||simState.ended) return;
@@ -111,11 +124,17 @@ function renderSimulation(){
     const why=failing.map(r=>{ const v=findVariable(r.var); return `${v?v.name:r.var} ${opSymbol(r.op)} ${r.value}`; }).join(', ');
     return `<button class="full" style="margin-bottom:4px" data-simchoice="${esc(c.id)}" ${ok?'':'disabled'} title="${ok?'':esc('Недоступно: требуется '+why)}">${esc(c.label||'(без текста)')}</button>`;
   }).join('')||'<div class="hint">Нет переходов.</div>';
-  const varsHtml=variables.map(v=>`<div class="row" style="justify-content:space-between;margin:0"><span>${esc(v.name)}</span><span>${esc(String(simState.vars[v.id]))}</span></div>`).join('')||'<div class="hint">Нет переменных.</div>';
+  // Значения переменных редактируемы прямо здесь (а не только видны) — "тест с заданным состоянием"
+  // (§25): можно проверить, как поведёт себя граф, если игрок уже пришёл сюда с другими цифрами, не
+  // переигрывая весь прогон заново ради этого. input — держит simState.vars в курсе на каждую цифру
+  // (иначе choicesHtml не увидел бы новое значение до следующего рендера); change (blur) — коммитит
+  // в журнал и полностью перерисовывает, чтобы доступность переходов пересчиталась с новым значением.
+  const varsHtml=variables.map(v=>`<div class="row" style="justify-content:space-between;margin:0;align-items:center"><span>${esc(v.name)}</span><input type="number" data-simvar="${esc(v.id)}" value="${esc(String(simState.vars[v.id]))}" style="width:70px"></div>`).join('')||'<div class="hint">Нет переменных.</div>';
   const logHtml=simState.log.slice().reverse().slice(0,60).map(entry=>{
     if(entry.type==='visit') return `<div class="idea-entry">📍 ${esc(entry.title)}</div>`;
     if(entry.type==='choice') return `<div class="idea-entry muted">→ ${esc(entry.label)}</div>`;
     if(entry.type==='scheduled') return `<div class="idea-entry">⏱ ${esc(entry.title)} (час ${entry.hour})</div>`;
+    if(entry.type==='setvar') return `<div class="idea-entry muted">🔧 ${esc(entry.title)} → ${esc(String(entry.value))} (изменено вручную)</div>`;
     return '';
   }).join('');
   let endedHtml='';
@@ -125,7 +144,9 @@ function renderSimulation(){
     else if(e.type==='deadend') endedHtml=`<div class="hint">⛔ Тупик — у узла нет переходов и это не отмечено как концовка.</div>`;
     else if(e.type==='cap') endedHtml=`<div class="hint">⚠ Остановлено — превышен лимит в ${SIM_STEP_CAP} шагов (похоже на цикл без концовки).</div>`;
   }
+  const testBanner=simState.testMode?`<div class="hint" style="margin-bottom:8px">🧪 Тестовый запуск не с начала игры — часы и фоновые узлы считаются с нуля от этой точки, это не полный прогон от старта.</div>`:'';
   document.getElementById('simBody').innerHTML=`
+    ${testBanner}
     <div class="row" style="align-items:flex-start;gap:16px">
       <div style="flex:1.4;min-width:0">
         <h3 style="margin:0">${esc(n?n.title:'(?)')} <span class="muted small">· ${simState.hours} ч</span></h3>
@@ -144,9 +165,19 @@ function renderSimulation(){
 }
 
 document.getElementById('btnSimPlay').onclick=simStart;
-document.getElementById('btnSimRestart').onclick=simStart;
+document.getElementById('btnSimRestart').onclick=()=>{ if(simEntryNodeId) simStartFrom(simEntryNodeId); else simStart(); };
 document.getElementById('btnSimClose').onclick=()=>{ document.getElementById('simModal').style.display='none'; simState=null; };
 document.getElementById('simBody').addEventListener('click',e=>{
   const btn=e.target.closest('[data-simchoice]');
   if(btn) simPickChoice(btn.dataset.simchoice);
+});
+document.getElementById('simBody').addEventListener('input',e=>{
+  const inp=e.target.closest('[data-simvar]'); if(!inp||!simState) return;
+  simState.vars[inp.dataset.simvar]=num(inp.value);
+});
+document.getElementById('simBody').addEventListener('change',e=>{
+  const inp=e.target.closest('[data-simvar]'); if(!inp||!simState) return;
+  const v=findVariable(inp.dataset.simvar);
+  simState.log.push({type:'setvar',title:v?v.name:inp.dataset.simvar,value:simState.vars[inp.dataset.simvar]});
+  renderSimulation();
 });

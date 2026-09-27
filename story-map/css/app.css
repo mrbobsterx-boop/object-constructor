@@ -52,6 +52,7 @@ header .spacer{flex:1}
 .ctx-menu hr{border:none;border-top:1px solid var(--line);margin:4px 2px}
 
 .nb-title-edit{background:var(--panel2);color:var(--text);border:1px solid var(--accent-hi);border-radius:4px;padding:0 4px;font:inherit}
+.rt-dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:4px;vertical-align:middle}
 .palette-row{justify-content:space-between}
 #minimap{position:absolute;right:10px;bottom:10px;border:1px solid var(--line2);border-radius:6px;background:rgba(17,21,27,.9);padding:3px;z-index:6}
 #minimapCanvas{display:block;cursor:pointer;border-radius:3px}

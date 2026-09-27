@@ -123,6 +123,30 @@ function implementationProgress(n){
   const done=NODE_IMPL_ASPECTS.filter(([id])=>st[id]==='done').length;
   return {done,total:NODE_IMPL_ASPECTS.length};
 }
+// Runtime-состояние узла (§25) — чисто СТРУКТУРНАЯ классификация по графу (не живой прогон): про то,
+// КАК узел входит в игру (свободно/по условию/никак), а не про то, что у него дальше (дед-энд —
+// отдельный, уже существующий значок ⛔ рядом, здесь намеренно не дублируется: дед-энд и "по условию"
+// не взаимоисключающие — узел может быть и тем, и другим сразу, а объединять их в одно поле значило
+// бы каждый раз выбирать, какое из двух показать, теряя другое). 'ending' проверяется первым —
+// концовка остаётся концовкой, даже если у неё технически есть choices (мусорные/неиспользуемые —
+// дело Проверок, не этого значка). 'blocked' = тот же тест, что "Недостижимые" в фильтре статуса
+// (`nodeMatchesStatus` выше) — структурно не может быть достигнут ни по одному переходу.
+const NODE_RUNTIME_STATES={
+  available:{label:'Доступен',color:'#6bbf90'},
+  conditional:{label:'По условию',color:'#4f7fbf'},
+  blocked:{label:'Недостижим',color:'#b5504a'},
+  ending:{label:'Концовка',color:'#c9834a'}
+};
+function nodeRuntimeState(n,reachable){
+  if(n.ending) return 'ending';
+  if(n.trigger.kind==='conditions'&&!reachable.has(n.id)) return 'blocked';
+  if(n.trigger.kind==='conditions'&&(n.trigger.all||[]).length) return 'conditional';
+  return 'available';
+}
+function rtStateDotHtml(stateId){
+  const s=NODE_RUNTIME_STATES[stateId]; if(!s) return '';
+  return `<span class="rt-dot" style="background:${s.color}" title="${esc(s.label)}"></span>`;
+}
 // Поиск ищет не только название, но и текст, id, раздел/теги и имена переменных, которые узел трогает.
 function nodeMatchesSearch(n,q){
   if(!q) return true;
@@ -195,9 +219,10 @@ function renderNodesByCategory(){
       const deadEnd=!n.choices.length&&!n.ending;
       const srcLabel=eventSourceLabel(n.eventSource);
       const impl=implementationProgress(n);
+      const rtState=nodeRuntimeState(n,reachable);
       return `<div class="noderow ${multiSelected.has(n.id)?'active':''}" data-node="${esc(n.id)}">
         <span class="tag ${n.type}">${n.type}</span>
-        <div class="nm-wrap"><span class="nm">${deadEnd?'<span title="Тупик — нет переходов и не отмечено как концовка">⛔</span> ':''}${esc(n.title||'(без названия)')}${srcLabel?` <span class="muted small">(${esc(srcLabel)})</span>`:''}<span class="muted small" title="Готовность к реализации (§22)"> ${impl.done}/${impl.total}${impl.done===impl.total?'✅':''}</span></span>${summary?`<span class="affects muted small">→ ${esc(summary)}</span>`:''}</div>
+        <div class="nm-wrap"><span class="nm">${rtStateDotHtml(rtState)}${deadEnd?'<span title="Тупик — нет переходов и не отмечено как концовка">⛔</span> ':''}${esc(n.title||'(без названия)')}${srcLabel?` <span class="muted small">(${esc(srcLabel)})</span>`:''}<span class="muted small" title="Готовность к реализации (§22)"> ${impl.done}/${impl.total}${impl.done===impl.total?'✅':''}</span></span>${summary?`<span class="affects muted small">→ ${esc(summary)}</span>`:''}</div>
         <button class="del-x" data-delnode="${esc(n.id)}">✕</button>
       </div>`;
     }).join('');
@@ -327,6 +352,7 @@ function stickyNoteHtml(s){
 function renderCanvas(){
   const focusSet=computeFocusSet();
   const varHighlightSet=computeVarHighlightSet();
+  const reachable=computeReachable();
   worldEl.innerHTML=`<div id="boxSelectOverlay"></div>`+nodes.map(n=>{
     const outCount=n.choices.length;
     const shown=n.choices.slice(0,3).map(c=>`<div class="nb-choice">${esc(c.label||'(без текста)')}</div>`).join('');
@@ -338,8 +364,9 @@ function renderCanvas(){
     const deadEnd=!n.choices.length&&!n.ending;
     const srcLabel=eventSourceLabel(n.eventSource);
     const impl=implementationProgress(n);
+    const rtState=nodeRuntimeState(n,reachable);
     return `<div class="node-box ${n.type} ${multiSelected.has(n.id)?'selected':''} ${dimmed?'dimmed':''} ${connectHover?'connect-hover':''} ${varHit?'var-dep-highlight':''} ${deadEnd?'dead-end':''}" data-node="${esc(n.id)}" style="left:${n.x}px;top:${n.y}px;width:${NODE_W}px;min-height:${NODE_H}px">
-      <div class="nb-title">${deadEnd?'<span class="nb-deadend-badge" title="Тупик — нет переходов и не отмечено как концовка">⛔</span> ':''}${esc(n.title||'(без названия)')}</div>
+      <div class="nb-title">${rtStateDotHtml(rtState)}${deadEnd?'<span class="nb-deadend-badge" title="Тупик — нет переходов и не отмечено как концовка">⛔</span> ':''}${esc(n.title||'(без названия)')}</div>
       <div class="nb-meta"><span>${triggerLabel(n.trigger)}${srcLabel?' · '+esc(srcLabel):''}</span><span title="Готовность к реализации">${impl.done}/${impl.total}${impl.done===impl.total?'✅':''} · → ${outCount}</span></div>
       ${choicesHtml}
       <div class="node-handle" data-handle="${esc(n.id)}" title="Тяни на другой узел (или на пустое место — создаст новый) — переход"></div>
@@ -598,6 +625,7 @@ canvasOuter.addEventListener('contextmenu',e=>{
       {id:'consequence',label:'⚡ Добавить эффект',run:()=>addConsequenceToNode(id)},
       {id:'dup',label:'📋 Дублировать',run:()=>duplicateNode(id)},
       {id:'focus',label:'🔦 Фокус отсюда',run:()=>{ focusMode=true; document.getElementById('btnFocusMode').classList.add('active'); renderCanvas(); }},
+      {id:'testfrom',label:'🧪 Тест отсюда',run:()=>{ if(typeof simStartFrom==='function') simStartFrom(id); }},
       null,
       {id:'del',label:'🗑 Удалить узел',danger:true,run:()=>deleteNode(id)}
     ]);

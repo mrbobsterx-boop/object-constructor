@@ -18,8 +18,23 @@ function changeTriggerKind(n,kind){
   else n.trigger={kind:'conditions',all:[]};
 }
 
+// Человекочитаемое превью списка условий/эффектов (§25) — одна строка над самими селектами, прежде
+// чем читать каждую строку по отдельности. Общая ветка для обоих случаев (по basePath не различить,
+// а вызывающий уже знает isEffects) — та же логика, что уже была в nodeTriggerSummary (15-trigger-
+// explorer.js) для триггера узла целиком, только обобщённая на ЛЮБОЙ список строк condRowsHtml
+// (requires перехода, effects узла/перехода), а не только на trigger.all.
+function condListPreviewText(list,isEffects){
+  if(!list||!list.length) return '';
+  const parts=list.map(row=>{
+    const v=findVariable(row.var); const name=v?v.name:(row.var||'?');
+    if(isEffects){ const opLabel=row.op==='set'?'=':(row.op==='add'?'+':'−'); return `${name} ${opLabel}${row.value}`; }
+    return `${name} ${opSymbol(row.op)} ${row.value}`;
+  });
+  return isEffects?('Меняет: '+parts.join(', ')):('Если '+parts.join(' И '));
+}
 function condRowsHtml(basePath,list,isEffects){
   const ops=isEffects?[['set','='],['add','+'],['subtract','−']]:OP_LIST;
+  const preview=condListPreviewText(list,isEffects);
   const rows=list.map((row,i)=>`
     <div class="row" style="margin-bottom:4px">
       <select data-path="${basePath}.${i}.var">${variables.map(v=>`<option value="${esc(v.id)}" ${row.var===v.id?'selected':''}>${esc(v.name)}</option>`).join('')||'<option value="">(нет переменных)</option>'}</select>
@@ -27,7 +42,7 @@ function condRowsHtml(basePath,list,isEffects){
       <input type="number" data-path="${basePath}.${i}.value" value="${row.value}" style="width:64px">
       <button class="del-x" data-delrow="${basePath}.${i}">✕</button>
     </div>`).join('');
-  return rows+`<button data-addrow="${basePath}">+ ${isEffects?'эффект':'условие'}</button>`;
+  return (preview?`<div class="hint" style="margin-bottom:4px">${esc(preview)}</div>`:'')+rows+`<button data-addrow="${basePath}">+ ${isEffects?'эффект':'условие'}</button>`;
 }
 
 // Эффекты на ресурсы (§21) — тот же принцип строки, что и condRowsHtml, но по resourceType
