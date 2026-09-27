@@ -127,6 +127,7 @@ function nodeMatchesSearch(n,q){
   if((n.tags||[]).some(t=>categoryName(t).toLowerCase().includes(q)||t.toLowerCase().includes(q))) return true;
   if((n.arc||'').toLowerCase().includes(q)) return true;
   if((n.chapter||'').toLowerCase().includes(q)) return true;
+  if(eventSourceLabel(n.eventSource).toLowerCase().includes(q)) return true;
   const varIds=new Set();
   (n.effects||[]).forEach(e=>{ if(e.var) varIds.add(e.var); });
   (n.choices||[]).forEach(c=>(c.effects||[]).forEach(e=>{ if(e.var) varIds.add(e.var); }));
@@ -184,9 +185,11 @@ function renderNodesByCategory(){
     const isCollapsed=collapsedCats.has(cat);
     const rows=isCollapsed?'':list.map(n=>{
       const summary=nodeAffectsSummary(n);
+      const deadEnd=!n.choices.length&&!n.ending;
+      const srcLabel=eventSourceLabel(n.eventSource);
       return `<div class="noderow ${multiSelected.has(n.id)?'active':''}" data-node="${esc(n.id)}">
         <span class="tag ${n.type}">${n.type}</span>
-        <div class="nm-wrap"><span class="nm">${esc(n.title||'(без названия)')}</span>${summary?`<span class="affects muted small">→ ${esc(summary)}</span>`:''}</div>
+        <div class="nm-wrap"><span class="nm">${deadEnd?'<span title="Тупик — нет переходов и не отмечено как концовка">⛔</span> ':''}${esc(n.title||'(без названия)')}${srcLabel?` <span class="muted small">(${esc(srcLabel)})</span>`:''}</span>${summary?`<span class="affects muted small">→ ${esc(summary)}</span>`:''}</div>
         <button class="del-x" data-delnode="${esc(n.id)}">✕</button>
       </div>`;
     }).join('');
@@ -324,9 +327,11 @@ function renderCanvas(){
     const dimmed=focusSet&&!focusSet.has(n.id);
     const connectHover=connectHoverId===n.id;
     const varHit=varHighlightSet&&varHighlightSet.has(n.id);
-    return `<div class="node-box ${n.type} ${multiSelected.has(n.id)?'selected':''} ${dimmed?'dimmed':''} ${connectHover?'connect-hover':''} ${varHit?'var-dep-highlight':''}" data-node="${esc(n.id)}" style="left:${n.x}px;top:${n.y}px;width:${NODE_W}px;min-height:${NODE_H}px">
-      <div class="nb-title">${esc(n.title||'(без названия)')}</div>
-      <div class="nb-meta"><span>${triggerLabel(n.trigger)}</span><span>→ ${outCount}</span></div>
+    const deadEnd=!n.choices.length&&!n.ending;
+    const srcLabel=eventSourceLabel(n.eventSource);
+    return `<div class="node-box ${n.type} ${multiSelected.has(n.id)?'selected':''} ${dimmed?'dimmed':''} ${connectHover?'connect-hover':''} ${varHit?'var-dep-highlight':''} ${deadEnd?'dead-end':''}" data-node="${esc(n.id)}" style="left:${n.x}px;top:${n.y}px;width:${NODE_W}px;min-height:${NODE_H}px">
+      <div class="nb-title">${deadEnd?'<span class="nb-deadend-badge" title="Тупик — нет переходов и не отмечено как концовка">⛔</span> ':''}${esc(n.title||'(без названия)')}</div>
+      <div class="nb-meta"><span>${triggerLabel(n.trigger)}${srcLabel?' · '+esc(srcLabel):''}</span><span>→ ${outCount}</span></div>
       ${choicesHtml}
       <div class="node-handle" data-handle="${esc(n.id)}" title="Тяни на другой узел (или на пустое место — создаст новый) — переход"></div>
     </div>`;

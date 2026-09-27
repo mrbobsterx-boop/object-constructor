@@ -133,7 +133,11 @@ function runChecks(){
     const noOut=!n.choices.length, noEnd=!n.ending, noIn=!hasIncoming.has(n.id);
     const isolated=noOut&&noEnd&&noIn&&n.trigger.kind==='conditions';
     if(isolated) out.push({level:'info',text:`«${n.title}»: полностью изолирован — нет ни входящих, ни исходящих переходов, ни отметки концовки.`,nodeId:n.id});
-    else if(noOut&&noEnd) out.push({level:'info',text:`«${n.title}»: нет ни переходов, ни отметки концовки — тупик без развития.`,nodeId:n.id});
+    // warn, не info: если у узла нет ни переходов, ни отметки концовки — почти всегда забытая ветка
+    // (в отличие от "изолирован" выше, где узел без единого входящего перехода вполне может быть
+    // намеренным заделом на будущее). Явно отмеченная концовка (n.ending) исключает узел отсюда
+    // совсем — "тупик+концовка" всегда OK, это и есть нормальный конец истории.
+    else if(noOut&&noEnd) out.push({level:'warn',text:`«${n.title}»: нет ни переходов, ни отметки концовки — тупик без развития. Если это финал, впиши что-нибудь в поле «Концовка».`,nodeId:n.id});
   });
 
   variables.forEach(v=>{

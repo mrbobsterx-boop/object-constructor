@@ -11,7 +11,7 @@ function collectStoryJSON(){
     variables:variables.map(v=>({id:v.id,name:v.name,type:v.type,start:num(v.start),min:num(v.min),max:num(v.max,undefined)})),
     nodes:nodes.map(n=>({
       id:n.id,title:n.title,text:n.text,type:n.type,category:n.category||'story',tags:n.tags||[],samSystem:n.samSystem||'',
-      arc:n.arc||'',chapter:n.chapter||'',
+      arc:n.arc||'',chapter:n.chapter||'',eventSource:n.eventSource||'',
       refs:n.refs||[],
       x:num(n.x),y:num(n.y),
       trigger:n.trigger,effects:n.effects,sim:n.sim,
@@ -59,7 +59,7 @@ async function loadStoryFromProject(){
       return {
         id:n.id,title:n.title||'',text:n.text||'',type:n.type||'event',
         category:n.category||'story',tags:Array.isArray(n.tags)?n.tags:[],samSystem:n.samSystem||'',
-        arc:n.arc||'',chapter:n.chapter||'',
+        arc:n.arc||'',chapter:n.chapter||'',eventSource:n.eventSource||'',
         refs:Array.isArray(n.refs)?n.refs:[],
         x:num(n.x,120),y:num(n.y,120),
         trigger:n.trigger||{kind:'conditions',all:[]},

@@ -179,6 +179,8 @@ function inspectorTabBody(tab,n){
       <div class="hint">Арка/глава — только группировка для навигации (левая панель, фильтры), не меняет сам граф и не видна боту-симулятору.</div>
       <datalist id="arcOptionsDatalist">${[...new Set(nodes.map(x=>x.arc).filter(Boolean))].map(a=>`<option value="${esc(a)}">`).join('')}</datalist>
       <datalist id="chapterOptionsDatalist">${[...new Set(nodes.map(x=>x.chapter).filter(Boolean))].map(c=>`<option value="${esc(c)}">`).join('')}</datalist>
+      <label class="small" style="margin-top:6px">Источник события (кто/что инициирует — авторская пометка, не влияет на срабатывание)</label>
+      <select data-path="eventSource"><option value="">— не указано —</option>${EVENT_SOURCES.map(([id,label])=>`<option value="${id}" ${(n.eventSource||'')===id?'selected':''}>${esc(label)}</option>`).join('')}</select>
     </div>`;
 }
 

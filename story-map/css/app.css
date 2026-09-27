@@ -113,6 +113,8 @@ body.read-only .app{outline:3px solid var(--warn);outline-offset:-3px}
 .node-box.dimmed{opacity:.22}
 .node-box.connect-hover{outline:3px solid var(--accent-hi);outline-offset:3px;box-shadow:0 0 0 7px rgba(107,191,144,.28);transition:box-shadow .08s ease}
 .node-box.var-dep-highlight{outline:2px dashed var(--info);outline-offset:3px}
+.node-box.dead-end{border-style:dashed}
+.nb-deadend-badge{font-size:11px}
 .node-box .nb-title{font-size:12.5px;font-weight:600;margin-bottom:4px;word-break:break-word}
 .node-box .nb-meta{font-size:10.5px;color:var(--muted);display:flex;justify-content:space-between;align-items:center}
 .node-box .nb-choices{margin-top:5px;border-top:1px solid var(--line2);padding-top:4px;display:flex;flex-direction:column;gap:2px}

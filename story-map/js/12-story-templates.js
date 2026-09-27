@@ -66,7 +66,7 @@ function insertStoryTemplate(templateId){
     id:refMap[entry.ref],
     title:entry.title||'(шаблон)',text:entry.text||'',
     type:entry.type||'event',category:entry.category||'story',tags:[],samSystem:'',
-    arc:'',chapter:'',refs:[],
+    arc:'',chapter:'',eventSource:'',refs:[],
     x:anchor.x+positions[i].col*240,y:anchor.y+positions[i].row*140,
     trigger:JSON.parse(JSON.stringify(entry.trigger||{kind:'conditions',all:[]})),
     effects:[],sim:defaultSim(),
