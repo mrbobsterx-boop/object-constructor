@@ -71,11 +71,60 @@ function choiceCardHtml(c,i){
   </div>`;
 }
 
-function renderInspector(){
-  const el=document.getElementById('inspector');
-  const n=findNode(selectedNodeId);
-  if(!n){ el.innerHTML='<div class="hint">Выбери узел на холсте или в списке слева, чтобы редактировать его.</div>'; return; }
-  el.innerHTML=`
+// Инспектор был одной длинной панелью со всеми полями узла разом — при обилии условий/эффектов/
+// переходов приходилось листать несколько экранов, чтобы просто переименовать узел. Вкладки просто
+// показывают одну группу за раз; какая вкладка открыта — чисто локальное состояние UI (не данные
+// узла), поэтому живёт в обычной переменной модуля, а не в истории отмены/возврата.
+let inspectorTab='main';
+const INSPECTOR_TABS=[['main','Основное'],['trigger','Доступность'],['effects','Эффекты'],['sim','Симулятор'],['choices','Переходы']];
+
+function inspectorTabBody(tab,n){
+  if(tab==='trigger') return `
+    <div class="group">
+      <h3>Когда доступен</h3>
+      <select id="triggerKind">
+        <option value="start" ${n.trigger.kind==='start'?'selected':''}>▶ Старт (доступен сразу)</option>
+        <option value="conditions" ${n.trigger.kind==='conditions'?'selected':''}>⚑ По условиям</option>
+        <option value="scheduled" ${n.trigger.kind==='scheduled'?'selected':''}>⏱ Фоновое, по таймеру (не зависит от игрока)</option>
+      </select>
+      ${n.trigger.kind==='conditions'?`<div style="margin-top:8px">${condRowsHtml('trigger.all',n.trigger.all,false)}</div>`:''}
+      ${n.trigger.kind==='scheduled'?`
+        <div class="row" style="margin-top:8px">
+          <div><label class="small">Через часов</label><input type="number" data-path="trigger.afterHours" value="${num(n.trigger.afterHours)}" style="width:80px"></div>
+          <div><label class="small">Отсчитывать от узла</label>
+            <select data-path="trigger.sinceNode"><option value="">— начало игры —</option>${nodes.map(x=>`<option value="${esc(x.id)}" ${n.trigger.sinceNode===x.id?'selected':''}>${esc(x.title)}</option>`).join('')}</select>
+          </div>
+          <label style="display:flex;gap:6px;align-items:center;margin:0"><input type="checkbox" data-path="trigger.repeat" data-kind="bool" ${n.trigger.repeat?'checked':''}> повторять</label>
+        </div>
+        <div class="hint">Срабатывает само по игровому таймеру, даже если игрок ничего не делал — так мир живёт независимо от него.</div>`:''}
+    </div>`;
+  if(tab==='effects') return `
+    <div class="group">
+      <h3>Что меняет при срабатывании узла</h3>
+      ${condRowsHtml('effects',n.effects,true)}
+    </div>`;
+  if(tab==='sim') return `
+    <div class="group">
+      <h3>Параметры для бота-симулятора</h3>
+      <div class="row">
+        <div><label class="small">Длительность (игр. часы)</label><input type="number" data-path="sim.durationHours" value="${num(n.sim.durationHours)}" style="width:70px"></div>
+        <div><label class="small">Шанс опасности (0…1)</label><input type="number" step="0.05" data-path="sim.dangerChance" value="${num(n.sim.dangerChance)}" style="width:70px"></div>
+        <div><label class="small">Расход еды</label><input type="number" data-path="sim.foodCost" value="${num(n.sim.foodCost)}" style="width:70px"></div>
+        <div><label class="small">Расход воды</label><input type="number" data-path="sim.waterCost" value="${num(n.sim.waterCost)}" style="width:70px"></div>
+      </div>
+      <div class="hint">Отрицательное число в расходе еды/воды — узел или переход их, наоборот, восполняет (например, «поесть» или «попить»).</div>
+      <label class="small">Нужны предметы (из каталога Object Plan)</label>
+      ${chipPickerHtml('sim.requiresItems',n.sim.requiresItems||[],'items')}
+      <label class="small" style="margin-top:6px">Нужны навыки (из каталога Object Plan)</label>
+      ${chipPickerHtml('sim.requiresSkills',n.sim.requiresSkills||[],'skills')}
+    </div>`;
+  if(tab==='choices') return `
+    <div class="group">
+      <h3>Переходы (${n.choices.length})</h3>
+      ${n.choices.map((c,i)=>choiceCardHtml(c,i)).join('')||'<div class="hint">Нет переходов — потяни за кружок на холсте на другой узел, или добавь вручную.</div>'}
+      <button class="full" id="btnAddChoiceHere" style="margin-top:6px">+ добавить переход</button>
+    </div>`;
+  return `
     <div class="group">
       <h3>Узел</h3>
       <label class="small">Название</label>
@@ -103,55 +152,15 @@ function renderInspector(){
       </div>
       <label class="small" style="margin-top:6px">Доп. теги (другие системы, которых это тоже касается — по ним подключаются идеи-импорты)</label>
       ${chipPickerHtml('tags',n.tags||[],'systems')}
-    </div>
+    </div>`;
+}
 
-    <div class="group">
-      <h3>Когда доступен</h3>
-      <select id="triggerKind">
-        <option value="start" ${n.trigger.kind==='start'?'selected':''}>▶ Старт (доступен сразу)</option>
-        <option value="conditions" ${n.trigger.kind==='conditions'?'selected':''}>⚑ По условиям</option>
-        <option value="scheduled" ${n.trigger.kind==='scheduled'?'selected':''}>⏱ Фоновое, по таймеру (не зависит от игрока)</option>
-      </select>
-      ${n.trigger.kind==='conditions'?`<div style="margin-top:8px">${condRowsHtml('trigger.all',n.trigger.all,false)}</div>`:''}
-      ${n.trigger.kind==='scheduled'?`
-        <div class="row" style="margin-top:8px">
-          <div><label class="small">Через часов</label><input type="number" data-path="trigger.afterHours" value="${num(n.trigger.afterHours)}" style="width:80px"></div>
-          <div><label class="small">Отсчитывать от узла</label>
-            <select data-path="trigger.sinceNode"><option value="">— начало игры —</option>${nodes.map(x=>`<option value="${esc(x.id)}" ${n.trigger.sinceNode===x.id?'selected':''}>${esc(x.title)}</option>`).join('')}</select>
-          </div>
-          <label style="display:flex;gap:6px;align-items:center;margin:0"><input type="checkbox" data-path="trigger.repeat" data-kind="bool" ${n.trigger.repeat?'checked':''}> повторять</label>
-        </div>
-        <div class="hint">Срабатывает само по игровому таймеру, даже если игрок ничего не делал — так мир живёт независимо от него.</div>`:''}
-    </div>
-
-    <div class="group">
-      <h3>Что меняет при срабатывании узла</h3>
-      ${condRowsHtml('effects',n.effects,true)}
-    </div>
-
-    <div class="group">
-      <h3>Параметры для бота-симулятора</h3>
-      <div class="row">
-        <div><label class="small">Длительность (игр. часы)</label><input type="number" data-path="sim.durationHours" value="${num(n.sim.durationHours)}" style="width:70px"></div>
-        <div><label class="small">Шанс опасности (0…1)</label><input type="number" step="0.05" data-path="sim.dangerChance" value="${num(n.sim.dangerChance)}" style="width:70px"></div>
-        <div><label class="small">Расход еды</label><input type="number" data-path="sim.foodCost" value="${num(n.sim.foodCost)}" style="width:70px"></div>
-        <div><label class="small">Расход воды</label><input type="number" data-path="sim.waterCost" value="${num(n.sim.waterCost)}" style="width:70px"></div>
-      </div>
-      <div class="hint">Отрицательное число в расходе еды/воды — узел или переход их, наоборот, восполняет (например, «поесть» или «попить»).</div>
-      <label class="small">Нужны предметы (из каталога Object Plan)</label>
-      ${chipPickerHtml('sim.requiresItems',n.sim.requiresItems||[],'items')}
-      <label class="small" style="margin-top:6px">Нужны навыки (из каталога Object Plan)</label>
-      ${chipPickerHtml('sim.requiresSkills',n.sim.requiresSkills||[],'skills')}
-    </div>
-
-    <div class="group">
-      <h3>Переходы (${n.choices.length})</h3>
-      ${n.choices.map((c,i)=>choiceCardHtml(c,i)).join('')||'<div class="hint">Нет переходов — потяни за кружок на холсте на другой узел, или добавь вручную.</div>'}
-      <button class="full" id="btnAddChoiceHere" style="margin-top:6px">+ добавить переход</button>
-    </div>
-
-    <button class="full danger" id="btnDeleteNode">🗑 Удалить узел</button>
-  `;
+function renderInspector(){
+  const el=document.getElementById('inspector');
+  const n=findNode(selectedNodeId);
+  if(!n){ el.innerHTML='<div class="hint">Выбери узел на холсте или в списке слева, чтобы редактировать его.</div>'; return; }
+  const tabBar=`<div class="insp-tabs">${INSPECTOR_TABS.map(([id,label])=>`<button class="insp-tab ${inspectorTab===id?'active':''}" data-tab="${id}">${esc(label)}${id==='choices'?` (${n.choices.length})`:''}</button>`).join('')}</div>`;
+  el.innerHTML=tabBar+inspectorTabBody(inspectorTab,n)+`<button class="full danger" id="btnDeleteNode" style="margin-top:10px">🗑 Удалить узел</button>`;
 }
 
 const inspectorEl=document.getElementById('inspector');
@@ -179,6 +188,8 @@ function srcForField(fieldPath){
 }
 inspectorEl.addEventListener('click',e=>{
   const n=findNode(selectedNodeId); if(!n) return;
+  const tabBtn=e.target.closest('[data-tab]');
+  if(tabBtn){ inspectorTab=tabBtn.dataset.tab; renderInspector(); return; }
   const addChip=e.target.closest('[data-addchip]');
   if(addChip){
     const fieldPath=addChip.dataset.addchip, input=document.getElementById(addChip.dataset.chipinput);

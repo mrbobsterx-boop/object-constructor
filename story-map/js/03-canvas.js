@@ -183,14 +183,31 @@ function edgePath(a,b){
 }
 
 let tempConnectFrom=null, tempConnectPt=null;
+let focusMode=false;
+
+// "Режим фокуса": подсвечивает ветку, растущую ВПЕРЁД от выбранного узла (обычный BFS по choices),
+// остальное на холсте притушивается — чтобы глазами проследить один путь в разросшемся графе, не
+// отвлекаясь на остальные ветки. Не трогает список узлов слева и не меняет данные — чисто холст.
+function computeFocusSet(){
+  if(!focusMode||!selectedNodeId) return null;
+  const set=new Set([selectedNodeId]);
+  const queue=[selectedNodeId];
+  while(queue.length){
+    const cur=findNode(queue.shift()); if(!cur) continue;
+    cur.choices.forEach(c=>{ if(c.target&&!set.has(c.target)){ set.add(c.target); queue.push(c.target); } });
+  }
+  return set;
+}
 
 function renderCanvas(){
+  const focusSet=computeFocusSet();
   worldEl.innerHTML=`<div id="boxSelectOverlay"></div>`+nodes.map(n=>{
     const outCount=n.choices.length;
     const shown=n.choices.slice(0,3).map(c=>`<div class="nb-choice">${esc(c.label||'(без текста)')}</div>`).join('');
     const more=outCount>3?`<div class="nb-choice muted">+${outCount-3} ещё</div>`:'';
     const choicesHtml=outCount?`<div class="nb-choices">${shown}${more}</div>`:'';
-    return `<div class="node-box ${n.type} ${multiSelected.has(n.id)?'selected':''}" data-node="${esc(n.id)}" style="left:${n.x}px;top:${n.y}px;width:${NODE_W}px;min-height:${NODE_H}px">
+    const dimmed=focusSet&&!focusSet.has(n.id);
+    return `<div class="node-box ${n.type} ${multiSelected.has(n.id)?'selected':''} ${dimmed?'dimmed':''}" data-node="${esc(n.id)}" style="left:${n.x}px;top:${n.y}px;width:${NODE_W}px;min-height:${NODE_H}px">
       <div class="nb-title">${esc(n.title||'(без названия)')}</div>
       <div class="nb-meta"><span>${triggerLabel(n.trigger)}</span><span>→ ${outCount}</span></div>
       ${choicesHtml}
@@ -204,7 +221,8 @@ function renderCanvas(){
     n.choices.forEach(c=>{
       const target=findNode(c.target); if(!target) return;
       const b=nodeAnchorIn(target);
-      svg+=`<path d="${edgePath(a,b)}" marker-end="url(#arrow)"></path>`;
+      const dimmed=focusSet&&(!focusSet.has(n.id)||!focusSet.has(target.id));
+      svg+=`<path class="${dimmed?'dimmed':''}" d="${edgePath(a,b)}" marker-end="url(#arrow)"></path>`;
     });
   });
   if(tempConnectFrom&&tempConnectPt){

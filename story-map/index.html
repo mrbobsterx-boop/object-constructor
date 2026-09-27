@@ -25,6 +25,7 @@
     <button id="btnZoomIn" title="Увеличить">＋</button>
     <button id="btnZoomReset" title="Сбросить масштаб и сдвиг">1:1</button>
     <button id="btnFitAll" title="Показать весь граф целиком">⛶ Fit all</button>
+    <button id="btnFocusMode" title="Подсветить только ветку от выбранного узла (что дальше по переходам), остальное притушить">🔦 Фокус</button>
   </div>
   <div class="spacer"></div>
   <span class="hint" id="storyHint">Ctrl/Shift+клик — выбрать несколько · Shift+тяни пустое место — рамка · Ctrl+A/C/V — всё/копировать/вставить · Ctrl+S — сохранить</span>
@@ -61,10 +62,6 @@
       <input type="file" id="ideaFileInput" accept=".json" style="display:none">
       <div id="ideaLogList" class="hint">Импортированных идей пока нет.</div>
     </div>
-    <div class="group">
-      <h3>Проверки</h3>
-      <div id="checksList"></div>
-    </div>
   </div>
 
   <div id="worldLeftPanels" style="display:none">
@@ -93,6 +90,13 @@
         <button id="btnAddRelType">+</button>
       </div>
     </div>
+  </div>
+
+  <!-- Проверки — общие для обоих графов (сюжет + мир), поэтому вне storyLeftPanels/worldLeftPanels:
+       видны и разбираются одинаково, какой бы режим ни был активен. -->
+  <div class="group">
+    <h3>Проверки</h3>
+    <div id="checksList"></div>
   </div>
 </div>
 

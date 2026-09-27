@@ -15,6 +15,11 @@ document.getElementById('btnZoomIn').onclick=()=>setZoom(zoom*1.15);
 document.getElementById('btnZoomOut').onclick=()=>setZoom(zoom*0.87);
 document.getElementById('btnZoomReset').onclick=()=>{ zoom=1; pan={x:60,y:60}; applyWorldTransform(); };
 document.getElementById('btnFitAll').onclick=fitAll;
+document.getElementById('btnFocusMode').onclick=()=>{
+  focusMode=!focusMode;
+  document.getElementById('btnFocusMode').classList.toggle('active',focusMode);
+  renderCanvas();
+};
 
 window.addEventListener('keydown',e=>{
   const tag=(e.target.tagName||'').toLowerCase();

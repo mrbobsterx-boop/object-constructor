@@ -32,6 +32,14 @@ function coerceStringList(v){
 async function saveStoryToProject(){
   if(!projectDirHandle){ alert('Сначала подключи папку проекта.'); return; }
   try{
+    // Перед перезаписью — снимок ТЕКУЩЕГО содержимого файла (как он есть на диске прямо сейчас,
+    // ДО этого сохранения) в data/story.backup.json. Один "прошлый снимок" за раз (не журнал версий),
+    // но этого достаточно, чтобы случайное сохранение поверх нужных данных не было необратимым —
+    // на первом сохранении файла ещё нет, тогда бэкапить нечего. Сама запись каждого файла атомарна
+    // "бесплатно": File System Access API пишет во временный файл и подменяет им целевой только при
+    // закрытии потока, так что сбой посреди записи не может оставить сюжет наполовину переписанным.
+    const previous=await readJsonFromProject('data/story.json');
+    if(previous) await writeFileToProject('data/story.backup.json',JSON.stringify(previous,null,2));
     await writeFileToProject('data/story.json',JSON.stringify(collectStoryJSON(),null,2));
     setFolderStatus('Сохранено в data/story.json · '+new Date().toLocaleTimeString());
     markClean();
