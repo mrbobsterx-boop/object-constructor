@@ -24,7 +24,7 @@ function renderLayerList(elId, doc){
   const isAnim = elId==='visualLayerList' && typeof currentVisual!=='undefined' && currentVisual && currentVisual.type==='animation';
   doc.layers.slice().reverse().forEach(l=>{
     const row=document.createElement('div'); row.className='layer-row'+(l.id===doc.activeLayerId?' active':'');
-    row.innerHTML = `<span class="name">${l.name}</span><button data-act="up" title="Переместить выше (поверх других)">▲</button><button data-act="down" title="Переместить ниже (под другие)">▼</button>`
+    row.innerHTML = `<span class="name">${esc(l.name)}</span><button data-act="up" title="Переместить выше (поверх других)">▲</button><button data-act="down" title="Переместить ниже (под другие)">▼</button>`
       + (isAnim ? `<button data-act="tonext" title="Скопировать этот слой (как он есть сейчас) на следующий кадр">→след.</button><button data-act="toall" title="Скопировать этот слой (как он есть сейчас) на все кадры">→все</button>` : '')
       + `<button data-act="vis">${l.visible?'👁':'🚫'}</button>`;
     row.addEventListener('click', async e=>{

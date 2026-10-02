@@ -118,7 +118,9 @@ function craftGridFromIngredients(ingredients){
   return grid;
 }
 document.getElementById('btnCraftClear').onclick=()=>{ craftGrid=Array(15).fill(null); renderCraftGrid(); updateCraftCode(); };
-function loadImageEl(src){ return new Promise(res=>{ const im=new Image(); im.onload=()=>res(im); im.src=src; }); }
+// OS-5: resolve(null), не reject/hang -- вызывающий код (buildRecipeImageCanvas) уже умеет
+// пропускать пустую клетку рецепта, одна битая картинка не должна вешать весь крафт-модал.
+function loadImageEl(src){ return new Promise(res=>{ const im=new Image(); im.onload=()=>res(im); im.onerror=()=>res(null); im.src=src; }); }
 function recipeImagePath(){
   const sub=val('subtype');
   return `${currentCategory}/${sub?sub+'/':''}${sanitizeFilenamePreserve(val('name'))}_recipe.png`;
@@ -444,7 +446,7 @@ function setActionSetting(aid,field,value){
 function toggleAction(aid,on){ currentActions=on?[...new Set([...currentActions,aid])]:currentActions.filter(x=>x!==aid); renderActions(); update(); }
 function renderComponents(){
   const defaults=['Visual','Transform','Interaction'];
-  document.getElementById('components').innerHTML=[...new Set([...defaults,...currentComponents])].map(x=>'<span class="tag">'+x+'</span>').join('');
+  document.getElementById('components').innerHTML=[...new Set([...defaults,...currentComponents])].map(x=>'<span class="tag">'+esc(x)+'</span>').join('');
 }
 function updateCombatFieldsVisibility(){
   document.getElementById('damageAmountField').style.display=bool('dealsDamage')?'':'none';
@@ -946,7 +948,7 @@ async function buildSessionState(){
     currentVisual:currentVisual?{...currentVisual}:null, idleCreated,
     damaged: damagedW? {w:damagedW,h:damagedH,data:damagedCanvas.toDataURL()} : null,
     broken: brokenW? {w:brokenW,h:brokenH,data:brokenCanvas.toDataURL()} : null,
-    destroyFrames, destroyFrameW, destroyFrameH,
+    destroyFrames:destroyFrames.slice(), destroyFrameW, destroyFrameH, // OS-6: копия массива, не ссылка -- иначе push/splice на живом destroyFrames (добавление/удаление кадра) меняет и уже сохранённый в истории снимок
     craftRecipe, craftRecipeImageDataUrl
   };
 }
@@ -967,16 +969,16 @@ async function restoreSessionState(state){
   if(state.broken){
     brokenW=state.broken.w; brokenH=state.broken.h; brokenCanvas.width=brokenW; brokenCanvas.height=brokenH;
     const dispW=Math.min(220,brokenW); brokenCanvas.style.width=dispW+'px'; brokenCanvas.style.height=(brokenH*dispW/brokenW)+'px';
-    const im=await new Promise(res=>{ const im=new Image(); im.onload=()=>res(im); im.src=state.broken.data; });
-    bctx.drawImage(im,0,0); document.getElementById('btnDownloadBroken').disabled=false; document.getElementById('brokenStatus').textContent=`Задан: ${brokenW}×${brokenH}px`;
+    const im=await new Promise(res=>{ const im=new Image(); im.onload=()=>res(im); im.onerror=()=>res(null); im.src=state.broken.data; }); // OS-5
+    if(im) bctx.drawImage(im,0,0); document.getElementById('btnDownloadBroken').disabled=false; document.getElementById('brokenStatus').textContent=`Задан: ${brokenW}×${brokenH}px`;
   } else { brokenW=0;brokenH=0; brokenCanvas.width=0;brokenCanvas.height=0; document.getElementById('btnDownloadBroken').disabled=true; document.getElementById('brokenStatus').textContent='Не задан.'; }
   if(state.damaged){
     damagedW=state.damaged.w; damagedH=state.damaged.h; damagedCanvas.width=damagedW; damagedCanvas.height=damagedH;
     const dispWd=Math.min(220,damagedW); damagedCanvas.style.width=dispWd+'px'; damagedCanvas.style.height=(damagedH*dispWd/damagedW)+'px';
-    const imd=await new Promise(res=>{ const im2=new Image(); im2.onload=()=>res(im2); im2.src=state.damaged.data; });
-    dactx.drawImage(imd,0,0); document.getElementById('btnDownloadDamaged').disabled=false; document.getElementById('damagedStatus').textContent=`Задан: ${damagedW}×${damagedH}px`;
+    const imd=await new Promise(res=>{ const im2=new Image(); im2.onload=()=>res(im2); im2.onerror=()=>res(null); im2.src=state.damaged.data; }); // OS-5
+    if(imd) dactx.drawImage(imd,0,0); document.getElementById('btnDownloadDamaged').disabled=false; document.getElementById('damagedStatus').textContent=`Задан: ${damagedW}×${damagedH}px`;
   } else { damagedW=0;damagedH=0; damagedCanvas.width=0;damagedCanvas.height=0; document.getElementById('btnDownloadDamaged').disabled=true; document.getElementById('damagedStatus').textContent='Не задан.'; }
-  destroyFrames=state.destroyFrames||[]; destroyFrameW=state.destroyFrameW||0; destroyFrameH=state.destroyFrameH||0; renderDestroyThumbs();
+  destroyFrames=(state.destroyFrames||[]).slice(); destroyFrameW=state.destroyFrameW||0; destroyFrameH=state.destroyFrameH||0; renderDestroyThumbs(); // OS-6: копия, не та же ссылка, что в historyStack
   craftRecipe=state.craftRecipe||null;
   craftRecipeImageDataUrl=state.craftRecipeImageDataUrl||null;
   updateCombatFieldsVisibility(); if(window.update)window.update();
@@ -1138,7 +1140,7 @@ async function applyLinkedCharacter(){
       const dataUrl=await loadImageFromProjectPath(linkedCharacter.preview);
       previewImg=`<img src="${dataUrl}" style="width:40px;height:40px;object-fit:contain;image-rendering:pixelated;background:#0d1116;border-radius:4px;vertical-align:middle;margin-right:8px">`;
       if(document.getElementById('asset').dataset.auto!=='0'){
-        const im=await new Promise(res=>{ const im2=new Image(); im2.onload=()=>res(im2); im2.src=dataUrl; });
+        const im=await new Promise((res,rej)=>{ const im2=new Image(); im2.onload=()=>res(im2); im2.onerror=rej; im2.src=dataUrl; }); // OS-5
         mainDoc.clear(); mainDoc.addLayerFromImage(im);
       }
     }catch(e){ console.warn('Превью персонажа не найдено на диске:',e); }

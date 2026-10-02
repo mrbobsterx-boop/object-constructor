@@ -354,6 +354,11 @@ async function switchToFrame(i,opts){
   if(window.update)window.update();
 }
 let thumbRenderToken=0;
+// Свой ImageDocument только для превью кадров (OS-7) — раньше использовал общий scratchDoc, которым
+// параллельно пользуются copyLayerToFrame/обрезать-дополнить-все-кадры/экспорт; restore()/flatten()
+// здесь чисто на чтение, но restore() мутирует scratchDoc.layers через await, и конкурентный вызов
+// restore() на ТОМ ЖЕ scratchDoc из другого места мог подмешать чужие слои в оба.
+const thumbScratchDoc=new ImageDocument(document.createElement('canvas'), document.createElement('div'));
 function renderAnimThumbs(){
   const c=document.getElementById('visualFrames'); if(!c)return;
   c.innerHTML='';
@@ -374,8 +379,8 @@ function renderAnimThumbs(){
     for(const {im,f} of imgs){
       if(token!==thumbRenderToken)return;
       try{
-        await scratchDoc.restore(f);
-        const flat=scratchDoc.flatten();
+        await thumbScratchDoc.restore(f);
+        const flat=thumbScratchDoc.flatten();
         if(token!==thumbRenderToken)return;
         if(flat) im.src=flat.toDataURL();
       }catch(e){}

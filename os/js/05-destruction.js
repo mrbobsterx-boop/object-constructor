@@ -26,6 +26,7 @@ function loadBroken(file){
   const reader=new FileReader();
   reader.onload=()=>{
     const im=new Image();
+    im.onerror=()=>alert('Не удалось загрузить картинку — файл повреждён или это не изображение.'); // OS-5
     im.onload=()=>{
       applyBrokenImage(im);
       if(!document.getElementById('brokenPath').value.trim()) autofillPaths();
@@ -80,6 +81,7 @@ function loadDamaged(file){
   const reader=new FileReader();
   reader.onload=()=>{
     const im=new Image();
+    im.onerror=()=>alert('Не удалось загрузить картинку — файл повреждён или это не изображение.'); // OS-5
     im.onload=()=>{
       applyDamagedImage(im);
       if(!document.getElementById('damagedPath').value.trim()) autofillPaths();
@@ -134,7 +136,7 @@ function renderDestroyThumbs(){
 function addDestroyFile(file){
   if(!file||!file.type.startsWith('image/'))return;
   const reader=new FileReader();
-  reader.onload=()=>{ const im=new Image(); im.onload=()=>{ processDestroyCell(ImageDocument.bitmapFromImage(im)); renderDestroyThumbs(); }; im.src=reader.result; };
+  reader.onload=()=>{ const im=new Image(); im.onerror=()=>alert('Не удалось загрузить картинку — файл повреждён или это не изображение.'); im.onload=()=>{ processDestroyCell(ImageDocument.bitmapFromImage(im)); renderDestroyThumbs(); }; im.src=reader.result; };
   reader.readAsDataURL(file);
 }
 document.getElementById('destroyAnimFileInput').onchange=e=>{ [...e.target.files].forEach(addDestroyFile); e.target.value=''; };
@@ -145,7 +147,7 @@ document.getElementById('btnDestroySlice').onclick=()=>{
   if(!destroySliceFile)return;
   const cols=Math.max(1,+document.getElementById('destroySliceCols').value||1), rows=Math.max(1,+document.getElementById('destroySliceRows').value||1);
   const reader=new FileReader();
-  reader.onload=()=>{ const im=new Image(); im.onload=()=>{ forEachSlicedCell(im, equalBoundaries(im.naturalWidth,cols), equalBoundaries(im.naturalHeight,rows), processDestroyCell); renderDestroyThumbs(); }; im.src=reader.result; };
+  reader.onload=()=>{ const im=new Image(); im.onerror=()=>alert('Не удалось загрузить картинку — файл повреждён или это не изображение.'); im.onload=()=>{ forEachSlicedCell(im, equalBoundaries(im.naturalWidth,cols), equalBoundaries(im.naturalHeight,rows), processDestroyCell); renderDestroyThumbs(); }; im.src=reader.result; };
   reader.readAsDataURL(destroySliceFile);
   destroySliceFile=null; document.getElementById('destroySliceFileInput').value=''; document.getElementById('btnDestroySlice').disabled=true;
 };

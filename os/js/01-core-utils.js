@@ -242,5 +242,5 @@ function loadPresets(){ try{ return JSON.parse(localStorage.getItem(PRESET_KEY)|
 function savePresetsAll(p){ try{ localStorage.setItem(PRESET_KEY, JSON.stringify(p)); }catch(e){} }
 function renderPresetSelect(){
   const presets=loadPresets(); const sel=document.getElementById('presetSelect');
-  sel.innerHTML='<option value="">— выбрать пресет —</option>'+Object.keys(presets).map(k=>`<option value="${k}">${k}</option>`).join('');
+  sel.innerHTML='<option value="">— выбрать пресет —</option>'+Object.keys(presets).map(k=>`<option value="${esc(k)}">${esc(k)}</option>`).join('');
 }

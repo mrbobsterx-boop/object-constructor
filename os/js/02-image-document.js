@@ -188,16 +188,21 @@ class ImageDocument{
       id:l.id,name:l.name,visible:l.visible,w0:l.w0,h0:l.h0,tl:l.tl,tr:l.tr,bl:l.bl,
       bitmap:l.bitmap.toDataURL()
     })));
-    return {docW:this.docW,docH:this.docH,collision:this.collision,layers};
+    // OS-6: копия, не ссылка -- иначе этот снимок (например, запись в истории undo/redo) делит один
+    // и тот же объект collision с живым документом, и дальнейшая правка (смена режима/отступа)
+    // "на месте" меняет и уже сохранённый снимок, портя более раннюю историю.
+    return {docW:this.docW,docH:this.docH,collision:{...this.collision},layers};
   }
   async restore(state){
     if(!state){ this.clear(); return; }
     this.docW=state.docW; this.docH=state.docH;
     this.canvas.width=this.docW; this.canvas.height=this.docH; this._applyZoom();
-    this.collision=state.collision||{mode:'AUTO',padding:0,rect:null};
+    this.collision=state.collision?{...state.collision}:{mode:'AUTO',padding:0,rect:null};
     this.layers=await Promise.all(state.layers.map(async ld=>{
-      const img=await new Promise(res=>{ const im=new Image(); im.onload=()=>res(im); im.src=ld.bitmap; });
-      const bmp=document.createElement('canvas'); bmp.width=ld.w0; bmp.height=ld.h0; bmp.getContext('2d').drawImage(img,0,0);
+      // OS-5: битый bitmap (повреждённые данные сессии/частично записанный файл) не должен вешать
+      // restore() навечно -- оставляем слой пустым (прозрачным), а не блокируем весь кадр/объект.
+      const img=await new Promise(res=>{ const im=new Image(); im.onload=()=>res(im); im.onerror=()=>res(null); im.src=ld.bitmap; });
+      const bmp=document.createElement('canvas'); bmp.width=ld.w0; bmp.height=ld.h0; if(img) bmp.getContext('2d').drawImage(img,0,0);
       return { id:ld.id,name:ld.name,visible:ld.visible,w0:ld.w0,h0:ld.h0,tl:ld.tl,tr:ld.tr,bl:ld.bl, bitmap:bmp };
     }));
     this.activeLayerId=this.layers.length?this.layers[0].id:null;
