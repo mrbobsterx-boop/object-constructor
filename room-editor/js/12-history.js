@@ -17,7 +17,9 @@ function pushHistory(){
   updateHistoryButtons();
 }
 function restoreSnapshot(s){
-  room=s.room; selectedInstanceId=s.selectedInstanceId;
+  // Глубокая копия (ROOM-1) — иначе room ссылается на тот же объект, что лежит в historyStack,
+  // и последующее перетаскивание/правка мутирует сам сохранённый снимок, портя более раннюю историю.
+  room=JSON.parse(JSON.stringify(s.room)); selectedInstanceId=s.selectedInstanceId;
   document.getElementById('roomId').value=room.id; document.getElementById('roomId').dataset.auto='0'; document.getElementById('roomName').value=room.name; ensureRoomTypeOption(room.type); document.getElementById('roomType').value=room.type||'';
   setRoomSizeInputs(room.width,room.height);
   document.getElementById('playerWalkZ').value=room.playerWalkZ!==undefined?room.playerWalkZ:10;
@@ -28,8 +30,10 @@ function updateHistoryButtons(){
   document.getElementById('btnGlobalUndo').disabled=historyIndex<=0;
   document.getElementById('btnGlobalRedo').disabled=historyIndex>=historyStack.length-1;
 }
-function undoAction(){ if(historyIndex<=0)return; historyIndex--; suppressHistory=true; restoreSnapshot(historyStack[historyIndex]); suppressHistory=false; updateHistoryButtons(); }
-function redoAction(){ if(historyIndex>=historyStack.length-1)return; historyIndex++; suppressHistory=true; restoreSnapshot(historyStack[historyIndex]); suppressHistory=false; updateHistoryButtons(); }
+// ROOM-2: без очистки таймера отложенный scheduleHistoryPush() из действия ДО undo/redo мог сработать
+// уже ПОСЛЕ отката — пушил старое состояние поверх текущего индекса и стирал всё redo-будущее.
+function undoAction(){ if(historyIndex<=0)return; clearTimeout(historyTimer); historyIndex--; suppressHistory=true; restoreSnapshot(historyStack[historyIndex]); suppressHistory=false; updateHistoryButtons(); }
+function redoAction(){ if(historyIndex>=historyStack.length-1)return; clearTimeout(historyTimer); historyIndex++; suppressHistory=true; restoreSnapshot(historyStack[historyIndex]); suppressHistory=false; updateHistoryButtons(); }
 document.getElementById('btnGlobalUndo').onclick=undoAction;
 document.getElementById('btnGlobalRedo').onclick=redoAction;
 document.addEventListener('keydown', e=>{

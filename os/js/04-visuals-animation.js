@@ -44,12 +44,11 @@ async function buildAnimSheetCanvas(frameList){
   imgs.forEach((c,i)=>ctx.drawImage(c,i*w,0));
   return sheet;
 }
-function copyLayerToFrame(doc,layerId,frameIdx){
+async function copyLayerToFrame(doc,layerId,frameIdx){
   const layer=doc.layers.find(l=>l.id===layerId); if(!layer||!frames[frameIdx])return;
-  scratchDoc.restore(frames[frameIdx]).then(()=>{
-    scratchDoc.layers.push({...layer,id:'layer_'+Date.now()+Math.random().toString(36).slice(2)});
-    frames[frameIdx]=scratchDoc.serialize();
-  });
+  await scratchDoc.restore(frames[frameIdx]);
+  scratchDoc.layers.push({...layer,id:'layer_'+Date.now()+Math.random().toString(36).slice(2)});
+  frames[frameIdx]=await scratchDoc.serialize();
 }
 function buildVisualsExport(){
   return {
@@ -61,7 +60,7 @@ function buildVisualsExport(){
         frame_count: isAssembled?(a.frameCountMeta||0):a.frames.length, fps:a.fps||8, loop:a.loop!==false,
         source: isAssembled?'assembled':'drawn',
         collision: isAssembled?(a.sourceCollision||'FULL'):(a.collisionMode||'FULL'),
-        sound: (!isAssembled && a.sound&&a.sound.enabled) ? { files:(a.sound.files||[]).map((f,i)=>animSoundPathFor(a.id,i,f.name)), volume:(a.sound.volume||80)/100, radius_m:a.sound.radius||3, mode:a.sound.mode||'single' } : null,
+        sound: (!isAssembled && a.sound&&a.sound.enabled) ? { files:(a.sound.files||[]).map((f,i)=>animSoundPathFor(a.id,i,f.name)), volume:numOr(a.sound.volume,80)/100, radius_m:numOr(a.sound.radius,3), mode:a.sound.mode||'single' } : null,
         skill_progress: (a.skillProgress||[]).map(s=>({skill:s.skill,xp:s.xp||0}))
       };
     }),
@@ -341,11 +340,13 @@ document.getElementById('btnDeleteVisualFrame').onclick=async ()=>{
   if(frames.length<=1){ alert('Нельзя удалить последний кадр анимации.'); return; }
   frames.splice(currentFrameIndex,1);
   const a=animations.find(x=>x.id===currentVisual.id); if(a)a.frames=frames;
-  await switchToFrame(Math.min(currentFrameIndex,frames.length-1));
+  // skipCommit: animDoc всё ещё держит пиксели ТОЛЬКО ЧТО УДАЛЁННОГО кадра — обычный commit в
+  // switchToFrame() записал бы их в слот, в который сдвинулся следующий кадр после splice (OS-1).
+  await switchToFrame(Math.min(currentFrameIndex,frames.length-1),{skipCommit:true});
 };
-async function switchToFrame(i){
+async function switchToFrame(i,opts){
   if(!frames[i])return;
-  await commitCurrentFrame();
+  if(!(opts&&opts.skipCommit)) await commitCurrentFrame();
   currentFrameIndex=i;
   await animDoc.restore(frames[i]);
   fitVisualEditorZoom();
@@ -749,8 +750,8 @@ document.getElementById('btnClearAnimSoundFiles').onclick=()=>{
   renderAnimSoundFileList(); if(window.update)window.update();
 };
 document.getElementById('animSoundMode').onchange=e=>{ if(currentAnimIndex>=0)animations[currentAnimIndex].sound.mode=e.target.value; };
-document.getElementById('animSoundVolume').oninput=e=>{ if(currentAnimIndex>=0)animations[currentAnimIndex].sound.volume=+e.target.value||80; };
-document.getElementById('animSoundRadius').oninput=e=>{ if(currentAnimIndex>=0)animations[currentAnimIndex].sound.radius=+e.target.value||3; };
+document.getElementById('animSoundVolume').oninput=e=>{ if(currentAnimIndex>=0)animations[currentAnimIndex].sound.volume=numOr(e.target.value,80); };
+document.getElementById('animSoundRadius').oninput=e=>{ if(currentAnimIndex>=0)animations[currentAnimIndex].sound.radius=numOr(e.target.value,3); };
 document.getElementById('btnPreviewAnimSoundVolume').onclick=()=>{
   try{
     const ctx=new (window.AudioContext||window.webkitAudioContext)();

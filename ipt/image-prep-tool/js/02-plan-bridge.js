@@ -78,13 +78,42 @@ async function loadPlanCustomFromProject(){
   }catch(e){ console.warn('Не удалось прочитать data/object_plan.json:',e); }
   if(typeof refreshNamingPanel==='function') refreshNamingPanel();
 }
+// custom/customGroups/variationOverrides (PLAN-1) — тот же файл пишет и сам Object Plan
+// (object-plan/js/07-store.js), своей отдельной копией этих же трёх полей в памяти (store.custom и т.п.).
+// base уже сохраняет его status/steps/notes (мы их не трогаем), но custom/customGroups/variationOverrides
+// нельзя просто заменить нашей памятью — Object Plan мог добавить туда что-то на диск уже ПОСЛЕ того, как
+// мы в последний раз читали файл (loadPlanCustomFromProject). Слияние по id не теряет чужие добавления.
+function mergeCustomArraysById(diskArr,memArr){
+  const byId=new Map();
+  (Array.isArray(diskArr)?diskArr:[]).forEach(it=>{ if(it&&it.id) byId.set(it.id,it); });
+  (Array.isArray(memArr)?memArr:[]).forEach(it=>{ if(it&&it.id) byId.set(it.id,it); });
+  return [...byId.values()];
+}
+function mergeVariationOverrides(diskObj,memObj){
+  const out={};
+  const ids=new Set([...Object.keys(diskObj||{}),...Object.keys(memObj||{})]);
+  ids.forEach(id=>{
+    const seen=new Set(); const merged=[];
+    [...(diskObj&&diskObj[id]||[]),...(memObj&&memObj[id]||[])].forEach(v=>{
+      const key=typeof v==='string'?v:JSON.stringify(v);
+      if(!seen.has(key)){ seen.add(key); merged.push(v); }
+    });
+    out[id]=merged;
+  });
+  return out;
+}
 async function savePlanCustomToProject(){
   if(!projectDirHandle) return false;
   try{
     const dir=await getSubdir(projectDirHandle,'data',false);
     const r=await readJsonFile(dir,'object_plan.json');
     const base=r.data||{schema_version:1,status:{},steps:{},notes:{}};
-    const data=Object.assign({},base,{schema_version:1,saved_at:new Date().toISOString(),custom:planCustomItems,customGroups:planCustomGroups,variationOverrides:planVariationOverrides});
+    const data=Object.assign({},base,{
+      schema_version:1,saved_at:new Date().toISOString(),
+      custom:mergeCustomArraysById(base.custom,planCustomItems),
+      customGroups:mergeCustomArraysById(base.customGroups,planCustomGroups),
+      variationOverrides:mergeVariationOverrides(base.variationOverrides,planVariationOverrides)
+    });
     await writeFileToProject('data/object_plan.json',new TextEncoder().encode(JSON.stringify(data,null,2)));
     return true;
   }catch(e){ console.error(e); alert('Не удалось записать data/object_plan.json: '+e.message); return false; }

@@ -45,6 +45,9 @@ function switchObjectTab(button){
 }
 
 function esc(s){ return String(s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
+// `v||def` treats an explicit 0 the same as missing/NaN (OS-4) — яркость/громкость/радиус 0 должны
+// сохраняться как 0, а не тихо откатываться на значение по умолчанию.
+function numOr(v,def){ const n=+v; return Number.isFinite(n)?n:def; }
 let customFields=[]; // {name,value}[] — свои поля объекта, дружелюбная форма поверх raw JSON
 function parseCustomFieldValue(v){
   if(v==='true')return true; if(v==='false')return false;

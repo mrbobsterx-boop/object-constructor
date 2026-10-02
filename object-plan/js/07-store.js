@@ -15,10 +15,42 @@ function loadStore(){
   }catch(e){ console.warn('Не удалось прочитать отметки:',e); }
 }
 function saveStore(){ try{ localStorage.setItem(STORE_KEY,JSON.stringify(store)); }catch(e){ console.warn(e); } }
+// custom/customGroups/variationOverrides (PLAN-1) — этот же файл пишет и image-prep-tool
+// (ipt/image-prep-tool/js/02-plan-bridge.js), своей отдельной копией этих же трёх полей в памяти.
+// Если просто перезаписать их содержимым нашей памяти, мы сотрём то, что другой инструмент
+// добавил на диск уже ПОСЛЕ того, как мы в последний раз читали файл (объект/вариацию). Слияние по id —
+// не идеальная CRDT-синхронизация, но не теряет чужие добавления, которых нет в нашей копии.
+function mergeCustomArraysById(diskArr,memArr){
+  const byId=new Map();
+  (Array.isArray(diskArr)?diskArr:[]).forEach(it=>{ if(it&&it.id) byId.set(it.id,it); });
+  (Array.isArray(memArr)?memArr:[]).forEach(it=>{ if(it&&it.id) byId.set(it.id,it); });
+  return [...byId.values()];
+}
+function mergeVariationOverrides(diskObj,memObj){
+  const out={};
+  const ids=new Set([...Object.keys(diskObj||{}),...Object.keys(memObj||{})]);
+  ids.forEach(id=>{
+    const seen=new Set(); const merged=[];
+    [...(diskObj&&diskObj[id]||[]),...(memObj&&memObj[id]||[])].forEach(v=>{
+      const key=typeof v==='string'?v:JSON.stringify(v);
+      if(!seen.has(key)){ seen.add(key); merged.push(v); }
+    });
+    out[id]=merged;
+  });
+  return out;
+}
 async function saveStoreToProject(){
   if(!projectDirHandle){ alert('Сначала подключи папку проекта.'); return; }
   try{
-    const data={schema_version:1,saved_at:new Date().toISOString(),status:store.status,steps:store.steps,notes:store.notes,custom:store.custom,customGroups:store.customGroups,variationOverrides:store.variationOverrides};
+    const dir=await getSubdir(projectDirHandle,'data',false).catch(()=>null);
+    const onDisk=dir?(await readJsonFile(dir,'object_plan.json')).data:null;
+    const data={
+      schema_version:1,saved_at:new Date().toISOString(),
+      status:store.status,steps:store.steps,notes:store.notes, // чисто наши поля, image-prep-tool их не трогает
+      custom:mergeCustomArraysById(onDisk&&onDisk.custom,store.custom),
+      customGroups:mergeCustomArraysById(onDisk&&onDisk.customGroups,store.customGroups),
+      variationOverrides:mergeVariationOverrides(onDisk&&onDisk.variationOverrides,store.variationOverrides)
+    };
     await writeFileToProject('data/object_plan.json',new TextEncoder().encode(JSON.stringify(data,null,2)));
     setFolderStatus('Прогресс записан в data/object_plan.json · '+new Date().toLocaleTimeString());
   }catch(e){ console.error(e); alert('Не удалось записать: '+e.message); }

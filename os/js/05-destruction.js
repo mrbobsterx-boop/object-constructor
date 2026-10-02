@@ -10,19 +10,25 @@
    ============================================================ */
 const brokenCanvas=document.getElementById('brokenCanvas'), bctx=brokenCanvas.getContext('2d',{willReadFrequently:true});
 let brokenW=0, brokenH=0;
+// Общая часть loadBroken() (вставка файла) и restoreObjectProjectData() (чтение с диска при
+// повторном открытии объекта, OS-3) — раньше только вставка файла заполняла brokenW/H/canvas,
+// поэтому после переоткрытия объекта collect() не находил пикселей и писал broken:null.
+function applyBrokenImage(im){
+  brokenW=im.naturalWidth; brokenH=im.naturalHeight;
+  brokenCanvas.width=brokenW; brokenCanvas.height=brokenH;
+  const dispW=Math.min(220,brokenW); brokenCanvas.style.width=dispW+'px'; brokenCanvas.style.height=(brokenH*dispW/brokenW)+'px';
+  bctx.clearRect(0,0,brokenW,brokenH); bctx.drawImage(im,0,0);
+  document.getElementById('btnDownloadBroken').disabled=false;
+  document.getElementById('brokenStatus').textContent=`Задан: ${brokenW}×${brokenH}px`;
+}
 function loadBroken(file){
   if(!file||!file.type.startsWith('image/'))return;
   const reader=new FileReader();
   reader.onload=()=>{
     const im=new Image();
     im.onload=()=>{
-      brokenW=im.naturalWidth; brokenH=im.naturalHeight;
-      brokenCanvas.width=brokenW; brokenCanvas.height=brokenH;
-      const dispW=Math.min(220,brokenW); brokenCanvas.style.width=dispW+'px'; brokenCanvas.style.height=(brokenH*dispW/brokenW)+'px';
-      bctx.clearRect(0,0,brokenW,brokenH); bctx.drawImage(im,0,0);
+      applyBrokenImage(im);
       if(!document.getElementById('brokenPath').value.trim()) autofillPaths();
-      document.getElementById('btnDownloadBroken').disabled=false;
-      document.getElementById('brokenStatus').textContent=`Задан: ${brokenW}×${brokenH}px`;
       if(window.update)window.update(); syncPreview();
     };
     im.src=reader.result;
@@ -61,19 +67,22 @@ document.getElementById('armPasteBroken').onclick=()=>{ setArmed('#panel-destruc
 /* повреждённое состояние — та же логика, что и разрушенное, отдельный канвас */
 const damagedCanvas=document.getElementById('damagedCanvas'), dactx=damagedCanvas.getContext('2d',{willReadFrequently:true});
 let damagedW=0, damagedH=0;
+function applyDamagedImage(im){
+  damagedW=im.naturalWidth; damagedH=im.naturalHeight;
+  damagedCanvas.width=damagedW; damagedCanvas.height=damagedH;
+  const dispW=Math.min(220,damagedW); damagedCanvas.style.width=dispW+'px'; damagedCanvas.style.height=(damagedH*dispW/damagedW)+'px';
+  dactx.clearRect(0,0,damagedW,damagedH); dactx.drawImage(im,0,0);
+  document.getElementById('btnDownloadDamaged').disabled=false;
+  document.getElementById('damagedStatus').textContent=`Задан: ${damagedW}×${damagedH}px`;
+}
 function loadDamaged(file){
   if(!file||!file.type.startsWith('image/'))return;
   const reader=new FileReader();
   reader.onload=()=>{
     const im=new Image();
     im.onload=()=>{
-      damagedW=im.naturalWidth; damagedH=im.naturalHeight;
-      damagedCanvas.width=damagedW; damagedCanvas.height=damagedH;
-      const dispW=Math.min(220,damagedW); damagedCanvas.style.width=dispW+'px'; damagedCanvas.style.height=(damagedH*dispW/damagedW)+'px';
-      dactx.clearRect(0,0,damagedW,damagedH); dactx.drawImage(im,0,0);
+      applyDamagedImage(im);
       if(!document.getElementById('damagedPath').value.trim()) autofillPaths();
-      document.getElementById('btnDownloadDamaged').disabled=false;
-      document.getElementById('damagedStatus').textContent=`Задан: ${damagedW}×${damagedH}px`;
       if(window.update)window.update(); syncPreview();
     };
     im.src=reader.result;
@@ -187,6 +196,21 @@ document.getElementById('btnDestroyDeleteFrame').onclick=()=>{
   destroyCurrentFrame=Math.max(0,Math.min(destroyCurrentFrame,destroyFrames.length-1));
   renderDestroyThumbs();
 };
+// Восстанавливает destroyFrames/destroyFrameW/H из листа кадров (destroyAnimation.sheet),
+// прочитанного restoreObjectProjectData() с диска при переоткрытии объекта (OS-3) — без этого
+// destroyFrames оставался пустым и следующее сохранение стирало destroyAnimation в null.
+function restoreDestroyFramesFromSheet(im,frameCount,frameW,frameH){
+  const count=Math.max(1,frameCount||1);
+  destroyFrameW=frameW||Math.round(im.naturalWidth/count); destroyFrameH=frameH||im.naturalHeight;
+  destroyFrames=[];
+  for(let i=0;i<count;i++){
+    const c=document.createElement('canvas'); c.width=destroyFrameW; c.height=destroyFrameH;
+    c.getContext('2d').drawImage(im,i*destroyFrameW,0,destroyFrameW,destroyFrameH,0,0,destroyFrameW,destroyFrameH);
+    destroyFrames.push(c.toDataURL());
+  }
+  destroyCurrentFrame=0;
+  renderDestroyThumbs();
+}
 function buildDestroySheetCanvas(){
   const sheet=document.createElement('canvas'); sheet.width=destroyFrameW*destroyFrames.length; sheet.height=destroyFrameH;
   const sctx=sheet.getContext('2d'); let chain=Promise.resolve();

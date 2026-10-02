@@ -35,13 +35,15 @@ function renderLayerList(elId, doc){
       if(act==='tonext'){
         if(currentFrameIndex+1>=frames.length){ alert('Нет следующего кадра.'); return; }
         await commitCurrentFrame();
-        copyLayerToFrame(doc, l.id, currentFrameIndex+1);
+        await copyLayerToFrame(doc, l.id, currentFrameIndex+1);
         renderAnimThumbs(); if(window.update)window.update();
         return;
       }
       if(act==='toall'){
         await commitCurrentFrame();
-        frames.forEach((f,i)=>{ if(i!==currentFrameIndex) copyLayerToFrame(doc, l.id, i); });
+        // Последовательно, не параллельно — copyLayerToFrame делит один и тот же scratchDoc,
+        // параллельные restore()/serialize() на нём гонялись бы друг с другом (OS-2/OS-7).
+        for(let i=0;i<frames.length;i++){ if(i!==currentFrameIndex) await copyLayerToFrame(doc, l.id, i); }
         renderAnimThumbs(); if(window.update)window.update();
         return;
       }

@@ -649,13 +649,13 @@ function collect(){
       placement_mode: val('placementMode')||'ANYWHERE',
       variant_group: val('variantGroup').trim()||null,
       allowed_room_types: [...document.getElementById('allowedRoomTypes').selectedOptions].map(o=>o.value),
-      light: bool('emitsLight') ? { radius_m:+val('lightRadius')||0, color:val('lightColor'), intensity:(+val('lightIntensity')||100)/100,
+      light: bool('emitsLight') ? { radius_m:numOr(val('lightRadius'),0), color:val('lightColor'), intensity:numOr(val('lightIntensity'),100)/100,
         shape: val('lightShape'),
-        angle: val('lightShape')==='CONE' ? (+val('lightAngle')||90) : null,
-        spread: val('lightShape')==='CONE' ? (+val('lightSpread')||60) : null,
-        softness: val('lightShape')==='CONE' ? (+val('lightSoftness')||40)/100 : null
+        angle: val('lightShape')==='CONE' ? numOr(val('lightAngle'),90) : null,
+        spread: val('lightShape')==='CONE' ? numOr(val('lightSpread'),60) : null,
+        softness: val('lightShape')==='CONE' ? numOr(val('lightSoftness'),40)/100 : null
       } : null,
-      shadow: bool('castsShadow') ? { absorption:(+val('shadowAbsorption')||70)/100 } : null,
+      shadow: bool('castsShadow') ? { absorption:numOr(val('shadowAbsorption'),70)/100 } : null,
       needs:{
         food:bool('needFood'), water:bool('needWater'), sleep:bool('needSleep'), health:bool('needHealth'), stress:bool('needStress'),
         water_params: bool('needWater') ? {
@@ -1353,21 +1353,49 @@ function restoreJsonFields(data){
   customFields=[]; renderCustomFieldList(); set('custom',data.custom&&typeof data.custom==='object'?JSON.stringify(data.custom,null,2):'');
   animations=[];imageStates=[];currentVisual=null;frames=[];currentFrameIndex=-1;idleCreated=!!data.visuals?.idle;
   const vis=data.visuals||{};
-  (vis.animations||[]).forEach(a=>animations.push({id:a.name||'animation',fps:a.fps||8,loop:a.loop!==false,frames:[],collisionMode:a.collision||'FULL',collisionPadding:0,sound:{enabled:false,source:'NEW',files:[],mode:'single',volume:80,radius:3},skillProgress:a.skill_progress||[],source:a.source,sourceSheet:a.asset,frameCountMeta:a.frame_count||0}));
+  // sound: раньше жёстко {enabled:false,...} независимо от a.sound — следующее сохранение писало
+  // sound:null даже если звук был задан и файлы лежали на диске (OS-3). savedPaths — временная
+  // пометка, restoreObjectProjectData() сама подгружает файлы с диска и превращает её в sound.files.
+  (vis.animations||[]).forEach(a=>{
+    const sound=a.sound
+      ? {enabled:true,source:'NEW',files:[],savedPaths:a.sound.files||[],mode:a.sound.mode||'single',volume:Math.round(numOr(a.sound.volume,0.8)*100),radius:numOr(a.sound.radius_m,3)}
+      : {enabled:false,source:'NEW',files:[],mode:'single',volume:80,radius:3};
+    animations.push({id:a.name||'animation',fps:a.fps||8,loop:a.loop!==false,frames:[],collisionMode:a.collision||'FULL',collisionPadding:0,sound,skillProgress:a.skill_progress||[],source:a.source,sourceSheet:a.asset,frameCountMeta:a.frame_count||0});
+  });
   (vis.images||[]).forEach(s=>imageStates.push({id:s.name||'image',doc:null,previewDataUrl:null,width:s.width||0,height:s.height||0,collisionMode:s.collision||'FULL',sourceFrame:s.source_frame||null,asset:s.asset||''}));
   animDoc.clear();
 }
-async function loadProjectImage(relPath,targetDoc){
-  if(!projectDirHandle||!relPath)return false;
+// rootRel — 'assets/sprites' для картинок, 'assets/sounds' для звука анимаций.
+async function loadProjectFileAsDataURL(rootRel,relPath){
+  if(!projectDirHandle||!relPath)return null;
   try{
-    const root=await getSubdir(projectDirHandle,'assets/sprites',false);const parts=String(relPath).split('/');const fn=parts.pop();const dir=parts.length?await getSubdir(root,parts.join('/'),false):root;
-    const file=await(await dir.getFileHandle(fn)).getFile();const url=await new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(r.result);r.onerror=rej;r.readAsDataURL(file);});
-    const im=await new Promise((res,rej)=>{const x=new Image();x.onload=()=>res(x);x.onerror=rej;x.src=url;});targetDoc.clear();targetDoc.addLayerFromImage(im);return true;
-  }catch(e){console.warn('Не удалось загрузить asset:',relPath,e);return false;}
+    const root=await getSubdir(projectDirHandle,rootRel,false);const parts=String(relPath).split('/');const fn=parts.pop();const dir=parts.length?await getSubdir(root,parts.join('/'),false):root;
+    const file=await(await dir.getFileHandle(fn)).getFile();
+    return await new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(r.result);r.onerror=rej;r.readAsDataURL(file);});
+  }catch(e){console.warn('Не удалось загрузить файл проекта:',relPath,e);return null;}
+}
+async function loadProjectImageElement(relPath){
+  const url=await loadProjectFileAsDataURL('assets/sprites',relPath); if(!url)return null;
+  try{ return await new Promise((res,rej)=>{const x=new Image();x.onload=()=>res(x);x.onerror=rej;x.src=url;}); }
+  catch(e){console.warn('Не удалось загрузить asset:',relPath,e);return null;}
+}
+async function loadProjectImage(relPath,targetDoc){
+  const im=await loadProjectImageElement(relPath); if(!im)return false;
+  targetDoc.clear(); targetDoc.addLayerFromImage(im); return true;
 }
 async function restoreObjectProjectData(data,objId){
   resetIdentityAndImages(); restoreJsonFields(data);
   await loadProjectImage(data.appearance?.asset,mainDoc);
+  // mainDoc.clear() (внутри loadProjectImage выше) сбрасывает collision в AUTO — поэтому
+  // restoreJsonFields() не может восстановить appearance.collision сама, это нужно делать
+  // здесь, ПОСЛЕ загрузки картинки (OS-3).
+  const col=data.appearance?.collision;
+  if(col){
+    mainDoc.collision = col.type==='NONE' ? {mode:'NONE',padding:0,rect:null} : {mode:col.type||'AUTO',padding:col.padding||0,rect:col.rect?{...col.rect}:null};
+    document.getElementById('collisionMode').value=mainDoc.collision.mode;
+    document.getElementById('collisionPadding').value=mainDoc.collision.padding;
+    mainDoc.render(); updateMainStatus();
+  }
   const vis=data.visuals||{};
   for(const s of imageStates){
     const path=s.asset||imageStateAssetPath(s.id);
@@ -1382,10 +1410,48 @@ async function restoreObjectProjectData(data,objId){
     }catch(e){console.warn('Не удалось загрузить visual image:',path,e);}
   }
   for(const a of animations){
-    if(!a.sourceSheet||!a.frameCountMeta)continue;
-    const ok=await loadProjectImage(a.sourceSheet,animDoc); if(!ok)continue;
-    const flat=animDoc.flatten();const count=Math.max(1,a.frameCountMeta);const fw=Math.floor(flat.width/count);if(fw<1)continue;
-    const out=[];for(let i=0;i<count;i++){const piece=document.createElement('canvas');piece.width=fw;piece.height=flat.height;piece.getContext('2d').drawImage(flat,i*fw,0,fw,flat.height,0,0,fw,flat.height);scratchDoc.clear();const im=await new Promise(res=>{const x=new Image();x.onload=()=>res(x);x.src=piece.toDataURL();});scratchDoc.addLayerFromImage(im);out.push(await scratchDoc.serialize());}a.frames=out;
+    if(a.sourceSheet&&a.frameCountMeta){
+      const ok=await loadProjectImage(a.sourceSheet,animDoc);
+      if(ok){
+        const flat=animDoc.flatten();const count=Math.max(1,a.frameCountMeta);const fw=Math.floor(flat.width/count);
+        if(fw>=1){
+          const out=[];for(let i=0;i<count;i++){const piece=document.createElement('canvas');piece.width=fw;piece.height=flat.height;piece.getContext('2d').drawImage(flat,i*fw,0,fw,flat.height,0,0,fw,flat.height);scratchDoc.clear();const im=await new Promise(res=>{const x=new Image();x.onload=()=>res(x);x.src=piece.toDataURL();});scratchDoc.addLayerFromImage(im);out.push(await scratchDoc.serialize());}a.frames=out;
+        }
+      }
+    }
+    // Звук анимации (OS-3) — restoreJsonFields() пометила его sound.savedPaths из JSON; грузим реальные
+    // файлы с диска (assets/sounds), иначе следующее сохранение сотрёт sound в null. Независимо от того,
+    // загрузился ли выше лист кадров — у анимации может не быть собственных кадров (ещё не нарисована),
+    // но уже быть звук.
+    if(a.sound&&a.sound.savedPaths&&a.sound.savedPaths.length){
+      const files=[];
+      for(const p of a.sound.savedPaths){
+        const dataUrl=await loadProjectFileAsDataURL('assets/sounds',p);
+        if(dataUrl) files.push({name:p.split('/').pop(),dataUrl});
+      }
+      a.sound.files=files;
+      delete a.sound.savedPaths;
+    }
+  }
+  // Повреждённое/разрушенное состояния и лист кадров разрушения (OS-3) — те же пути, что
+  // writeObjectToProject() писал в assets/sprites при сохранении (brokenRel/damagedRel/destroyRel).
+  const destr=data.destruction||{};
+  if(destr.broken?.image){ const im=await loadProjectImageElement(destr.broken.image); if(im)applyBrokenImage(im); }
+  if(destr.damaged?.image){ const im=await loadProjectImageElement(destr.damaged.image); if(im)applyDamagedImage(im); }
+  if(destr.destroyAnimation?.sheet){
+    const im=await loadProjectImageElement(destr.destroyAnimation.sheet);
+    if(im) restoreDestroyFramesFromSheet(im,destr.destroyAnimation.frameCount,destr.destroyAnimation.frameNativeWidth,destr.destroyAnimation.frameNativeHeight);
+  }
+  // Связанный персонаж Assembler'а (OS-3) — restoreJsonFields() не трогает linkedCharacter,
+  // он требует асинхронного сканирования data/characters, которое здесь уже можно делать.
+  if(data.character_ref){
+    document.getElementById('animSource').value='ASSEMBLER';
+    document.getElementById('assemblerPickerField').style.display='';
+    await scanAssemblerCharacters();
+    linkedCharacter=availableAssemblerChars.find(c=>c.id===data.character_ref.id)||{id:data.character_ref.id,rig:data.character_ref.rig||null};
+    animSourceMode='ASSEMBLER';
+    document.getElementById('assemblerCharSelect').value=data.character_ref.id;
+    document.getElementById('assemblerCharCard').innerHTML=`<b>${esc(linkedCharacter.name||linkedCharacter.id)}</b> <span class="muted">(id: ${esc(linkedCharacter.id)}, риг: ${esc(linkedCharacter.rig||'—')})</span>`;
   }
   renderVisualList();if(animations.length)await selectVisual('animation',animations[0].id);else if(imageStates.length)await selectVisual('image',imageStates[0].id);
 }
