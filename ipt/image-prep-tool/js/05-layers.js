@@ -16,8 +16,13 @@ function createLayerFromSheetRegion(x0,y0,w,h){
   if(activeTargetKey!=='sheet') return null;
   commitActiveToTarget();
   const src=targets.sheet.canvas;
+  // IPT-2: правый/нижний край считаем ДО обрезки левого/верхнего по 0 — иначе при отрицательном
+  // x0/y0 (тянули рамку за край листа) ширина/высота не уменьшались на отрезанную часть и
+  // прихватывали лишние пиксели соседнего объекта с противоположной стороны.
+  let x1=Math.round(x0+w), y1=Math.round(y0+h);
   x0=Math.max(0,Math.round(x0)); y0=Math.max(0,Math.round(y0));
-  w=Math.min(Math.round(w), src.width-x0); h=Math.min(Math.round(h), src.height-y0);
+  x1=Math.min(x1,src.width); y1=Math.min(y1,src.height);
+  w=x1-x0; h=y1-y0;
   if(w<2||h<2) return null;
 
   const crop=makeOffscreen(w,h);

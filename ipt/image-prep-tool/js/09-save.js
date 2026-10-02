@@ -39,6 +39,10 @@ async function saveAll(){
       const unnamed=layers.filter(l=>!l.name);
       if(unnamed.length && !confirm(unnamed.length+' слой(ев) без имени сохранятся как layer_N — так их не найдёт Object Plan. Продолжить?')){ return; }
       let savedCount=0;
+      // IPT-4: убираем слой из списка/targets СРАЗУ после того как он реально записан на диск, а не
+      // все разом в конце — если сохранение прервётся на середине (ошибка диска/прав/отмена разрешения),
+      // уже записанные слои не останутся в списке и не запишутся повторно (с суффиксом _2) при
+      // повторном нажатии «Сохранить всё».
       for(const layer of layers.slice()){
         // Переключаем холст для экспорта, но не применяем текущий выбор из панели
         // именования: у каждого слоя должно остаться уже назначенное ему имя.
@@ -47,9 +51,9 @@ async function saveAll(){
         const blob=await new Promise(res=>canvas.toBlob(res,'image/png'));
         await saveBlob(blob, layer.name||layer.id);
         savedCount++;
+        const idx=layers.findIndex(l=>l.id===layer.id); if(idx>=0) layers.splice(idx,1);
+        removeTarget(layer.id);
       }
-      layers.forEach(l=>removeTarget(l.id));
-      layers=[];
       activeTargetKey=null; setActiveTarget('sheet');
       status.textContent='Сохранено слоёв: '+savedCount+' · '+new Date().toLocaleTimeString();
     }

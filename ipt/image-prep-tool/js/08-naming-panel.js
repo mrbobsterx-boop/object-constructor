@@ -58,16 +58,29 @@ function computeLayerName(){
   }
   return item.id;
 }
+// Применяет текущий выбор панели как имя АКТИВНОГО слоя — вызывается из обработчиков самих
+// пикеров (пользователь явно меняет раздел/объект/вариацию, желая переименовать то, что сейчас
+// открыто), поэтому всегда перезаписывает, даже если имя уже было.
 function applyPickToActiveLayerIfAny(){
   const name=computeLayerName();
   if(!name) return;
   if(activeLayer()) setActiveLayerName(name,'plan');
 }
-function onActiveTargetChanged(key){
-  if(key==='sheet') return;
-  applyPickToActiveLayerIfAny();
+// IPT-1: раньше это вызывалось при КАЖДОМ переключении активного слоя (в т.ч. простым кликом по уже
+// названному слою в списке) и тихо переименовывало его в то, что сейчас выбрано в пикере — даже если
+// слой был назван раньше (автоматически или вручную) под другой выбор. Переключение — это просмотр,
+// а не команда «переименуй». Именование нового слоя теперь делает nameLayerFromPicker() один раз,
+// в момент его создания (05-layers.js), а не здесь.
+function onActiveTargetChanged(key){}
+// Слой ещё ничего не знает о пикере — применяем текущий выбор СРАЗУ при создании, один раз.
+function nameLayerFromPicker(layer){
+  if(!layer) return false;
+  const name=computeLayerName();
+  if(!name) return false;
+  layer.name=name; layer.nameSource='plan';
+  if(typeof renderLayers==='function') renderLayers();
+  return true;
 }
-function onLayerCreated(){ /* именование делает onActiveTargetChanged — вызывается setActiveTarget внутри захвата */ }
 
 document.getElementById('pkGroup').addEventListener('change',e=>{ pickState.groupId=e.target.value; pickState.itemId=''; pickState.variantIdx=-1; populateItemSelect(); applyPickToActiveLayerIfAny(); });
 document.getElementById('pkItem').addEventListener('change',e=>{ pickState.itemId=e.target.value; pickState.variantIdx=-1; populateVariantSelect(); applyPickToActiveLayerIfAny(); });

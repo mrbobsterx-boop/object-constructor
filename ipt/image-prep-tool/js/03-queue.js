@@ -39,9 +39,13 @@ function nextUndoneQueue(afterId){
 function loadQueueItem(id){
   const q=queue.find(x=>x.id===id); if(!q) return;
   if(layers.length && !confirm('Есть незахваченные/несохранённые слои для текущего листа — переключиться и потерять их?')) return;
-  activeQueueId=id; renderQueue();
   const img=new Image();
+  // IPT-3: activeQueueId переключается только после УСПЕШНОЙ загрузки — иначе битый/неподдерживаемый
+  // файл (HEIC и т.п.) оставлял activeQueueId на новом элементе, пока на холсте всё ещё был старый
+  // лист: «Сохранить всё» писало старую картинку под новым именем и помечало битый элемент готовым.
+  img.onerror=()=>{ alert('Не удалось открыть «'+q.name+'» — файл повреждён или формат не поддерживается браузером.'); };
   img.onload=()=>{
+    activeQueueId=id; renderQueue();
     // canvasWrap должен стать видимым ДО initSheetFromImage: там считается зум и рисуется линейка
     // по getBoundingClientRect() холста — на скрытом элементе он нулевой ширины.
     document.getElementById('canvasWrap').style.display='';
