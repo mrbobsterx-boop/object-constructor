@@ -38,7 +38,7 @@ function renderRoomCatalogList(){
     const stairs=(r.stairConnections||[]).map(x=>({TOP_LEFT:'↖',TOP_CENTER:'↑',TOP_RIGHT:'↗',BOTTOM_LEFT:'↙',BOTTOM_CENTER:'↓',BOTTOM_RIGHT:'↘'}[x]||x)).join(' ');
     const meta=[(r.width/PIXELS_PER_METER).toFixed(1)+'×'+(r.height/PIXELS_PER_METER).toFixed(1)+'м',r.type||'',r.compositionRole||'CENTER_CENTER',stairs?'лестницы: '+stairs:'без лестниц',
       r.hasBlocks?('блоки (сетка 1 м)'+((Math.abs(r.width-Math.round(r.width/PIXELS_PER_METER)*PIXELS_PER_METER)>0.5||Math.abs(r.height-Math.round(r.height/PIXELS_PER_METER)*PIXELS_PER_METER)>0.5)?' ⚠ размер не кратен 1 м':'')):''].filter(Boolean).join(' · ');
-    return `<div class="room-catalog-item" data-id="${r.id}"><div>${esc(r.name)}</div><span class="muted">${esc(meta)}</span></div>`;
+    return `<div class="room-catalog-item" data-id="${esc(r.id)}"><div>${esc(r.name)}</div><span class="muted">${esc(meta)}</span></div>`;
   }).join('');
   box.querySelectorAll('[data-id]').forEach(el=>el.onclick=()=>addPlacedRoom(el.dataset.id));
 }

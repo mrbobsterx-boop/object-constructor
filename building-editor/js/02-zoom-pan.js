@@ -15,7 +15,9 @@ function setBuildingZoom(next,focusX=null,focusY=null){
   const old=buildingZoom;
   let idx=ZOOM_STEPS.findIndex(v=>Math.abs(v-next)<0.001);
   if(idx<0){
-    next=Math.max(0.25,Math.min(3,next));
+    // BLD-3: было Math.max(0.25,...) — ниже минимального шага ZOOM_STEPS (0.05), так что "Вписать"
+    // не мог уменьшить масштаб достаточно для большого здания и обрезал его видом.
+    next=Math.max(ZOOM_STEPS[0],Math.min(ZOOM_STEPS[ZOOM_STEPS.length-1],next));
   } else next=ZOOM_STEPS[idx];
   if(Math.abs(next-old)<0.001){ updateZoomUI(); return; }
   // Сохраняем точку под курсором при изменении масштаба.

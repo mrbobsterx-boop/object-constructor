@@ -24,7 +24,7 @@ async function saveRoomRecipesToDisk(){
 function populateRecipeTypeSelect(){
   const sel=document.getElementById('recipeType');
   const cur=sel.value;
-  sel.innerHTML=[...document.getElementById('roomType').options].filter(o=>o.value).map(o=>`<option value="${o.value}">${o.textContent}</option>`).join('');
+  sel.innerHTML=[...document.getElementById('roomType').options].filter(o=>o.value).map(o=>`<option value="${esc(o.value)}">${esc(o.textContent)}</option>`).join('');
   if([...sel.options].some(o=>o.value===cur)) sel.value=cur;
 }
 function populateVariantGroupDatalist(){

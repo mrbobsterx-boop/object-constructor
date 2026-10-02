@@ -154,10 +154,10 @@ async function loadRoomVisual(roomId){
 function recomputeDoorLinks(){
   doorLinks=[];
   if(buildingMode==='STREET')return; // в улице двери не используются — стыковка впритык по порядку
-  const allDoors=[]; // {instanceId, doorIdx, x,y (абсолютные px на холсте здания)}
+  const allDoors=[]; // {instanceId, doorIdx, x,y (абсолютные px на холсте здания), floor}
   placedRooms.forEach(p=>{
     const meta=getRoomMeta(p.roomId); if(!meta)return;
-    meta.doors.forEach((d,idx)=>{ allDoors.push({instanceId:p.instanceId, doorIdx:idx, x:p.x+d.x-(p.crop?.left||0), y:p.y+d.y-(p.crop?.top||0)}); });
+    meta.doors.forEach((d,idx)=>{ allDoors.push({instanceId:p.instanceId, doorIdx:idx, x:p.x+d.x-(p.crop?.left||0), y:p.y+d.y-(p.crop?.top||0), floor:p.floor||0}); });
   });
   const used=new Set();
   for(let i=0;i<allDoors.length;i++){
@@ -165,6 +165,7 @@ function recomputeDoorLinks(){
     for(let j=i+1;j<allDoors.length;j++){
       if(used.has(j))continue;
       if(allDoors[i].instanceId===allDoors[j].instanceId)continue; // не соединяем двери одной и той же комнаты
+      if(allDoors[i].floor!==allDoors[j].floor)continue; // BLD-2: совпадающие координаты на разных этажах — не одна и та же дверь
       const dx=allDoors[i].x-allDoors[j].x, dy=allDoors[i].y-allDoors[j].y;
       if(Math.sqrt(dx*dx+dy*dy)<=DOOR_LINK_THRESHOLD){
         doorLinks.push({ a:{instanceId:allDoors[i].instanceId,doorIdx:allDoors[i].doorIdx}, b:{instanceId:allDoors[j].instanceId,doorIdx:allDoors[j].doorIdx} });

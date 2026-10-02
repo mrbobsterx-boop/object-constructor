@@ -28,7 +28,7 @@ async function scanRoomsByType(type){
 }
 function populateGenTypeSelect(){
   const sel=document.getElementById('genType');
-  sel.innerHTML='<option value="">Все типы</option>'+[...document.getElementById('roomType').options].filter(o=>o.value).map(o=>`<option value="${o.value}">${o.textContent}</option>`).join('');
+  sel.innerHTML='<option value="">Все типы</option>'+[...document.getElementById('roomType').options].filter(o=>o.value).map(o=>`<option value="${esc(o.value)}">${esc(o.textContent)}</option>`).join('');
   sel.value=room.type||'';
 }
 async function renderGenRoomList(){

@@ -60,10 +60,16 @@ async function loadBuildingFromJSON(data){
   } else {
     (data.rooms||[]).forEach(item=>{
       const room=roomCatalog.find(r=>r.id===item.room);
+      const crop=cropFromJSON(item);
+      // BLD-1: w/h должны отражать РАЗМЕР ПОСЛЕ ОБРЕЗКИ (как в applySelectedCrop), иначе после
+      // переоткрытия здания у обрезанной комнаты снова полный размер — проверка наложения,
+      // прилипание к краям и рамка на холсте не учитывают обрезку до повторного её применения.
+      const w=room?room.width-(crop.left||0)-(crop.right||0):6.4*PIXELS_PER_METER;
+      const h=room?room.height-(crop.top||0)-(crop.bottom||0):2.2*PIXELS_PER_METER;
       const entry={ instanceId:item.instance_id||('place_'+Date.now()+Math.random().toString(36).slice(2)), mode:item.mode||'FIXED', roomId:item.room,
         typeFilter:item.type_filter||null, requiredRole:item.required_role||null, requiredStairs:item.required_stairs||[], floor:item.floor||0,
-        crop:cropFromJSON(item), x:lenPx(item,'x_m','x',0), y:lenPx(item,'y_m','y',0),
-        w:room?room.width:6.4*PIXELS_PER_METER, h:room?room.height:2.2*PIXELS_PER_METER, name:room?room.name:('⚠ '+item.room) };
+        crop, x:lenPx(item,'x_m','x',0), y:lenPx(item,'y_m','y',0),
+        w, h, name:room?room.name:('⚠ '+item.room) };
       placedRooms.push(entry);
       if(entry.mode==='RANDOM') rerollRandomSlot(entry); // сохранённый room — не выбор, а условие; перевыбираем заново, как POOL в «Улице»
     });
