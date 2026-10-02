@@ -78,7 +78,8 @@ function renderRoom(){
       let bg;
       if(inst.light.shape==='CONE'){
         // наша система углов: 0=вправо,90=вниз,180=влево,270=вверх (по часовой). CSS conic-gradient: 0=вверх,по часовой.
-        const cssAngle=((inst.light.angle||90)+90+360)%360;
+        const angle=(inst.light.angle!==undefined&&inst.light.angle!==null)?inst.light.angle:90; // ROOM-6: 0° — валидный угол ("вправо"), не "не задано"
+        const cssAngle=(angle+90+360)%360;
         const half=(inst.light.spread||60)/2;
         const softFrac=inst.light.softness!==undefined&&inst.light.softness!==null?inst.light.softness:0.4;
         const soft=Math.max(1,half*softFrac);

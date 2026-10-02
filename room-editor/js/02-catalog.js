@@ -110,7 +110,11 @@ function rebuildLibCategoryOptions(){
 
 async function scanProjectFolderCatalog(){
   if(!projectDirHandle)return;
-  projectCatalog.forEach(e=>{ if(e.image) URL.revokeObjectURL(e.image); });
+  // ROOM-3: НЕ отзываем старые blob:-URL здесь — экземпляры уже размещённых в комнате объектов и
+  // снимки истории (undo/redo) хранят ту же самую строку URL (inst.image, 06-instances-sets.js), а не
+  // ссылку на запись каталога. Отзыв URL при каждом «🔄 Обновить библиотеку» ломал их картинки до
+  // переоткрытия комнаты. Небольшая утечка старых object URL за сессию — приемлемая цена против
+  // битых спрайтов уже расставленных объектов.
   const result=[];
   try{
     const objectsDir=await getSubdir(projectDirHandle,'data/objects',false);
@@ -185,5 +189,5 @@ async function scanExistingRooms(){
 }
 function populateOpenRoomSelect(){
   const sel=document.getElementById('openRoomSelect'); if(!sel)return;
-  sel.innerHTML='<option value="">— выбери комнату —</option>'+existingRoomsList.map(r=>`<option value="${r.id}">${esc(r.name)} (${r.id})</option>`).join('');
+  sel.innerHTML='<option value="">— выбери комнату —</option>'+existingRoomsList.map(r=>`<option value="${esc(r.id)}">${esc(r.name)} (${esc(r.id)})</option>`).join('');
 }

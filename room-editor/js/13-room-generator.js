@@ -37,7 +37,7 @@ async function renderGenRoomList(){
   window.__genRoomsCache=rooms;
   const list=document.getElementById('genRoomList');
   if(!rooms.length){ list.innerHTML='<span class="status">Нет сохранённых комнат'+(type?' этого типа':'')+' в подключённой папке.</span>'; return; }
-  list.innerHTML=rooms.map((r,i)=>`<label class="gen-room-item"><input type="checkbox" class="genRoomCheck" data-idx="${i}" checked style="width:auto"> ${r.name||r.id} <span class="status">— ${(r.instances||[]).length} объектов, ${pxToM(r.width)}×${pxToM(r.height)} м</span></label>`).join('');
+  list.innerHTML=rooms.map((r,i)=>`<label class="gen-room-item"><input type="checkbox" class="genRoomCheck" data-idx="${i}" checked style="width:auto"> ${esc(r.name||r.id)} <span class="status">— ${(r.instances||[]).length} объектов, ${pxToM(r.width)}×${pxToM(r.height)} м</span></label>`).join('');
 }
 async function openGenModal(){
   document.getElementById('genModal').classList.add('open');
@@ -87,7 +87,7 @@ async function loadRandomGeneratedBackground(selectedRooms,targetW,targetH){
       const dims=await getImageDims(dataUrl);
       layers.push({
         id:'bg_'+Date.now()+Math.random().toString(36).slice(2),
-        dataUrl,path:ld.image,nativeWidth:dims.w,nativeHeight:dims.h,
+        dataUrl,path:ld.image.replace(/^rooms\//,''),nativeWidth:dims.w,nativeHeight:dims.h,
         opacity:ld.opacity!==undefined?ld.opacity:1,
         parallax:ld.parallax!==undefined?ld.parallax:1,
         x:(ld.x!==undefined?ld.x/sourceW:0.5)*targetW,

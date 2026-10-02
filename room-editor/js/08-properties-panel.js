@@ -34,7 +34,7 @@ function renderPropertiesPanel(){
   if(!inst){ panel.innerHTML='<div class="empty-hint">Кликни по объекту в комнате, чтобы увидеть его свойства. Перетащи объект из библиотеки слева на холст, чтобы разместить. Тащи рамкой по пустому месту — выделить несколько объектов сразу (для сохранения как сет).</div>'; return; }
   panel.innerHTML=`
     <div class="section">
-      <h3>${inst.name} <span class="status">(${inst.objectId})</span></h3>
+      <h3>${esc(inst.name)} <span class="status">(${esc(inst.objectId)})</span></h3>
       <div class="field"><label>X (м)</label><input id="instX" type="number" step="0.01" value="${pxToM(inst.x)}"></div>
       <div class="field"><label>Y (м)</label><input id="instY" type="number" step="0.01" value="${pxToM(inst.y)}"></div>
       <div class="field"><label>Размер в игре</label><div class="status">${(inst.realWidthCm||0).toFixed(0)} × ${(inst.realHeightCm||0).toFixed(0)} см</div></div>
@@ -82,7 +82,7 @@ function renderPropertiesPanel(){
     <div class="section">
       <label class="check"><input type="checkbox" id="instIsDoor" ${inst.door?'checked':''}> Это дверь (ведёт в другую комнату)</label>
       <div id="doorFields" style="display:${inst.door?'':'none'};margin-top:8px">
-        <div class="field"><label>Ведёт в комнату (id)</label><input id="doorRoomInput" list="doorRoomList" value="${inst.door?inst.door.toRoom:''}" placeholder="id комнаты"><datalist id="doorRoomList"></datalist></div>
+        <div class="field"><label>Ведёт в комнату (id)</label><input id="doorRoomInput" list="doorRoomList" value="${esc(inst.door?inst.door.toRoom:'')}" placeholder="id комнаты"><datalist id="doorRoomList"></datalist></div>
         <div class="field"><label>Точка появления X (м)</label><input id="doorSpawnX" type="number" step="0.01" value="${inst.door?pxToM(inst.door.spawnX):0}"></div>
         <div class="field"><label>Точка появления Y (м)</label><input id="doorSpawnY" type="number" step="0.01" value="${inst.door?pxToM(inst.door.spawnY):0}"></div>
       </div>
@@ -127,5 +127,5 @@ function renderPropertiesPanel(){
     document.getElementById('doorSpawnY').oninput=e=>{ if(inst.door) inst.door.spawnY=mToPx(+e.target.value||0); scheduleHistoryPush(); };
   }
 }
-function renderDoorRoomOptions(){ const dl=document.getElementById('doorRoomList'); if(dl) dl.innerHTML=existingRoomIds.map(id=>`<option value="${id}">`).join(''); }
+function renderDoorRoomOptions(){ const dl=document.getElementById('doorRoomList'); if(dl) dl.innerHTML=existingRoomIds.map(id=>`<option value="${esc(id)}">`).join(''); }
 function deleteInstance(instanceId){ room.instances=room.instances.filter(i=>i.instanceId!==instanceId); if(selectedInstanceId===instanceId) selectedInstanceId=null; renderRoom(); renderPropertiesPanel(); scheduleHistoryPush(); }

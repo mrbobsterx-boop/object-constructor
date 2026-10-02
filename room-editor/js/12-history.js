@@ -23,8 +23,11 @@ function restoreSnapshot(s){
   document.getElementById('roomId').value=room.id; document.getElementById('roomId').dataset.auto='0'; document.getElementById('roomName').value=room.name; ensureRoomTypeOption(room.type); document.getElementById('roomType').value=room.type||'';
   setRoomSizeInputs(room.width,room.height);
   document.getElementById('playerWalkZ').value=room.playerWalkZ!==undefined?room.playerWalkZ:10;
+  // ROOM-6: тот же набор полей, что синхронизирует обычная загрузка комнаты (11-room-io.js) — иначе
+  // после undo/redo поле толщины линии стен и оверлей зон продолжают показывать состояние ДО отката.
+  document.getElementById('walkLineThickness').value=room.walkLineThicknessCm||20;
   renderBgLayerList();
-  renderRoom(); renderPropertiesPanel();
+  renderRoom(); renderPropertiesPanel(); renderZoneGridOverlay();
 }
 function updateHistoryButtons(){
   document.getElementById('btnGlobalUndo').disabled=historyIndex<=0;

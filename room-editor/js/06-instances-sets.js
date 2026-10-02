@@ -42,7 +42,7 @@ function collectSetJSON(){
   const base=sanitizeSlug(document.getElementById('setId').value)||'set';
   return {
     schema_version:2, id:base, name:document.getElementById('setName').value||base,
-    objects: items.map(i=>({ objectId:i.objectId, name:i.name, xM:pxToM(i.x-originX), yM:pxToM(i.y-originY), rotation:i.rotation, flipH:i.flipH, flipV:i.flipV, zIndex:i.zIndex, scale:i.scale, collisionMode:i.collisionMode, light:lightToJSON(i.light), shadow:i.shadow, door:doorToJSON(i.door) })),
+    objects: items.map(i=>({ objectId:i.objectId, name:i.name, xM:pxToM(i.x-originX), yM:pxToM(i.y-originY), rotation:i.rotation, flipH:i.flipH, flipV:i.flipV, zIndex:i.zIndex, scale:i.scale, collisionMode:i.collisionMode, light:lightToJSON(i.light), shadow:i.shadow, door:doorToJSON(i.door), isDecor:i.isDecor, placementMode:i.placementMode })),
     background_layers: bgItems.map(l=>({ path:l.path, dataUrl:l.dataUrl, nativeWidth:l.nativeWidth, nativeHeight:l.nativeHeight, opacity:l.opacity, parallax:l.parallax, xM:pxToM((l.x!==undefined?l.x:room.width/2)-originX), yM:pxToM((l.y!==undefined?l.y:room.height/2)-originY), widthM:pxToM(l.nativeWidth*(l.scale||1),3), heightM:pxToM(l.nativeHeight*(l.scale||1),3), rotation:l.rotation, flipH:l.flipH, flipV:l.flipV }))
   };
 }
@@ -89,7 +89,7 @@ async function scanExistingSets(){
 function renderSetsList(){
   const box=document.getElementById('setsList'); if(!box)return;
   if(!existingSets.length){ box.innerHTML='<span class="muted">Пока нет сохранённых сетов.</span>'; return; }
-  box.innerHTML=existingSets.map(s=>`<div class="lib-item" data-id="${s.id}" style="cursor:pointer;padding:5px 6px" title="Кликни, чтобы вставить в центр комнаты">${esc(s.name)} <span class="status">(${s.objectCount} объект.)</span></div>`).join('');
+  box.innerHTML=existingSets.map(s=>`<div class="lib-item" data-id="${esc(s.id)}" style="cursor:pointer;padding:5px 6px" title="Кликни, чтобы вставить в центр комнаты">${esc(s.name)} <span class="status">(${s.objectCount} объект.)</span></div>`).join('');
   box.querySelectorAll('[data-id]').forEach(el=>el.onclick=()=>insertSet(el.dataset.id));
 }
 async function insertSet(setId){
