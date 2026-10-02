@@ -51,7 +51,7 @@ VIEW_RENDERERS.materials=function(){
       {h:'Материал',c:o=>`<div class="namecell">${thumbHtml(o)}<div><b>${esc(o.name)}</b><div class="muted">${esc(o.id)}</div></div></div>`},
       {h:'Твёрдость',c:o=>o.block?fmt(num(o.block.hardness)):'—'},
       {h:'Инструмент',c:o=>o.block&&o.block.tool?lnk('object',o.block.tool):'<span class="muted">без инструмента</span>'},
-      {h:'Срез угла',c:o=>o.block&&o.block.bevel_px!==null&&o.block.bevel_px!==undefined?o.block.bevel_px+' px':'<span class="muted">как в проекте</span>'},
+      {h:'Срез угла',c:o=>o.block&&o.block.bevel_px!==null&&o.block.bevel_px!==undefined?esc(o.block.bevel_px)+' px':'<span class="muted">как в проекте</span>'},
       {h:'Что даёт кусок',c:o=>dropsShort(o)},
       {h:'В комнатах',c:o=>{ let n=0; o.usedBy.blocks.forEach(v=>n+=v); return n?fmt(n)+' бл. <span class="muted">в '+o.usedBy.blocks.size+' комн.</span>':'—'; }},
       {h:'Проблемы',c:o=>probBadge('object',o.id)||'<span class="ok">✓</span>'}
@@ -78,8 +78,8 @@ ENTITY_RENDERERS.object=function(id){
     const bk=o.block, drops=Array.isArray(bk.drop_table)?bk.drop_table:[], mod=bk.drop_chance_modifiers||{};
     material=card('Материал блока',kv([
       ['Твёрдость',fmt(num(bk.hardness))],['Нужный инструмент',bk.tool?lnk('object',bk.tool):'без инструмента'],
-      ['Срез внешних углов',bk.bevel_px===null||bk.bevel_px===undefined?'как в проекте':bk.bevel_px+' px'],
-      ['Кусок',`${bk.piece_size_cm||20} см, ${bk.pieces_per_side||5}×${bk.pieces_per_side||5} в блоке`],
+      ['Срез внешних углов',bk.bevel_px===null||bk.bevel_px===undefined?'как в проекте':esc(bk.bevel_px)+' px'],
+      ['Кусок',`${esc(bk.piece_size_cm||20)} см, ${esc(bk.pieces_per_side||5)}×${esc(bk.pieces_per_side||5)} в блоке`],
       ['Бонус шанса',`навык: ${esc(mod.skill||'—')}${mod.skill?`, +${Math.round(num(mod.skill_bonus_per_level)*1000)/10}% за уровень`:''}; инструмент: +${Math.round(num(mod.tool_bonus)*1000)/10}%`]
     ])+'<div style="margin-top:8px"></div>'+table(['Предмет','Шанс','Количество'],drops.map(x=>`<tr><td>${lnk('object',x.item)}</td><td>${Math.round(num(x.chance)*10000)/100}%</td><td>${num(x.min)}–${num(x.max)}</td></tr>`),'Таблица добычи пуста.'));
   }

@@ -54,7 +54,9 @@ function checkObjects(add){
     else {
       if(!Number.isInteger(o.widthCm)||!Number.isInteger(o.heightCm)) A('info','SIZE_STEP','Игровой размер — не целое число сантиметров (ОС сохраняет размер в целых см).');
       const iw=num(d.appearance&&d.appearance.imageWidth), ih=num(d.appearance&&d.appearance.imageHeight);
-      if(iw>0&&ih>0&&Math.abs(o.heightCm-o.widthCm*ih/iw)>1) A('warn','SIZE_ASPECT',`Размер ${o.widthCm}×${o.heightCm} см не совпадает с пропорциями картинки ${iw}×${ih} px — картинка растянута (по пропорциям высота была бы ${Math.round(o.widthCm*ih/iw)} см). В ОС включи «Сохранить пропорции» и нажми «Подогнать высоту по ширине».`);
+      // Допуск 5 см (не 1) — ОС округляет сохранённый размер объекта до кратных 10 см (REG-1), поэтому
+      // даже идеально подогнанный по пропорциям размер отклоняется от точного до 5 см просто из-за округления.
+      if(iw>0&&ih>0&&Math.abs(o.heightCm-o.widthCm*ih/iw)>5) A('warn','SIZE_ASPECT',`Размер ${o.widthCm}×${o.heightCm} см не совпадает с пропорциями картинки ${iw}×${ih} px — картинка растянута (по пропорциям высота была бы ${Math.round(o.widthCm*ih/iw)} см). В ОС включи «Сохранить пропорции» и нажми «Подогнать высоту по ширине».`);
     }
 
     // картинки и звуки

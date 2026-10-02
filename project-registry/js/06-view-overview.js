@@ -25,7 +25,7 @@ VIEW_RENDERERS.overview=function(){
   const settings=kv([
     ['data/project_settings.json',R.settings?badge('есть','ok'):badge('нет','info')],
     ['Линия ходьбы от низа',S.walk_line_bottom_m!==undefined?fmtM(S.walk_line_bottom_m):'0,9 м (по умолчанию)'],
-    ['Срез угла блока',S.block_bevel_px!==undefined?S.block_bevel_px+' px':'4 px (по умолчанию)'],
+    ['Срез угла блока',S.block_bevel_px!==undefined?esc(S.block_bevel_px)+' px':'4 px (по умолчанию)'],
     ['data/categories.json',R.categoriesFile?badge('категорий: '+((R.categoriesFile.categories)||[]).length,'ok'):badge('нет','info')],
     ['data/room_recipes.json',R.recipes?badge('типов комнат: '+Object.keys(R.recipes).length,'ok'):badge('нет','info')],
     ['Последнее сканирование',R.scannedAt?R.scannedAt.toLocaleString('ru-RU'):'—']
