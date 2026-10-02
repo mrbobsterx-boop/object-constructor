@@ -127,13 +127,18 @@ async function scanProjectObjects(){
   render();
 }
 function found(item){ return PROJECT.found.get(item.id)||null; }
+// PLAN-2: base.indexOf(prefix)===0 только проверяет НАЧАЛО имени — "chair"/"red" совпадало и с
+// chair_red_dark.png (другая вариация с более длинным именем), а "lamp"/"oil" — с lamp_oil_big.
+// Нужен ЛИБО точный хвост (ничего после префикса), ЛИБО один из известных суффиксов состояния
+// (_idle/_broken/_icon), опционально с «_<N>» для нескольких файлов одного состояния.
+function refSuffixMatches(rest){ return rest===''||/^_(idle|broken|icon)(_\d+)?$/.test(rest); }
 // Превью вариации: первый файл assets/refs/, чьё имя начинается с <id>_<английская вариация> — так их
 // сохраняет image-prep-tool. Без подключённой папки/скана — ничего.
 function refThumbFor(item,v){
   const prefix=(item.id+'_'+variationEn(v)).toLowerCase();
   for(const [relPath,url] of PROJECT.refs){
     const base=relPath.split('/').pop().replace(/\.[a-z0-9]+$/i,'').toLowerCase();
-    if(base.indexOf(prefix)===0) return url;
+    if(base.indexOf(prefix)===0 && refSuffixMatches(base.slice(prefix.length))) return url;
   }
   return null;
 }
@@ -146,8 +151,9 @@ function refStateThumbs(item,v){
   for(const [relPath,url] of PROJECT.refs){
     const base=relPath.split('/').pop().replace(/\.[a-z0-9]+$/i,'').toLowerCase();
     if(base.indexOf(prefix)!==0) continue;
-    if(!out.any) out.any=url;
     const rest=base.slice(prefix.length);
+    if(!refSuffixMatches(rest)) continue;
+    if(!out.any) out.any=url;
     if(/^_idle(_\d+)?$/.test(rest)){ if(!out.idle) out.idle=url; }
     else if(/^_broken(_\d+)?$/.test(rest)){ if(!out.broken) out.broken=url; }
     else if(/^_icon(_\d+)?$/.test(rest)){ if(!out.icon) out.icon=url; }
