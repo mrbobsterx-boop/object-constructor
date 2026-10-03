@@ -7,6 +7,7 @@
    src: 'gdd'  — есть в postapocalyptic_survival_master_game_design.md (ref — раздел)
         'idea' — предложение, в документах нет
         'open' — в документах прямо «не определено», нужно решение
+        'user' — решение автора (ответы на открытые вопросы)
    ============================================================ */
 
 const c=(v,op,value)=>({var:v,op,value});            // условие
@@ -44,6 +45,8 @@ const VARIABLES=[
   {id:'raiders_know_poison',name:'Рейдеры знают, кто отравил воду',type:'flag',start:0,min:0,max:1,src:'idea'},
   {id:'has_vehicle',name:'Есть машина',type:'flag',start:0,min:0,max:1,src:'gdd',ref:'§8, §21 транспорт'},
   {id:'has_greenhouse',name:'Есть оранжерея',type:'flag',start:0,min:0,max:1,src:'gdd',ref:'§10.7'},
+  {id:'season',name:'Сезон (0 весна · 1 лето · 2 осень · 3 зима)',type:'counter',start:0,min:0,max:3,src:'user',note:'Решение: 4 сезона. Игра начинается весной.'},
+  {id:'truth_clues',name:'Улики о катастрофе',type:'counter',start:0,min:0,max:10,src:'user',note:'Решение: катастрофа — тайна; игрок собирает версии.'},
   {id:'moved_shelter',name:'Сменил основное убежище',type:'flag',start:0,min:0,max:1,src:'gdd',ref:'§3.4'}
 ];
 
@@ -53,19 +56,19 @@ const ENTITIES=[
   {ref:'loc_bunker',kind:'location',name:'Бункер игрока',src:'gdd',note:'§3. Несколько жилых комнат, вода, энергия, хранение, мастерская.'},
   {ref:'loc_outskirts',kind:'location',name:'Окрестности бункера',src:'idea',note:'Буфер между бункером и трассой: вход/шлюз, первые находки, следы чужих.'},
   {ref:'loc_highway',kind:'location',name:'Главная трасса и развилки',src:'gdd',note:'§4.2. Дорога, указатели, брошенные машины.'},
-  {ref:'loc_city',kind:'location',name:'Город',src:'gdd',note:'§4.2. Улицы, жилые дома, магазины, офисы, гаражи.'},
-  {ref:'loc_industrial',kind:'location',name:'Окраина / промзона',src:'idea',note:'Склады, машинные, водонапорные башни.'},
+  {ref:'loc_city',kind:'location',name:'Городок',src:'user',note:'Решение: маленький мир. 5–10 домов, магазин, гараж, водонапорная башня.'},
+  {ref:'loc_industrial',kind:'location',name:'Окраина / промзона (позже)',src:'user',note:'Не входит в первую версию мира — расширение.'},
   {ref:'loc_foreign',kind:'location',name:'Чужие территории',src:'gdd',note:'§3.4, §21. Другие бункеры, поселения, лагеря фракций.'},
-  {ref:'loc_danger',kind:'location',name:'Опасные / заражённые зоны',src:'gdd',note:'§22.'},
+  {ref:'loc_danger',kind:'location',name:'Опасные / заражённые зоны (позже)',src:'gdd',note:'§22. Не входит в первую версию мира — расширение.'},
   {ref:'loc_other_bunker',kind:'location',name:'Чужой бункер',src:'gdd',note:'§3.4: больше / лучше оборудован / с выжившими / заброшен.'},
   {ref:'loc_raider_camp',kind:'location',name:'Лагерь рейдеров',src:'idea'},
   {ref:'loc_water_tower',kind:'location',name:'Водонапорная башня',src:'gdd',note:'§7.2 источник воды.'},
   // фракции (архетипы)
-  {ref:'f_community',kind:'faction',name:'Община',src:'gdd',note:'Выжившие в другом бункере/поселении (§3.4). Ферма, вода, ремонт.'},
-  {ref:'f_traders',kind:'faction',name:'Торговцы / караван',src:'gdd',note:'Торговля и торговые маршруты (§21).'},
-  {ref:'f_raiders',kind:'faction',name:'Рейдеры / банда',src:'gdd',note:'Рейдеры, банды, мародёры (§22).'},
-  {ref:'f_slavers',kind:'faction',name:'Работорговцы',src:'gdd',note:'Плен и рабство (§21).'},
-  {ref:'f_remnant',kind:'faction',name:'Остатки порядка',src:'idea',note:'Военные/охрана/бывшая власть: оружие, дисциплина, свои правила.'},
+  {ref:'f_community',kind:'faction',name:'Община',src:'user',note:'Выжившие в другом бункере/поселении (§3.4). Ферма, вода, ремонт.'},
+  {ref:'f_traders',kind:'faction',name:'Торговцы / караван',src:'user',note:'Торговля и торговые маршруты (§21).'},
+  {ref:'f_raiders',kind:'faction',name:'Рейдеры / банда',src:'user',note:'Рейдеры, банды, мародёры (§22).'},
+  {ref:'f_slavers',kind:'faction',name:'Работорговцы',src:'user',note:'Плен и рабство (§21). База за пределами карты — приходят по трассе.'},
+  {ref:'f_remnant',kind:'faction',name:'Остатки порядка',src:'user',note:'Бывшие военные/власть: оружие, дисциплина, свои правила. База за пределами карты, в городке держат водонапорную башню.'},
   {ref:'g_loners',kind:'group',name:'Одиночки и мародёры',src:'gdd',note:'Независимые NPC (§21) — источник новых членов группы.'},
   {ref:'g_player',kind:'group',name:'Группа игрока',src:'gdd',note:'§6, §24.'},
   // угрозы
@@ -79,7 +82,7 @@ const ENTITIES=[
   {ref:'r_meds',kind:'resource',name:'Медикаменты',src:'gdd'},
   {ref:'r_fuel',kind:'resource',name:'Топливо',src:'gdd'},
   // концепты
-  {ref:'k_catastrophe',kind:'concept',name:'Катастрофа (что случилось с миром)',src:'open',note:'Нигде не описана: что произошло, сколько лет прошло, откуда зомби.'},
+  {ref:'k_catastrophe',kind:'concept',name:'Падение (катастрофа)',src:'user',note:'Решение: прошло больше 10 лет. Что именно случилось — тайна: никто не знает точно, у людей разные версии, игрок собирает улики.'},
   {ref:'k_slavery',kind:'concept',name:'Плен и рабство',src:'gdd',note:'§21.'}
 ];
 
@@ -87,11 +90,11 @@ const RELATIONS=[
   {from:'loc_outskirts',type:'находится_в',to:'loc_bunker',comment:'окрестности вокруг бункера'},
   {from:'loc_other_bunker',type:'находится_в',to:'loc_foreign'},
   {from:'loc_raider_camp',type:'находится_в',to:'loc_foreign'},
-  {from:'loc_water_tower',type:'находится_в',to:'loc_industrial'},
+  {from:'loc_water_tower',type:'находится_в',to:'loc_city'},
   {from:'g_player',type:'находится_в',to:'loc_bunker'},
   {from:'f_community',type:'находится_в',to:'loc_other_bunker',status:'proposed'},
   {from:'f_raiders',type:'находится_в',to:'loc_raider_camp',status:'proposed'},
-  {from:'f_raiders',type:'враг_с',to:'f_community',status:'proposed'},
+  {from:'f_raiders',type:'враг_с',to:'f_community'},
   {from:'f_raiders',type:'враг_с',to:'f_traders',status:'proposed'},
   {from:'f_slavers',type:'враг_с',to:'f_community',status:'proposed'},
   {from:'f_traders',type:'друг_с',to:'f_community',status:'proposed'},
@@ -111,7 +114,7 @@ const CATEGORIES=[
   intro:'Стартовый узел игры и решения, которые меняют всю партию.',
   nodes:[
     {ref:'story.game_start',title:'Первое утро в бункере',type:'choice',src:'idea',source:'system',refs:['loc_bunker','g_player'],
-     trigger:{kind:'start'},text:'Двое выживших в маленьком подземном убежище. Воды на месяц, еды на десять дней. Снаружи тихо.',
+     trigger:{kind:'start'},text:'Больше десяти лет после Падения. Двое выживших в маленьком подземном убежище. Весна. Воды на месяц, еды на десять дней. Старых запасов в округе почти не осталось — живут те, кто умеет добывать и производить.',
      choices:[ch('Осмотреть убежище и запасы','story.inventory_check'),ch('Выйти наружу','exploration.first_exit')]},
     {ref:'story.inventory_check',title:'Ревизия запасов',type:'event',src:'gdd',gdd:'§3.1',source:'player',
      text:'Решаем, что хранить, что использовать, что ремонтировать, когда выходить наружу.',
@@ -127,15 +130,27 @@ const CATEGORIES=[
      effects:[add('world_danger',5),set('shelter_known',1)]},
     {ref:'story.become_leader',title:'Возглавить чужую группу',type:'event',src:'gdd',gdd:'§21',source:'relationship',
      text:'После переворота или смерти лидера игроку предлагают возглавить чужую группу.'},
-    {ref:'story.world_history',title:'Что случилось с миром',type:'event',src:'open',gdd:'§1.3',source:'location',refs:['k_catastrophe'],
-     text:'❓ Игрок должен «узнать историю мира» (§1.3), но сама история катастрофы нигде не описана.'},
-    {ref:'death.group_wiped',title:'Группа погибла',type:'event',src:'gdd',gdd:'§27',source:'system',
-     trigger:when(c('group_size','<=',0)),text:'Смерть постоянна. Мир продолжает жить без игрока.',ending:'death'}
+    {ref:'story.clue_note',title:'Записи старого мира',type:'event',src:'user',source:'location',refs:['k_catastrophe'],
+     trigger:every(24*12),effects:[add('truth_clues',1)],
+     text:'В брошенном доме — дневник, газета или служебная записка времён Падения. Ещё одна версия того, что случилось.',
+     choices:[ch('Сравнить с тем, что уже знаем','story.clue_contradiction')]},
+    {ref:'story.clue_npc',title:'Старик помнит Падение',type:'choice',src:'user',source:'npc',refs:['k_catastrophe','g_loners'],
+     text:'Человек, заставший старый мир, рассказывает свою версию. Молодые его не слушают — они родились после.',
+     choices:[ch('Выслушать (отдать еду за рассказ)','story.clue_contradiction',{effects:[add('truth_clues',1),sub('shelter_food_days',1)]}),
+              ch('Позвать в группу','group.newcomer_arrives')]},
+    {ref:'story.clue_contradiction',title:'Версии не сходятся',type:'event',src:'user',source:'system',refs:['k_catastrophe'],
+     text:'Улики противоречат друг другу. Тайна остаётся тайной — финала у неё нет, но чем больше знаешь, тем больше людей готовы с тобой говорить.',
+     trigger:when(c('truth_clues','>=',3)),effects:[add('rep_community',5)]},
+    {ref:'story.born_after',title:'Родившиеся после',type:'event',src:'user',source:'npc',
+     trigger:every(24*15),text:'Встречен молодой человек, который никогда не видел старого мира: не знает, что такое электричество из розетки, зато отлично выживает.',
+     choices:[ch('Принять в группу','group.newcomer_arrives')]},
+    {ref:'death.group_wiped',title:'Группа погибла',type:'event',gdd:'§27',source:'system',
+     trigger:when(c('group_size','<=',0)),text:'Смерть постоянна, и это единственный конец: игра — бесконечная песочница. Мир продолжает жить без игрока.',ending:'death',src:'user'}
   ]
 },
 {
-  id:'time',title:'Время, погода и фазы мира',
-  intro:'Единое игровое время (§9). Фазы — предложение: мир «просыпается» постепенно.',
+  id:'time',title:'Время, погода и сезоны',
+  intro:'Единое игровое время (§9). Решения: мир живой с первого дня (без фаз), 4 сезона, игра начинается весной.',
   nodes:[
     {ref:'time.new_day',title:'Новый день',type:'background',src:'gdd',gdd:'§9',source:'timer',trigger:every(24),
      effects:[add('day',1),sub('shelter_food_days',1),sub('shelter_water',10),sub('shelter_energy',5)],text:'Каждые сутки группа ест, пьёт, тратит энергию.'},
@@ -144,17 +159,27 @@ const CATEGORIES=[
     {ref:'time.storm',title:'Буря',type:'background',src:'idea',source:'weather',trigger:every(24*9),
      effects:[add('shelter_water',150),add('world_danger',5)],text:'Сильный дождь и ветер: вода прибывает, панели под угрозой, наружу лучше не выходить.',
      choices:[ch('Панели повреждены','energy.panel_broken')]},
-    {ref:'time.phase_settling',title:'Фаза «Обживание»',type:'background',src:'idea',source:'timer',trigger:every(24*7,false),
-     text:'День 8. Мир начинает замечать новичков: первые торговцы и случайные гости.',
-     choices:[ch('Первый караван','trade.caravan_arrives'),ch('Кто-то у двери','group.newcomer_arrives')]},
-    {ref:'time.phase_noticed',title:'Фаза «Мир заметил тебя»',type:'background',src:'idea',source:'timer',trigger:every(24*30,false),
-     effects:[set('shelter_known',1),add('world_danger',10)],text:'День 30. Фракции знают об убежище, растут требования.',
-     choices:[ch('Требуют дань','factions.demand_tribute')]},
-    {ref:'time.phase_politics',title:'Фаза «Большая политика»',type:'background',src:'idea',source:'timer',trigger:every(24*60,false),
-     effects:[add('world_danger',10)],text:'День 60. Войны, союзы, большие сдвиги территорий.',
-     choices:[ch('Фракции сталкиваются','factions.groups_clash')]},
-    {ref:'time.seasons',title:'Сезоны и зима?',type:'event',src:'open',source:'weather',
-     text:'❓ В документах нет сезонов. Зима сильно влияет на воду, еду и топливо — нужны ли они?'}
+    {ref:'time.season_change',title:'Смена сезона',type:'background',src:'user',source:'timer',trigger:every(24*30),
+     effects:[add('season',1)],text:'Каждые 30 дней (💡 длина сезона). В игре сезон идёт по кругу: после зимы снова весна (season по модулю 4) — Story Map не умеет «по кругу», поэтому здесь значение просто растёт до зимы.',
+     choices:[ch('Лето','time.season_summer'),ch('Осень','time.season_autumn'),ch('Зима','time.season_winter'),ch('Весна','time.season_spring')]},
+    {ref:'time.season_spring',title:'Весна',type:'event',src:'user',source:'weather',trigger:when(c('season','==',0)),
+     effects:[add('shelter_water',100)],text:'Игра начинается весной. Талая вода, первые посадки. Пережившие зиму выходят на дороги.',
+     choices:[ch('Новые люди на дорогах','group.newcomer_arrives')]},
+    {ref:'time.season_summer',title:'Лето',type:'event',src:'user',source:'weather',trigger:when(c('season','==',1)),
+     text:'Жара. Дожди редкие — растёт риск засухи. Хорошее время для дальних вылазок.',choices:[ch('Засуха','water.drought')]},
+    {ref:'time.season_autumn',title:'Осень',type:'event',src:'user',source:'weather',trigger:when(c('season','==',2)),
+     text:'Урожай и заготовки на зиму. Фракции тоже запасаются — торговля оживает, стычки за ресурсы тоже.',
+     choices:[ch('Караван за запасами','trade.caravan_arrives')]},
+    {ref:'time.season_winter',title:'Зима',type:'event',src:'user',source:'weather',trigger:when(c('season','==',3)),
+     text:'Холод. Дождя нет, урожая нет, нужно топливо на обогрев. Зомби медленнее, люди отчаяннее.',
+     choices:[ch('Холод в убежище','time.winter_cold'),ch('Резервуар замёрз','time.tank_frozen')]},
+    {ref:'time.winter_cold',title:'Холод в убежище',type:'choice',src:'user',source:'weather',
+     trigger:when(c('season','==',3)),text:'Нужно греться: жечь топливо или терпеть.',
+     choices:[ch('Жечь топливо','energy.ok',{effects:[sub('shelter_fuel',20),add('noise_level',5)]}),
+              ch('Терпеть','health.illness_spreads',{effects:[sub('group_morale',10)]})]},
+    {ref:'time.tank_frozen',title:'Резервуар замёрз',type:'event',src:'user',source:'weather',
+     trigger:when(c('season','==',3),c('shelter_energy','<',50)),effects:[sub('shelter_water',80)],
+     text:'Без обогрева вода во внешнем резервуаре замёрзла и разорвала трубу.',choices:[ch('Чинить','repair.equipment_breaks')]}
   ]
 },
 {
@@ -163,7 +188,7 @@ const CATEGORIES=[
   nodes:[
     {ref:'water.rain_fills_tank',title:'Дождь пополнил резервуар',type:'background',src:'gdd',gdd:'§37 время+вода',source:'weather',refs:['r_water'],
      trigger:every(24*3),effects:[add('shelter_water',80)],text:'Дождь → резервуар → запас.'},
-    {ref:'water.drought',title:'Засуха',type:'background',src:'idea',source:'weather',trigger:every(24*25),
+    {ref:'water.drought',title:'Засуха',type:'event',src:'user',source:'weather',trigger:when(c('season','==',1),c('shelter_water','<',400)),
      text:'Долго нет дождя. Запас не пополняется, ищем воду снаружи.',choices:[ch('Запас тает','water.shortage_crisis')]},
     {ref:'water.tank_leak',title:'Резервуар потёк',type:'background',src:'gdd',gdd:'§15 износ',source:'system',trigger:every(24*14),
      effects:[sub('shelter_water',60),sub('shelter_condition',5)],text:'Износ. Пока не починим — теряем воду каждый день.',
@@ -253,7 +278,7 @@ const CATEGORIES=[
     {ref:'farming.first_harvest',title:'Первый урожай',type:'event',src:'gdd',gdd:'§10.7',source:'system',
      trigger:when(c('has_greenhouse','==',1)),effects:[add('shelter_food_days',5),add('group_morale',10)],text:'Еда становится возобновляемой.'},
     {ref:'farming.crop_failed',title:'Урожай погиб',type:'event',src:'idea',source:'system',
-     trigger:when(c('has_greenhouse','==',1),c('shelter_energy','<',20)),effects:[sub('group_morale',5)],
+     trigger:when(c('has_greenhouse','==',1),c('season','==',3),c('shelter_energy','<',40)),effects:[sub('group_morale',5)],
      text:'Нет света, воды или ухода. Ферма зависит от энергии и воды.'}
   ]
 },
@@ -426,7 +451,7 @@ const CATEGORIES=[
               ch('Освободить силой','combat.watch_fight',{effects:[sub('rep_slavers',40),add('rep_community',15)]}),
               ch('Пройти мимо','exploration.ok',{effects:[sub('group_morale',15)]})]},
     {ref:'capture.take_prisoner',title:'Игрок взял пленного',type:'choice',src:'gdd',gdd:'§21',source:'player',
-     text:'Допросить, отпустить, обменять, продать, принять в группу.',
+     text:'Допросить (без пыток — решение по тону), отпустить, обменять, продать, принять в группу.',
      choices:[ch('Допросить','exploration.traces'),ch('Отпустить','exploration.ok',{effects:[add('rep_raiders',5)]}),
               ch('Продать работорговцам','exploration.ok',{effects:[add('rep_slavers',10),sub('group_morale',10)]}),
               ch('Принять в группу','group.newcomer_arrives',{effects:[add('group_size',1)]})]},
@@ -517,15 +542,22 @@ const CATEGORIES=[
 }
 ];
 
-// Открытые вопросы — уходят в «Решения» Story Map и в MD.
+// Решения автора — уходят в «Решения» Story Map и в MD.
+const DECISIONS=[
+  {title:'Катастрофа — тайна',text:'Что случилось с миром, точно никто не знает. У людей разные версии, игрок собирает улики (записи, рассказы). Окончательного ответа в игре нет.'},
+  {title:'Прошло больше 10 лет',text:'Новый мир устоялся: свои поселения и законы, выросло поколение, не видевшее старого мира. Лёгкого лута почти нет — всё держится на добыче и производстве.'},
+  {title:'Фракции первой версии',text:'Община, торговцы/караван, рейдеры/банда, работорговцы, остатки порядка. Плюс одиночки как фон. База работорговцев и остатков порядка — за картой, они приходят по трассе.'},
+  {title:'Тон: жёстко, без пыток',text:'Рабство, плен, отравление воды, голод — есть, с реальными последствиями. Пыток и казней пленных нет.'},
+  {title:'Маленький мир на старте',text:'Бункер, окрестности, трасса, городок (5–10 домов), чужой бункер, лагерь рейдеров. Промзона и заражённые зоны — расширение.'},
+  {title:'4 сезона',text:'Игра начинается весной. Лето — засухи, осень — заготовки, зима — нет дождя и урожая, нужно топливо.'},
+  {title:'Мир живой с первого дня',text:'Никаких фаз: фракции, караваны и угрозы работают сразу. Защита новичка — только то, что убежище поначалу никому не известно.'},
+  {title:'Бесконечная песочница',text:'Финала нет. Единственный конец — гибель всей группы.'}
+];
+// Новые открытые вопросы, появившиеся после решений.
 const OPEN_QUESTIONS=[
-  {title:'История катастрофы',text:'Что случилось с миром? Сколько лет прошло? Откуда зомби?'},
-  {title:'Фракции',text:'Подтвердить архетипы (община, торговцы, рейдеры, работорговцы, остатки порядка, одиночки) или дать свои. Сколько в первой версии?'},
-  {title:'Размер мира на старте',text:'Предложение: бункер + трасса + город (5–10 домов) + чужой бункер + лагерь фракции.'},
-  {title:'Сезоны / зима',text:'Нужны ли? Сильно влияют на воду, еду и топливо.'},
-  {title:'Фазы игры',text:'Мир «просыпается» постепенно (день 8 / 30 / 60) или живой с первого дня?'},
-  {title:'Тон',text:'Где граница жёсткости: рабство, отравление воды, пытки пленных?'},
-  {title:'Финал',text:'Нужны ли концовки, кроме гибели группы?'}
+  {title:'Длина сезона',text:'Сейчас 30 игровых дней на сезон (💡). Подходит?'},
+  {title:'Версии Падения',text:'Какие версии катастрофы ходят среди людей? Нужно 3–5 правдоподобных и противоречащих друг другу.'},
+  {title:'Имена фракций',text:'У фракций пока только архетипы — нужны названия и лидеры.'}
 ];
 
-module.exports={VARIABLES,ENTITIES,RELATIONS,CATEGORIES,OPEN_QUESTIONS};
+module.exports={VARIABLES,ENTITIES,RELATIONS,CATEGORIES,DECISIONS,OPEN_QUESTIONS};

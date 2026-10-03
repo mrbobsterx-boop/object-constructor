@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "saved_at": "2026-10-03T09:22:48.864Z",
+  "saved_at": "2026-10-03T10:04:22.517Z",
   "variables": [
     {
       "id": "day",
@@ -203,6 +203,22 @@
       "max": 1
     },
     {
+      "id": "season",
+      "name": "Сезон (0 весна · 1 лето · 2 осень · 3 зима)",
+      "type": "counter",
+      "start": 0,
+      "min": 0,
+      "max": 3
+    },
+    {
+      "id": "truth_clues",
+      "name": "Улики о катастрофе",
+      "type": "counter",
+      "start": 0,
+      "min": 0,
+      "max": 10
+    },
+    {
       "id": "moved_shelter",
       "name": "Сменил основное убежище",
       "type": "flag",
@@ -215,7 +231,7 @@
     {
       "id": "story.game_start",
       "title": "Первое утро в бункере",
-      "text": "💡 Предложение\nДвое выживших в маленьком подземном убежище. Воды на месяц, еды на десять дней. Снаружи тихо.",
+      "text": "💡 Предложение\nБольше десяти лет после Падения. Двое выживших в маленьком подземном убежище. Весна. Воды на месяц, еды на десять дней. Старых запасов в округе почти не осталось — живут те, кто умеет добывать и производить.",
       "type": "choice",
       "category": "story",
       "tags": [],
@@ -565,9 +581,9 @@
       "ending": ""
     },
     {
-      "id": "story.world_history",
-      "title": "Что случилось с миром",
-      "text": "❓ Не решено · GDD §1.3\n❓ Игрок должен «узнать историю мира» (§1.3), но сама история катастрофы нигде не описана.",
+      "id": "story.clue_note",
+      "title": "Записи старого мира",
+      "text": "⭐ Решение автора\nВ брошенном доме — дневник, газета или служебная записка времён Падения. Ещё одна версия того, что случилось.",
       "type": "event",
       "category": "story",
       "tags": [],
@@ -586,6 +602,62 @@
       "x": 0,
       "y": 690,
       "trigger": {
+        "kind": "scheduled",
+        "afterHours": 288,
+        "sinceNode": "",
+        "repeat": true
+      },
+      "effects": [
+        {
+          "var": "truth_clues",
+          "op": "add",
+          "value": 1
+        }
+      ],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "choices": [
+        {
+          "id": "story.clue_note#0",
+          "label": "Сравнить с тем, что уже знаем",
+          "target": "story.clue_contradiction",
+          "requires": [],
+          "effects": [],
+          "sim": {}
+        }
+      ],
+      "ending": ""
+    },
+    {
+      "id": "story.clue_npc",
+      "title": "Старик помнит Падение",
+      "text": "⭐ Решение автора\nЧеловек, заставший старый мир, рассказывает свою версию. Молодые его не слушают — они родились после.",
+      "type": "choice",
+      "category": "story",
+      "tags": [],
+      "samSystem": "",
+      "arc": "",
+      "chapter": "",
+      "eventSource": "npc",
+      "actionRef": {
+        "action": "",
+        "target": ""
+      },
+      "implementationStatus": {},
+      "refs": [
+        "k_catastrophe",
+        "g_loners"
+      ],
+      "x": 0,
+      "y": 820,
+      "trigger": {
         "kind": "conditions",
         "all": []
       },
@@ -599,13 +671,138 @@
         "requiresSkills": [],
         "resourceEffects": []
       },
+      "choices": [
+        {
+          "id": "story.clue_npc#0",
+          "label": "Выслушать (отдать еду за рассказ)",
+          "target": "story.clue_contradiction",
+          "requires": [],
+          "effects": [
+            {
+              "var": "truth_clues",
+              "op": "add",
+              "value": 1
+            },
+            {
+              "var": "shelter_food_days",
+              "op": "subtract",
+              "value": 1
+            }
+          ],
+          "sim": {}
+        },
+        {
+          "id": "story.clue_npc#1",
+          "label": "Позвать в группу",
+          "target": "group.newcomer_arrives",
+          "requires": [],
+          "effects": [],
+          "sim": {}
+        }
+      ],
+      "ending": ""
+    },
+    {
+      "id": "story.clue_contradiction",
+      "title": "Версии не сходятся",
+      "text": "⭐ Решение автора\nУлики противоречат друг другу. Тайна остаётся тайной — финала у неё нет, но чем больше знаешь, тем больше людей готовы с тобой говорить.",
+      "type": "event",
+      "category": "story",
+      "tags": [],
+      "samSystem": "",
+      "arc": "",
+      "chapter": "",
+      "eventSource": "system",
+      "actionRef": {
+        "action": "",
+        "target": ""
+      },
+      "implementationStatus": {},
+      "refs": [
+        "k_catastrophe"
+      ],
+      "x": 270,
+      "y": 560,
+      "trigger": {
+        "kind": "conditions",
+        "all": [
+          {
+            "var": "truth_clues",
+            "op": ">=",
+            "value": 3
+          }
+        ]
+      },
+      "effects": [
+        {
+          "var": "rep_community",
+          "op": "add",
+          "value": 5
+        }
+      ],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
       "choices": [],
+      "ending": ""
+    },
+    {
+      "id": "story.born_after",
+      "title": "Родившиеся после",
+      "text": "⭐ Решение автора\nВстречен молодой человек, который никогда не видел старого мира: не знает, что такое электричество из розетки, зато отлично выживает.",
+      "type": "event",
+      "category": "story",
+      "tags": [],
+      "samSystem": "",
+      "arc": "",
+      "chapter": "",
+      "eventSource": "npc",
+      "actionRef": {
+        "action": "",
+        "target": ""
+      },
+      "implementationStatus": {},
+      "refs": [],
+      "x": 0,
+      "y": 950,
+      "trigger": {
+        "kind": "scheduled",
+        "afterHours": 360,
+        "sinceNode": "",
+        "repeat": true
+      },
+      "effects": [],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "choices": [
+        {
+          "id": "story.born_after#0",
+          "label": "Принять в группу",
+          "target": "group.newcomer_arrives",
+          "requires": [],
+          "effects": [],
+          "sim": {}
+        }
+      ],
       "ending": ""
     },
     {
       "id": "death.group_wiped",
       "title": "Группа погибла",
-      "text": "✅ Из GDD · GDD §27\nСмерть постоянна. Мир продолжает жить без игрока.",
+      "text": "⭐ Решение автора · GDD §27\nСмерть постоянна, и это единственный конец: игра — бесконечная песочница. Мир продолжает жить без игрока.",
       "type": "event",
       "category": "death",
       "tags": [],
@@ -620,7 +817,7 @@
       "implementationStatus": {},
       "refs": [],
       "x": 0,
-      "y": 820,
+      "y": 1080,
       "trigger": {
         "kind": "conditions",
         "all": [
@@ -806,9 +1003,9 @@
       "ending": ""
     },
     {
-      "id": "time.phase_settling",
-      "title": "Фаза «Обживание»",
-      "text": "💡 Предложение\nДень 8. Мир начинает замечать новичков: первые торговцы и случайные гости.",
+      "id": "time.season_change",
+      "title": "Смена сезона",
+      "text": "⭐ Решение автора\nКаждые 30 дней (💡 длина сезона). В игре сезон идёт по кругу: после зимы снова весна (season по модулю 4) — Story Map не умеет «по кругу», поэтому здесь значение просто растёт до зимы.",
       "type": "background",
       "category": "time",
       "tags": [],
@@ -826,91 +1023,55 @@
       "y": 560,
       "trigger": {
         "kind": "scheduled",
-        "afterHours": 168,
-        "sinceNode": "",
-        "repeat": false
-      },
-      "effects": [],
-      "sim": {
-        "durationHours": 1,
-        "dangerChance": 0,
-        "foodCost": 0,
-        "waterCost": 0,
-        "requiresItems": [],
-        "requiresSkills": [],
-        "resourceEffects": []
-      },
-      "choices": [
-        {
-          "id": "time.phase_settling#0",
-          "label": "Первый караван",
-          "target": "trade.caravan_arrives",
-          "requires": [],
-          "effects": [],
-          "sim": {}
-        },
-        {
-          "id": "time.phase_settling#1",
-          "label": "Кто-то у двери",
-          "target": "group.newcomer_arrives",
-          "requires": [],
-          "effects": [],
-          "sim": {}
-        }
-      ],
-      "ending": ""
-    },
-    {
-      "id": "time.phase_noticed",
-      "title": "Фаза «Мир заметил тебя»",
-      "text": "💡 Предложение\nДень 30. Фракции знают об убежище, растут требования.",
-      "type": "background",
-      "category": "time",
-      "tags": [],
-      "samSystem": "",
-      "arc": "",
-      "chapter": "",
-      "eventSource": "timer",
-      "actionRef": {
-        "action": "",
-        "target": ""
-      },
-      "implementationStatus": {},
-      "refs": [],
-      "x": 760,
-      "y": 690,
-      "trigger": {
-        "kind": "scheduled",
         "afterHours": 720,
         "sinceNode": "",
-        "repeat": false
+        "repeat": true
       },
       "effects": [
         {
-          "var": "shelter_known",
-          "op": "set",
+          "var": "season",
+          "op": "add",
           "value": 1
+        }
+      ],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "choices": [
+        {
+          "id": "time.season_change#0",
+          "label": "Лето",
+          "target": "time.season_summer",
+          "requires": [],
+          "effects": [],
+          "sim": {}
         },
         {
-          "var": "world_danger",
-          "op": "add",
-          "value": 10
-        }
-      ],
-      "sim": {
-        "durationHours": 1,
-        "dangerChance": 0,
-        "foodCost": 0,
-        "waterCost": 0,
-        "requiresItems": [],
-        "requiresSkills": [],
-        "resourceEffects": []
-      },
-      "choices": [
+          "id": "time.season_change#1",
+          "label": "Осень",
+          "target": "time.season_autumn",
+          "requires": [],
+          "effects": [],
+          "sim": {}
+        },
         {
-          "id": "time.phase_noticed#0",
-          "label": "Требуют дань",
-          "target": "factions.demand_tribute",
+          "id": "time.season_change#2",
+          "label": "Зима",
+          "target": "time.season_winter",
+          "requires": [],
+          "effects": [],
+          "sim": {}
+        },
+        {
+          "id": "time.season_change#3",
+          "label": "Весна",
+          "target": "time.season_spring",
           "requires": [],
           "effects": [],
           "sim": {}
@@ -919,62 +1080,9 @@
       "ending": ""
     },
     {
-      "id": "time.phase_politics",
-      "title": "Фаза «Большая политика»",
-      "text": "💡 Предложение\nДень 60. Войны, союзы, большие сдвиги территорий.",
-      "type": "background",
-      "category": "time",
-      "tags": [],
-      "samSystem": "",
-      "arc": "",
-      "chapter": "",
-      "eventSource": "timer",
-      "actionRef": {
-        "action": "",
-        "target": ""
-      },
-      "implementationStatus": {},
-      "refs": [],
-      "x": 760,
-      "y": 820,
-      "trigger": {
-        "kind": "scheduled",
-        "afterHours": 1440,
-        "sinceNode": "",
-        "repeat": false
-      },
-      "effects": [
-        {
-          "var": "world_danger",
-          "op": "add",
-          "value": 10
-        }
-      ],
-      "sim": {
-        "durationHours": 1,
-        "dangerChance": 0,
-        "foodCost": 0,
-        "waterCost": 0,
-        "requiresItems": [],
-        "requiresSkills": [],
-        "resourceEffects": []
-      },
-      "choices": [
-        {
-          "id": "time.phase_politics#0",
-          "label": "Фракции сталкиваются",
-          "target": "factions.groups_clash",
-          "requires": [],
-          "effects": [],
-          "sim": {}
-        }
-      ],
-      "ending": ""
-    },
-    {
-      "id": "time.seasons",
-      "title": "Сезоны и зима?",
-      "text": "❓ Не решено\n❓ В документах нет сезонов. Зима сильно влияет на воду, еду и топливо — нужны ли они?",
+      "id": "time.season_spring",
+      "title": "Весна",
+      "text": "⭐ Решение автора\nИгра начинается весной. Талая вода, первые посадки. Пережившие зиму выходят на дороги.",
       "type": "event",
       "category": "time",
       "tags": [],
@@ -988,11 +1096,74 @@
       },
       "implementationStatus": {},
       "refs": [],
-      "x": 760,
-      "y": 950,
+      "x": 1030,
+      "y": 170,
       "trigger": {
         "kind": "conditions",
-        "all": []
+        "all": [
+          {
+            "var": "season",
+            "op": "==",
+            "value": 0
+          }
+        ]
+      },
+      "effects": [
+        {
+          "var": "shelter_water",
+          "op": "add",
+          "value": 100
+        }
+      ],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "choices": [
+        {
+          "id": "time.season_spring#0",
+          "label": "Новые люди на дорогах",
+          "target": "group.newcomer_arrives",
+          "requires": [],
+          "effects": [],
+          "sim": {}
+        }
+      ],
+      "ending": ""
+    },
+    {
+      "id": "time.season_summer",
+      "title": "Лето",
+      "text": "⭐ Решение автора\nЖара. Дожди редкие — растёт риск засухи. Хорошее время для дальних вылазок.",
+      "type": "event",
+      "category": "time",
+      "tags": [],
+      "samSystem": "",
+      "arc": "",
+      "chapter": "",
+      "eventSource": "weather",
+      "actionRef": {
+        "action": "",
+        "target": ""
+      },
+      "implementationStatus": {},
+      "refs": [],
+      "x": 1030,
+      "y": 300,
+      "trigger": {
+        "kind": "conditions",
+        "all": [
+          {
+            "var": "season",
+            "op": "==",
+            "value": 1
+          }
+        ]
       },
       "effects": [],
       "sim": {
@@ -1004,7 +1175,264 @@
         "requiresSkills": [],
         "resourceEffects": []
       },
-      "choices": [],
+      "choices": [
+        {
+          "id": "time.season_summer#0",
+          "label": "Засуха",
+          "target": "water.drought",
+          "requires": [],
+          "effects": [],
+          "sim": {}
+        }
+      ],
+      "ending": ""
+    },
+    {
+      "id": "time.season_autumn",
+      "title": "Осень",
+      "text": "⭐ Решение автора\nУрожай и заготовки на зиму. Фракции тоже запасаются — торговля оживает, стычки за ресурсы тоже.",
+      "type": "event",
+      "category": "time",
+      "tags": [],
+      "samSystem": "",
+      "arc": "",
+      "chapter": "",
+      "eventSource": "weather",
+      "actionRef": {
+        "action": "",
+        "target": ""
+      },
+      "implementationStatus": {},
+      "refs": [],
+      "x": 1030,
+      "y": 430,
+      "trigger": {
+        "kind": "conditions",
+        "all": [
+          {
+            "var": "season",
+            "op": "==",
+            "value": 2
+          }
+        ]
+      },
+      "effects": [],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "choices": [
+        {
+          "id": "time.season_autumn#0",
+          "label": "Караван за запасами",
+          "target": "trade.caravan_arrives",
+          "requires": [],
+          "effects": [],
+          "sim": {}
+        }
+      ],
+      "ending": ""
+    },
+    {
+      "id": "time.season_winter",
+      "title": "Зима",
+      "text": "⭐ Решение автора\nХолод. Дождя нет, урожая нет, нужно топливо на обогрев. Зомби медленнее, люди отчаяннее.",
+      "type": "event",
+      "category": "time",
+      "tags": [],
+      "samSystem": "",
+      "arc": "",
+      "chapter": "",
+      "eventSource": "weather",
+      "actionRef": {
+        "action": "",
+        "target": ""
+      },
+      "implementationStatus": {},
+      "refs": [],
+      "x": 1030,
+      "y": 560,
+      "trigger": {
+        "kind": "conditions",
+        "all": [
+          {
+            "var": "season",
+            "op": "==",
+            "value": 3
+          }
+        ]
+      },
+      "effects": [],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "choices": [
+        {
+          "id": "time.season_winter#0",
+          "label": "Холод в убежище",
+          "target": "time.winter_cold",
+          "requires": [],
+          "effects": [],
+          "sim": {}
+        },
+        {
+          "id": "time.season_winter#1",
+          "label": "Резервуар замёрз",
+          "target": "time.tank_frozen",
+          "requires": [],
+          "effects": [],
+          "sim": {}
+        }
+      ],
+      "ending": ""
+    },
+    {
+      "id": "time.winter_cold",
+      "title": "Холод в убежище",
+      "text": "⭐ Решение автора\nНужно греться: жечь топливо или терпеть.",
+      "type": "choice",
+      "category": "time",
+      "tags": [],
+      "samSystem": "",
+      "arc": "",
+      "chapter": "",
+      "eventSource": "weather",
+      "actionRef": {
+        "action": "",
+        "target": ""
+      },
+      "implementationStatus": {},
+      "refs": [],
+      "x": 1300,
+      "y": 170,
+      "trigger": {
+        "kind": "conditions",
+        "all": [
+          {
+            "var": "season",
+            "op": "==",
+            "value": 3
+          }
+        ]
+      },
+      "effects": [],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "choices": [
+        {
+          "id": "time.winter_cold#0",
+          "label": "Жечь топливо",
+          "target": "energy.ok",
+          "requires": [],
+          "effects": [
+            {
+              "var": "shelter_fuel",
+              "op": "subtract",
+              "value": 20
+            },
+            {
+              "var": "noise_level",
+              "op": "add",
+              "value": 5
+            }
+          ],
+          "sim": {}
+        },
+        {
+          "id": "time.winter_cold#1",
+          "label": "Терпеть",
+          "target": "health.illness_spreads",
+          "requires": [],
+          "effects": [
+            {
+              "var": "group_morale",
+              "op": "subtract",
+              "value": 10
+            }
+          ],
+          "sim": {}
+        }
+      ],
+      "ending": ""
+    },
+    {
+      "id": "time.tank_frozen",
+      "title": "Резервуар замёрз",
+      "text": "⭐ Решение автора\nБез обогрева вода во внешнем резервуаре замёрзла и разорвала трубу.",
+      "type": "event",
+      "category": "time",
+      "tags": [],
+      "samSystem": "",
+      "arc": "",
+      "chapter": "",
+      "eventSource": "weather",
+      "actionRef": {
+        "action": "",
+        "target": ""
+      },
+      "implementationStatus": {},
+      "refs": [],
+      "x": 1300,
+      "y": 300,
+      "trigger": {
+        "kind": "conditions",
+        "all": [
+          {
+            "var": "season",
+            "op": "==",
+            "value": 3
+          },
+          {
+            "var": "shelter_energy",
+            "op": "<",
+            "value": 50
+          }
+        ]
+      },
+      "effects": [
+        {
+          "var": "shelter_water",
+          "op": "subtract",
+          "value": 80
+        }
+      ],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "choices": [
+        {
+          "id": "time.tank_frozen#0",
+          "label": "Чинить",
+          "target": "repair.equipment_breaks",
+          "requires": [],
+          "effects": [],
+          "sim": {}
+        }
+      ],
       "ending": ""
     },
     {
@@ -1026,7 +1454,7 @@
       "refs": [
         "r_water"
       ],
-      "x": 1520,
+      "x": 1730,
       "y": 170,
       "trigger": {
         "kind": "scheduled",
@@ -1056,8 +1484,8 @@
     {
       "id": "water.drought",
       "title": "Засуха",
-      "text": "💡 Предложение\nДолго нет дождя. Запас не пополняется, ищем воду снаружи.",
-      "type": "background",
+      "text": "⭐ Решение автора\nДолго нет дождя. Запас не пополняется, ищем воду снаружи.",
+      "type": "event",
       "category": "water",
       "tags": [],
       "samSystem": "",
@@ -1070,13 +1498,22 @@
       },
       "implementationStatus": {},
       "refs": [],
-      "x": 1520,
+      "x": 1730,
       "y": 300,
       "trigger": {
-        "kind": "scheduled",
-        "afterHours": 600,
-        "sinceNode": "",
-        "repeat": true
+        "kind": "conditions",
+        "all": [
+          {
+            "var": "season",
+            "op": "==",
+            "value": 1
+          },
+          {
+            "var": "shelter_water",
+            "op": "<",
+            "value": 400
+          }
+        ]
       },
       "effects": [],
       "sim": {
@@ -1117,7 +1554,7 @@
       },
       "implementationStatus": {},
       "refs": [],
-      "x": 1520,
+      "x": 1730,
       "y": 430,
       "trigger": {
         "kind": "scheduled",
@@ -1175,7 +1612,7 @@
       },
       "implementationStatus": {},
       "refs": [],
-      "x": 1520,
+      "x": 1730,
       "y": 560,
       "trigger": {
         "kind": "conditions",
@@ -1260,7 +1697,7 @@
       },
       "implementationStatus": {},
       "refs": [],
-      "x": 1790,
+      "x": 2000,
       "y": 170,
       "trigger": {
         "kind": "conditions",
@@ -1298,7 +1735,7 @@
       "refs": [
         "loc_water_tower"
       ],
-      "x": 1790,
+      "x": 2000,
       "y": 300,
       "trigger": {
         "kind": "conditions",
@@ -1364,7 +1801,7 @@
       "refs": [
         "f_remnant"
       ],
-      "x": 2060,
+      "x": 2270,
       "y": 170,
       "trigger": {
         "kind": "conditions",
@@ -1437,7 +1874,7 @@
       },
       "implementationStatus": {},
       "refs": [],
-      "x": 1520,
+      "x": 1730,
       "y": 690,
       "trigger": {
         "kind": "conditions",
@@ -1514,7 +1951,7 @@
       "refs": [
         "loc_raider_camp"
       ],
-      "x": 1520,
+      "x": 1730,
       "y": 820,
       "trigger": {
         "kind": "conditions",
@@ -1573,7 +2010,7 @@
       },
       "implementationStatus": {},
       "refs": [],
-      "x": 1790,
+      "x": 2000,
       "y": 430,
       "trigger": {
         "kind": "conditions",
@@ -1650,7 +2087,7 @@
       "refs": [
         "r_water"
       ],
-      "x": 1790,
+      "x": 2000,
       "y": 560,
       "trigger": {
         "kind": "conditions",
@@ -1720,7 +2157,7 @@
       },
       "implementationStatus": {},
       "refs": [],
-      "x": 2490,
+      "x": 2700,
       "y": 170,
       "trigger": {
         "kind": "scheduled",
@@ -1764,7 +2201,7 @@
       },
       "implementationStatus": {},
       "refs": [],
-      "x": 2490,
+      "x": 2700,
       "y": 300,
       "trigger": {
         "kind": "conditions",
@@ -1817,7 +2254,7 @@
       "refs": [
         "r_energy"
       ],
-      "x": 2490,
+      "x": 2700,
       "y": 430,
       "trigger": {
         "kind": "conditions",
@@ -1906,7 +2343,7 @@
       },
       "implementationStatus": {},
       "refs": [],
-      "x": 2760,
+      "x": 2970,
       "y": 170,
       "trigger": {
         "kind": "conditions",
@@ -1942,7 +2379,7 @@
       },
       "implementationStatus": {},
       "refs": [],
-      "x": 2760,
+      "x": 2970,
       "y": 300,
       "trigger": {
         "kind": "conditions",
@@ -2004,7 +2441,7 @@
       },
       "implementationStatus": {},
       "refs": [],
-      "x": 2490,
+      "x": 2700,
       "y": 560,
       "trigger": {
         "kind": "conditions",
@@ -2046,7 +2483,7 @@
       },
       "implementationStatus": {},
       "refs": [],
-      "x": 2490,
+      "x": 2700,
       "y": 690,
       "trigger": {
         "kind": "scheduled",
@@ -2100,7 +2537,7 @@
       "implementationStatus": {},
       "refs": [],
       "x": 0,
-      "y": 1410,
+      "y": 1540,
       "trigger": {
         "kind": "scheduled",
         "afterHours": 168,
@@ -2144,7 +2581,7 @@
       "implementationStatus": {},
       "refs": [],
       "x": 270,
-      "y": 1410,
+      "y": 1540,
       "trigger": {
         "kind": "conditions",
         "all": []
@@ -2214,7 +2651,7 @@
       "implementationStatus": {},
       "refs": [],
       "x": 540,
-      "y": 1410,
+      "y": 1540,
       "trigger": {
         "kind": "conditions",
         "all": []
@@ -2273,7 +2710,7 @@
       "implementationStatus": {},
       "refs": [],
       "x": 540,
-      "y": 1540,
+      "y": 1670,
       "trigger": {
         "kind": "conditions",
         "all": []
@@ -2311,7 +2748,7 @@
         "r_food"
       ],
       "x": 0,
-      "y": 1540,
+      "y": 1670,
       "trigger": {
         "kind": "conditions",
         "all": [
@@ -2389,7 +2826,7 @@
       "implementationStatus": {},
       "refs": [],
       "x": 270,
-      "y": 1540,
+      "y": 1670,
       "trigger": {
         "kind": "conditions",
         "all": []
@@ -2475,7 +2912,7 @@
         "f_traders"
       ],
       "x": 270,
-      "y": 1670,
+      "y": 1800,
       "trigger": {
         "kind": "conditions",
         "all": []
@@ -2555,7 +2992,7 @@
       "implementationStatus": {},
       "refs": [],
       "x": 0,
-      "y": 1670,
+      "y": 1800,
       "trigger": {
         "kind": "conditions",
         "all": [
@@ -2608,7 +3045,7 @@
       "implementationStatus": {},
       "refs": [],
       "x": 0,
-      "y": 1800,
+      "y": 1930,
       "trigger": {
         "kind": "conditions",
         "all": [
@@ -2618,9 +3055,14 @@
             "value": 1
           },
           {
+            "var": "season",
+            "op": "==",
+            "value": 3
+          },
+          {
             "var": "shelter_energy",
             "op": "<",
-            "value": 20
+            "value": 40
           }
         ]
       },
@@ -2661,7 +3103,7 @@
       "implementationStatus": {},
       "refs": [],
       "x": 970,
-      "y": 1410,
+      "y": 1540,
       "trigger": {
         "kind": "conditions",
         "all": []
@@ -2726,7 +3168,7 @@
       "implementationStatus": {},
       "refs": [],
       "x": 1240,
-      "y": 1410,
+      "y": 1540,
       "trigger": {
         "kind": "conditions",
         "all": []
@@ -2762,7 +3204,7 @@
       "implementationStatus": {},
       "refs": [],
       "x": 1240,
-      "y": 1540,
+      "y": 1670,
       "trigger": {
         "kind": "conditions",
         "all": []
@@ -2821,7 +3263,7 @@
       "implementationStatus": {},
       "refs": [],
       "x": 970,
-      "y": 1540,
+      "y": 1670,
       "trigger": {
         "kind": "conditions",
         "all": []
@@ -2888,7 +3330,7 @@
         "r_meds"
       ],
       "x": 1240,
-      "y": 1670,
+      "y": 1800,
       "trigger": {
         "kind": "conditions",
         "all": [
@@ -2955,7 +3397,7 @@
       "implementationStatus": {},
       "refs": [],
       "x": 1510,
-      "y": 1410,
+      "y": 1540,
       "trigger": {
         "kind": "conditions",
         "all": []
@@ -3020,7 +3462,7 @@
       "implementationStatus": {},
       "refs": [],
       "x": 1510,
-      "y": 1540,
+      "y": 1670,
       "trigger": {
         "kind": "conditions",
         "all": []
@@ -3084,7 +3526,7 @@
       "implementationStatus": {},
       "refs": [],
       "x": 1780,
-      "y": 1410,
+      "y": 1540,
       "trigger": {
         "kind": "conditions",
         "all": []
@@ -3163,7 +3605,7 @@
       "implementationStatus": {},
       "refs": [],
       "x": 1780,
-      "y": 1540,
+      "y": 1670,
       "trigger": {
         "kind": "conditions",
         "all": []
@@ -3222,7 +3664,7 @@
       "implementationStatus": {},
       "refs": [],
       "x": 970,
-      "y": 1670,
+      "y": 1800,
       "trigger": {
         "kind": "conditions",
         "all": []
@@ -3283,7 +3725,7 @@
         "loc_outskirts"
       ],
       "x": 2210,
-      "y": 1410,
+      "y": 1540,
       "trigger": {
         "kind": "conditions",
         "all": []
@@ -3352,7 +3794,7 @@
         "loc_highway"
       ],
       "x": 2480,
-      "y": 1410,
+      "y": 1540,
       "trigger": {
         "kind": "conditions",
         "all": []
@@ -3415,7 +3857,7 @@
         "loc_city"
       ],
       "x": 2480,
-      "y": 1540,
+      "y": 1670,
       "trigger": {
         "kind": "conditions",
         "all": []
@@ -3492,7 +3934,7 @@
       "implementationStatus": {},
       "refs": [],
       "x": 2750,
-      "y": 1410,
+      "y": 1540,
       "trigger": {
         "kind": "conditions",
         "all": []
@@ -3559,7 +4001,7 @@
       "implementationStatus": {},
       "refs": [],
       "x": 3020,
-      "y": 1410,
+      "y": 1540,
       "trigger": {
         "kind": "conditions",
         "all": []
@@ -3595,7 +4037,7 @@
       "implementationStatus": {},
       "refs": [],
       "x": 2480,
-      "y": 1670,
+      "y": 1800,
       "trigger": {
         "kind": "conditions",
         "all": []
@@ -3648,7 +4090,7 @@
       "implementationStatus": {},
       "refs": [],
       "x": 2750,
-      "y": 1540,
+      "y": 1670,
       "trigger": {
         "kind": "conditions",
         "all": []
@@ -3709,7 +4151,7 @@
         "loc_other_bunker"
       ],
       "x": 2210,
-      "y": 1540,
+      "y": 1670,
       "trigger": {
         "kind": "conditions",
         "all": [
@@ -3768,7 +4210,7 @@
       "implementationStatus": {},
       "refs": [],
       "x": 2750,
-      "y": 1670,
+      "y": 1800,
       "trigger": {
         "kind": "conditions",
         "all": []
@@ -3810,7 +4252,7 @@
       "implementationStatus": {},
       "refs": [],
       "x": 2210,
-      "y": 1670,
+      "y": 1800,
       "trigger": {
         "kind": "scheduled",
         "afterHours": 240,
@@ -3848,7 +4290,7 @@
       "implementationStatus": {},
       "refs": [],
       "x": 2750,
-      "y": 1800,
+      "y": 1930,
       "trigger": {
         "kind": "conditions",
         "all": []
@@ -3884,7 +4326,7 @@
       "implementationStatus": {},
       "refs": [],
       "x": 2210,
-      "y": 1800,
+      "y": 1930,
       "trigger": {
         "kind": "conditions",
         "all": []
@@ -3920,7 +4362,7 @@
       "implementationStatus": {},
       "refs": [],
       "x": 3450,
-      "y": 1410,
+      "y": 1540,
       "trigger": {
         "kind": "scheduled",
         "afterHours": 96,
@@ -3967,7 +4409,7 @@
       "implementationStatus": {},
       "refs": [],
       "x": 3720,
-      "y": 1410,
+      "y": 1540,
       "trigger": {
         "kind": "scheduled",
         "afterHours": 192,
@@ -4014,7 +4456,7 @@
       "implementationStatus": {},
       "refs": [],
       "x": 3450,
-      "y": 1540,
+      "y": 1670,
       "trigger": {
         "kind": "scheduled",
         "afterHours": 360,
@@ -4067,7 +4509,7 @@
       "implementationStatus": {},
       "refs": [],
       "x": 3450,
-      "y": 1670,
+      "y": 1800,
       "trigger": {
         "kind": "conditions",
         "all": []
@@ -4126,7 +4568,7 @@
       "implementationStatus": {},
       "refs": [],
       "x": 3450,
-      "y": 1800,
+      "y": 1930,
       "trigger": {
         "kind": "scheduled",
         "afterHours": 480,
@@ -4173,7 +4615,7 @@
       "implementationStatus": {},
       "refs": [],
       "x": 3450,
-      "y": 1930,
+      "y": 2060,
       "trigger": {
         "kind": "conditions",
         "all": []
@@ -4220,7 +4662,7 @@
         "f_slavers"
       ],
       "x": 3450,
-      "y": 2060,
+      "y": 2190,
       "trigger": {
         "kind": "scheduled",
         "afterHours": 288,
@@ -4267,7 +4709,7 @@
       "implementationStatus": {},
       "refs": [],
       "x": 3450,
-      "y": 2190,
+      "y": 2320,
       "trigger": {
         "kind": "conditions",
         "all": []
@@ -4322,7 +4764,7 @@
         "f_community"
       ],
       "x": 3450,
-      "y": 2320,
+      "y": 2450,
       "trigger": {
         "kind": "conditions",
         "all": []
@@ -4395,7 +4837,7 @@
       "implementationStatus": {},
       "refs": [],
       "x": 3720,
-      "y": 1540,
+      "y": 1670,
       "trigger": {
         "kind": "conditions",
         "all": [
@@ -4462,7 +4904,7 @@
         "f_raiders"
       ],
       "x": 3990,
-      "y": 1410,
+      "y": 1540,
       "trigger": {
         "kind": "conditions",
         "all": []
@@ -4545,7 +4987,7 @@
       "implementationStatus": {},
       "refs": [],
       "x": 4260,
-      "y": 1410,
+      "y": 1540,
       "trigger": {
         "kind": "conditions",
         "all": []
@@ -4589,7 +5031,7 @@
         "f_remnant"
       ],
       "x": 4260,
-      "y": 1540,
+      "y": 1670,
       "trigger": {
         "kind": "conditions",
         "all": []
@@ -4653,7 +5095,7 @@
       "implementationStatus": {},
       "refs": [],
       "x": 4530,
-      "y": 1410,
+      "y": 1540,
       "trigger": {
         "kind": "conditions",
         "all": []
@@ -4712,7 +5154,7 @@
       "implementationStatus": {},
       "refs": [],
       "x": 4530,
-      "y": 1540,
+      "y": 1670,
       "trigger": {
         "kind": "conditions",
         "all": []
@@ -4763,7 +5205,7 @@
       "implementationStatus": {},
       "refs": [],
       "x": 3720,
-      "y": 1670,
+      "y": 1800,
       "trigger": {
         "kind": "conditions",
         "all": []
@@ -4833,7 +5275,7 @@
       "implementationStatus": {},
       "refs": [],
       "x": 3720,
-      "y": 1800,
+      "y": 1930,
       "trigger": {
         "kind": "conditions",
         "all": []
@@ -4892,7 +5334,7 @@
       "implementationStatus": {},
       "refs": [],
       "x": 3450,
-      "y": 2450,
+      "y": 2580,
       "trigger": {
         "kind": "conditions",
         "all": []
@@ -4948,7 +5390,7 @@
       "implementationStatus": {},
       "refs": [],
       "x": 3450,
-      "y": 2580,
+      "y": 2710,
       "trigger": {
         "kind": "conditions",
         "all": []
@@ -5002,7 +5444,7 @@
         "f_traders"
       ],
       "x": 3720,
-      "y": 1930,
+      "y": 2060,
       "trigger": {
         "kind": "scheduled",
         "afterHours": 144,
@@ -5076,7 +5518,7 @@
       "implementationStatus": {},
       "refs": [],
       "x": 3990,
-      "y": 1540,
+      "y": 1670,
       "trigger": {
         "kind": "conditions",
         "all": []
@@ -5127,7 +5569,7 @@
       "implementationStatus": {},
       "refs": [],
       "x": 4260,
-      "y": 1670,
+      "y": 1800,
       "trigger": {
         "kind": "conditions",
         "all": [
@@ -5203,7 +5645,7 @@
       "implementationStatus": {},
       "refs": [],
       "x": 3450,
-      "y": 2710,
+      "y": 2840,
       "trigger": {
         "kind": "scheduled",
         "afterHours": 432,
@@ -5244,7 +5686,7 @@
         "f_slavers"
       ],
       "x": 0,
-      "y": 3170,
+      "y": 3300,
       "trigger": {
         "kind": "conditions",
         "all": []
@@ -5342,7 +5784,7 @@
       "implementationStatus": {},
       "refs": [],
       "x": 270,
-      "y": 3170,
+      "y": 3300,
       "trigger": {
         "kind": "conditions",
         "all": []
@@ -5394,7 +5836,7 @@
       "implementationStatus": {},
       "refs": [],
       "x": 270,
-      "y": 3300,
+      "y": 3430,
       "trigger": {
         "kind": "conditions",
         "all": []
@@ -5436,7 +5878,7 @@
       "implementationStatus": {},
       "refs": [],
       "x": 0,
-      "y": 3300,
+      "y": 3430,
       "trigger": {
         "kind": "conditions",
         "all": []
@@ -5533,7 +5975,7 @@
         "f_slavers"
       ],
       "x": 0,
-      "y": 3430,
+      "y": 3560,
       "trigger": {
         "kind": "conditions",
         "all": []
@@ -5607,7 +6049,7 @@
     {
       "id": "capture.take_prisoner",
       "title": "Игрок взял пленного",
-      "text": "✅ Из GDD · GDD §21\nДопросить, отпустить, обменять, продать, принять в группу.",
+      "text": "✅ Из GDD · GDD §21\nДопросить (без пыток — решение по тону), отпустить, обменять, продать, принять в группу.",
       "type": "choice",
       "category": "factions",
       "tags": [],
@@ -5622,7 +6064,7 @@
       "implementationStatus": {},
       "refs": [],
       "x": 0,
-      "y": 3560,
+      "y": 3690,
       "trigger": {
         "kind": "conditions",
         "all": []
@@ -5714,7 +6156,7 @@
       "implementationStatus": {},
       "refs": [],
       "x": 0,
-      "y": 3690,
+      "y": 3820,
       "trigger": {
         "kind": "conditions",
         "all": [
@@ -5797,7 +6239,7 @@
         "g_loners"
       ],
       "x": 760,
-      "y": 3170,
+      "y": 3300,
       "trigger": {
         "kind": "conditions",
         "all": []
@@ -5869,7 +6311,7 @@
       "implementationStatus": {},
       "refs": [],
       "x": 1030,
-      "y": 3170,
+      "y": 3300,
       "trigger": {
         "kind": "conditions",
         "all": []
@@ -5905,7 +6347,7 @@
       "implementationStatus": {},
       "refs": [],
       "x": 760,
-      "y": 3300,
+      "y": 3430,
       "trigger": {
         "kind": "conditions",
         "all": [
@@ -5981,7 +6423,7 @@
       "implementationStatus": {},
       "refs": [],
       "x": 760,
-      "y": 3430,
+      "y": 3560,
       "trigger": {
         "kind": "scheduled",
         "afterHours": 480,
@@ -6025,7 +6467,7 @@
       "implementationStatus": {},
       "refs": [],
       "x": 760,
-      "y": 3560,
+      "y": 3690,
       "trigger": {
         "kind": "conditions",
         "all": [
@@ -6073,7 +6515,7 @@
       "implementationStatus": {},
       "refs": [],
       "x": 760,
-      "y": 3690,
+      "y": 3820,
       "trigger": {
         "kind": "conditions",
         "all": [
@@ -6135,7 +6577,7 @@
       "implementationStatus": {},
       "refs": [],
       "x": 1030,
-      "y": 3300,
+      "y": 3430,
       "trigger": {
         "kind": "conditions",
         "all": []
@@ -6191,7 +6633,7 @@
       "implementationStatus": {},
       "refs": [],
       "x": 1030,
-      "y": 3430,
+      "y": 3560,
       "trigger": {
         "kind": "conditions",
         "all": []
@@ -6238,7 +6680,7 @@
       "implementationStatus": {},
       "refs": [],
       "x": 1300,
-      "y": 3170,
+      "y": 3300,
       "trigger": {
         "kind": "conditions",
         "all": []
@@ -6285,7 +6727,7 @@
       "implementationStatus": {},
       "refs": [],
       "x": 1030,
-      "y": 3560,
+      "y": 3690,
       "trigger": {
         "kind": "conditions",
         "all": []
@@ -6352,7 +6794,7 @@
         "f_raiders"
       ],
       "x": 1730,
-      "y": 3170,
+      "y": 3300,
       "trigger": {
         "kind": "conditions",
         "all": []
@@ -6441,7 +6883,7 @@
         "t_zombies"
       ],
       "x": 1730,
-      "y": 3300,
+      "y": 3430,
       "trigger": {
         "kind": "conditions",
         "all": [
@@ -6503,7 +6945,7 @@
       "implementationStatus": {},
       "refs": [],
       "x": 2000,
-      "y": 3170,
+      "y": 3300,
       "trigger": {
         "kind": "conditions",
         "all": [
@@ -6584,7 +7026,7 @@
       "implementationStatus": {},
       "refs": [],
       "x": 1730,
-      "y": 3430,
+      "y": 3560,
       "trigger": {
         "kind": "conditions",
         "all": [
@@ -6670,7 +7112,7 @@
       "implementationStatus": {},
       "refs": [],
       "x": 1730,
-      "y": 3560,
+      "y": 3690,
       "trigger": {
         "kind": "conditions",
         "all": []
@@ -6748,7 +7190,7 @@
       "implementationStatus": {},
       "refs": [],
       "x": 2490,
-      "y": 3170,
+      "y": 3300,
       "trigger": {
         "kind": "conditions",
         "all": [
@@ -6813,7 +7255,7 @@
       "implementationStatus": {},
       "refs": [],
       "x": 2760,
-      "y": 3170,
+      "y": 3300,
       "trigger": {
         "kind": "conditions",
         "all": []
@@ -6849,7 +7291,7 @@
       "implementationStatus": {},
       "refs": [],
       "x": 2490,
-      "y": 3300,
+      "y": 3430,
       "trigger": {
         "kind": "scheduled",
         "afterHours": 384,
@@ -6898,7 +7340,7 @@
       "implementationStatus": {},
       "refs": [],
       "x": 2490,
-      "y": 3430,
+      "y": 3560,
       "trigger": {
         "kind": "conditions",
         "all": []
@@ -6950,7 +7392,7 @@
       "implementationStatus": {},
       "refs": [],
       "x": 2490,
-      "y": 3560,
+      "y": 3690,
       "trigger": {
         "kind": "conditions",
         "all": []
@@ -7003,7 +7445,7 @@
       "implementationStatus": {},
       "refs": [],
       "x": 2490,
-      "y": 3690,
+      "y": 3820,
       "trigger": {
         "kind": "conditions",
         "all": []
@@ -7050,7 +7492,7 @@
       "implementationStatus": {},
       "refs": [],
       "x": 2490,
-      "y": 3820,
+      "y": 3950,
       "trigger": {
         "kind": "conditions",
         "all": []
@@ -7081,19 +7523,19 @@
       "id": "note_time",
       "x": 760,
       "y": 0,
-      "text": "Время, погода и фазы мира — Единое игровое время (§9). Фазы — предложение: мир «просыпается» постепенно.",
+      "text": "Время, погода и сезоны — Единое игровое время (§9). Решения: мир живой с первого дня (без фаз), 4 сезона, игра начинается весной.",
       "color": "yellow"
     },
     {
       "id": "note_water",
-      "x": 1520,
+      "x": 1730,
       "y": 0,
       "text": "Вода — Вода — ресурс внутри объектов (резервуар, бочка). Баланс: производство + накопление − потребление (§7, §10.2).",
       "color": "yellow"
     },
     {
       "id": "note_energy",
-      "x": 2490,
+      "x": 2700,
       "y": 0,
       "text": "Энергия — Свой энергоконтур у объектов: аккумуляторы, солнечные панели, ветряки, велогенераторы (§8).",
       "color": "yellow"
@@ -7101,56 +7543,56 @@
     {
       "id": "note_food",
       "x": 0,
-      "y": 1240,
+      "y": 1370,
       "text": "Еда и ферма — Еда: консервы, сырьё, готовая еда; порча со временем (§10.1). Растения — объекты мира (§10.7).",
       "color": "yellow"
     },
     {
       "id": "note_health",
       "x": 970,
-      "y": 1240,
+      "y": 1370,
       "text": "Здоровье и смерть — Единая система здоровья: травмы, болезни, инфекции, лечение через действия (§26). Смерть постоянна и оставляет след (§27).",
       "color": "yellow"
     },
     {
       "id": "note_exploration",
       "x": 2210,
-      "y": 1240,
+      "y": 1370,
       "text": "Исследование, лут и переходы — Мир физический: игрок сам идёт, переходы через двери, края, лестницы, указатели (§4). Места меняют состояние (§18).",
       "color": "yellow"
     },
     {
       "id": "note_factions",
       "x": 3450,
-      "y": 1240,
+      "y": 1370,
       "text": "Фракции и торговля — Фракции живут без игрока: добывают, торгуют, воюют, раскалываются, меняют лидеров (§21).",
       "color": "yellow"
     },
     {
       "id": "note_capture",
       "x": 0,
-      "y": 3000,
+      "y": 3130,
       "text": "Плен и рабство — В GDD это расписано подробно: захват, плен, продажа, обмен, выкуп, побег, рабство (§21).",
       "color": "yellow"
     },
     {
       "id": "note_ai",
       "x": 760,
-      "y": 3000,
+      "y": 3130,
       "text": "Группа и отношения — Любой NPC может стать членом группы (§24). Отношения влияют на доверие, лояльность, предательство, раскол (§23).",
       "color": "yellow"
     },
     {
       "id": "note_combat",
       "x": 1730,
-      "y": 3000,
+      "y": 3130,
       "text": "Бой, угрозы и шум — Угрозы реагируют на время суток, погоду, шум, следы и нехватку ресурсов (§22).",
       "color": "yellow"
     },
     {
       "id": "note_building",
       "x": 2490,
-      "y": 3000,
+      "y": 3130,
       "text": "Убежище как место — Механики (рецепты, прочность, нагрузка) описывают ОС и Object Plan. Здесь только события, которые из них вытекают (§14–16).",
       "color": "yellow"
     }
@@ -7186,18 +7628,18 @@
     {
       "id": "loc_city",
       "kind": "location",
-      "name": "Город",
+      "name": "Городок",
       "ref": null,
-      "note": "✅ Из GDD · §4.2. Улицы, жилые дома, магазины, офисы, гаражи.",
+      "note": "⭐ Решение автора · Решение: маленький мир. 5–10 домов, магазин, гараж, водонапорная башня.",
       "status": "active",
       "lifecycle": ""
     },
     {
       "id": "loc_industrial",
       "kind": "location",
-      "name": "Окраина / промзона",
+      "name": "Окраина / промзона (позже)",
       "ref": null,
-      "note": "💡 Предложение · Склады, машинные, водонапорные башни.",
+      "note": "⭐ Решение автора · Не входит в первую версию мира — расширение.",
       "status": "active",
       "lifecycle": ""
     },
@@ -7213,9 +7655,9 @@
     {
       "id": "loc_danger",
       "kind": "location",
-      "name": "Опасные / заражённые зоны",
+      "name": "Опасные / заражённые зоны (позже)",
       "ref": null,
-      "note": "✅ Из GDD · §22.",
+      "note": "✅ Из GDD · §22. Не входит в первую версию мира — расширение.",
       "status": "active",
       "lifecycle": ""
     },
@@ -7251,7 +7693,7 @@
       "kind": "faction",
       "name": "Община",
       "ref": null,
-      "note": "✅ Из GDD · Выжившие в другом бункере/поселении (§3.4). Ферма, вода, ремонт.",
+      "note": "⭐ Решение автора · Выжившие в другом бункере/поселении (§3.4). Ферма, вода, ремонт.",
       "status": "active",
       "lifecycle": ""
     },
@@ -7260,7 +7702,7 @@
       "kind": "faction",
       "name": "Торговцы / караван",
       "ref": null,
-      "note": "✅ Из GDD · Торговля и торговые маршруты (§21).",
+      "note": "⭐ Решение автора · Торговля и торговые маршруты (§21).",
       "status": "active",
       "lifecycle": ""
     },
@@ -7269,7 +7711,7 @@
       "kind": "faction",
       "name": "Рейдеры / банда",
       "ref": null,
-      "note": "✅ Из GDD · Рейдеры, банды, мародёры (§22).",
+      "note": "⭐ Решение автора · Рейдеры, банды, мародёры (§22).",
       "status": "active",
       "lifecycle": ""
     },
@@ -7278,7 +7720,7 @@
       "kind": "faction",
       "name": "Работорговцы",
       "ref": null,
-      "note": "✅ Из GDD · Плен и рабство (§21).",
+      "note": "⭐ Решение автора · Плен и рабство (§21). База за пределами карты — приходят по трассе.",
       "status": "active",
       "lifecycle": ""
     },
@@ -7287,7 +7729,7 @@
       "kind": "faction",
       "name": "Остатки порядка",
       "ref": null,
-      "note": "💡 Предложение · Военные/охрана/бывшая власть: оружие, дисциплина, свои правила.",
+      "note": "⭐ Решение автора · Бывшие военные/власть: оружие, дисциплина, свои правила. База за пределами карты, в городке держат водонапорную башню.",
       "status": "active",
       "lifecycle": ""
     },
@@ -7384,9 +7826,9 @@
     {
       "id": "k_catastrophe",
       "kind": "concept",
-      "name": "Катастрофа (что случилось с миром)",
+      "name": "Падение (катастрофа)",
       "ref": null,
-      "note": "❓ Не решено · Нигде не описана: что произошло, сколько лет прошло, откуда зомби.",
+      "note": "⭐ Решение автора · Решение: прошло больше 10 лет. Что именно случилось — тайна: никто не знает точно, у людей разные версии, игрок собирает улики.",
       "status": "active",
       "lifecycle": ""
     },
@@ -7524,7 +7966,7 @@
       "id": "rel_3",
       "type": "rt_находится_в",
       "from": "loc_water_tower",
-      "to": "loc_industrial",
+      "to": "loc_city",
       "status": "confirmed",
       "source": "world-data",
       "comment": "",
@@ -7569,7 +8011,7 @@
       "type": "rt_враг_с",
       "from": "f_raiders",
       "to": "f_community",
-      "status": "proposed",
+      "status": "confirmed",
       "source": "world-data",
       "comment": "",
       "conditions": [],
@@ -7678,8 +8120,8 @@
   "proposals": [
     {
       "id": "q_0",
-      "title": "❓ История катастрофы",
-      "text": "Что случилось с миром? Сколько лет прошло? Откуда зомби?",
+      "title": "❓ Длина сезона",
+      "text": "Сейчас 30 игровых дней на сезон (💡). Подходит?",
       "status": "idea",
       "priority": "high",
       "source": "world-data",
@@ -7690,8 +8132,8 @@
     },
     {
       "id": "q_1",
-      "title": "❓ Фракции",
-      "text": "Подтвердить архетипы (община, торговцы, рейдеры, работорговцы, остатки порядка, одиночки) или дать свои. Сколько в первой версии?",
+      "title": "❓ Версии Падения",
+      "text": "Какие версии катастрофы ходят среди людей? Нужно 3–5 правдоподобных и противоречащих друг другу.",
       "status": "idea",
       "priority": "high",
       "source": "world-data",
@@ -7702,56 +8144,8 @@
     },
     {
       "id": "q_2",
-      "title": "❓ Размер мира на старте",
-      "text": "Предложение: бункер + трасса + город (5–10 домов) + чужой бункер + лагерь фракции.",
-      "status": "idea",
-      "priority": "high",
-      "source": "world-data",
-      "createdAt": "",
-      "relatedEntities": [],
-      "relatedSystems": [],
-      "relatedNodes": []
-    },
-    {
-      "id": "q_3",
-      "title": "❓ Сезоны / зима",
-      "text": "Нужны ли? Сильно влияют на воду, еду и топливо.",
-      "status": "idea",
-      "priority": "high",
-      "source": "world-data",
-      "createdAt": "",
-      "relatedEntities": [],
-      "relatedSystems": [],
-      "relatedNodes": []
-    },
-    {
-      "id": "q_4",
-      "title": "❓ Фазы игры",
-      "text": "Мир «просыпается» постепенно (день 8 / 30 / 60) или живой с первого дня?",
-      "status": "idea",
-      "priority": "high",
-      "source": "world-data",
-      "createdAt": "",
-      "relatedEntities": [],
-      "relatedSystems": [],
-      "relatedNodes": []
-    },
-    {
-      "id": "q_5",
-      "title": "❓ Тон",
-      "text": "Где граница жёсткости: рабство, отравление воды, пытки пленных?",
-      "status": "idea",
-      "priority": "high",
-      "source": "world-data",
-      "createdAt": "",
-      "relatedEntities": [],
-      "relatedSystems": [],
-      "relatedNodes": []
-    },
-    {
-      "id": "q_6",
-      "title": "❓ Финал",
-      "text": "Нужны ли концовки, кроме гибели группы?",
+      "title": "❓ Имена фракций",
+      "text": "У фракций пока только архетипы — нужны названия и лидеры.",
       "status": "idea",
       "priority": "high",
       "source": "world-data",
@@ -7762,5 +8156,94 @@
     }
   ],
   "worldEvents": [],
-  "decisions": []
+  "decisions": [
+    {
+      "id": "dec_0",
+      "title": "Катастрофа — тайна",
+      "text": "Что случилось с миром, точно никто не знает. У людей разные версии, игрок собирает улики (записи, рассказы). Окончательного ответа в игре нет.",
+      "status": "defined",
+      "source": "decision",
+      "relatedSystems": [],
+      "relatedEntities": [],
+      "comment": "",
+      "createdAt": ""
+    },
+    {
+      "id": "dec_1",
+      "title": "Прошло больше 10 лет",
+      "text": "Новый мир устоялся: свои поселения и законы, выросло поколение, не видевшее старого мира. Лёгкого лута почти нет — всё держится на добыче и производстве.",
+      "status": "defined",
+      "source": "decision",
+      "relatedSystems": [],
+      "relatedEntities": [],
+      "comment": "",
+      "createdAt": ""
+    },
+    {
+      "id": "dec_2",
+      "title": "Фракции первой версии",
+      "text": "Община, торговцы/караван, рейдеры/банда, работорговцы, остатки порядка. Плюс одиночки как фон. База работорговцев и остатков порядка — за картой, они приходят по трассе.",
+      "status": "defined",
+      "source": "decision",
+      "relatedSystems": [],
+      "relatedEntities": [],
+      "comment": "",
+      "createdAt": ""
+    },
+    {
+      "id": "dec_3",
+      "title": "Тон: жёстко, без пыток",
+      "text": "Рабство, плен, отравление воды, голод — есть, с реальными последствиями. Пыток и казней пленных нет.",
+      "status": "defined",
+      "source": "decision",
+      "relatedSystems": [],
+      "relatedEntities": [],
+      "comment": "",
+      "createdAt": ""
+    },
+    {
+      "id": "dec_4",
+      "title": "Маленький мир на старте",
+      "text": "Бункер, окрестности, трасса, городок (5–10 домов), чужой бункер, лагерь рейдеров. Промзона и заражённые зоны — расширение.",
+      "status": "defined",
+      "source": "decision",
+      "relatedSystems": [],
+      "relatedEntities": [],
+      "comment": "",
+      "createdAt": ""
+    },
+    {
+      "id": "dec_5",
+      "title": "4 сезона",
+      "text": "Игра начинается весной. Лето — засухи, осень — заготовки, зима — нет дождя и урожая, нужно топливо.",
+      "status": "defined",
+      "source": "decision",
+      "relatedSystems": [],
+      "relatedEntities": [],
+      "comment": "",
+      "createdAt": ""
+    },
+    {
+      "id": "dec_6",
+      "title": "Мир живой с первого дня",
+      "text": "Никаких фаз: фракции, караваны и угрозы работают сразу. Защита новичка — только то, что убежище поначалу никому не известно.",
+      "status": "defined",
+      "source": "decision",
+      "relatedSystems": [],
+      "relatedEntities": [],
+      "comment": "",
+      "createdAt": ""
+    },
+    {
+      "id": "dec_7",
+      "title": "Бесконечная песочница",
+      "text": "Финала нет. Единственный конец — гибель всей группы.",
+      "status": "defined",
+      "source": "decision",
+      "relatedSystems": [],
+      "relatedEntities": [],
+      "comment": "",
+      "createdAt": ""
+    }
+  ]
 }

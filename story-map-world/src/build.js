@@ -2,11 +2,11 @@
    Читает world-data.js и пишет story.json, json/*.json (формат «Импорт идеи») и md/*.md.
    Падает с ошибкой, если есть ссылка на несуществующий узел/переменную/сущность. */
 const fs=require('fs'), path=require('path');
-const {VARIABLES,ENTITIES,RELATIONS,CATEGORIES,OPEN_QUESTIONS}=require('./world-data');
+const {VARIABLES,ENTITIES,RELATIONS,CATEGORIES,DECISIONS,OPEN_QUESTIONS}=require('./world-data');
 
 const ROOT=path.join(__dirname,'..');
-const SRC_MARK={gdd:'✅',idea:'💡',open:'❓'};
-const SRC_TEXT={gdd:'Из GDD',idea:'Предложение',open:'Не решено'};
+const SRC_MARK={gdd:'✅',idea:'💡',open:'❓',user:'⭐'};
+const SRC_TEXT={gdd:'Из GDD',idea:'Предложение',open:'Не решено',user:'Решение автора'};
 const SOURCE_LABEL={player:'Игрок',npc:'NPC',faction:'Фракция',world:'Мир',location:'Локация',timer:'Таймер',system:'Игровая система',
   resource_shortage:'Нехватка ресурса',weather:'Погода',relationship:'Отношения',random:'Случайное'};
 // Раздел Story Map (SYSTEMS из Object Plan) — по префиксу id события
@@ -30,6 +30,7 @@ const checkVars=(list,where)=>(list||[]).forEach(x=>{ if(!varIds.has(x.var)) err
 allNodes.forEach(n=>{
   if(!PREFIX_CATEGORY[n.ref.split('.')[0]]) errors.push(`${n.ref}: неизвестный префикс`);
   if(n.trigger&&n.trigger.kind==='conditions') checkVars(n.trigger.all,n.ref);
+  if(n.trigger&&n.trigger.sinceNode&&!allNodes.some(m=>m.ref===n.trigger.sinceNode)) errors.push(`${n.ref}: таймер от несуществующего узла ${n.trigger.sinceNode}`);
   checkVars(n.effects,n.ref);
   (n.refs||[]).forEach(r=>{ if(!entIds.has(r)) errors.push(`${n.ref}: нет сущности ${r}`); });
   (n.choices||[]).forEach(c=>{
@@ -94,7 +95,8 @@ const story={
   relationTypes,
   relations:RELATIONS.map((r,i)=>({id:'rel_'+i,type:'rt_'+r.type,from:r.from,to:r.to,status:r.status||'confirmed',source:'world-data',comment:r.comment||'',conditions:[],effects:[]})),
   proposals:OPEN_QUESTIONS.map((q,i)=>({id:'q_'+i,title:'❓ '+q.title,text:q.text,status:'idea',priority:'high',source:'world-data',createdAt:'',relatedEntities:[],relatedSystems:[],relatedNodes:[]})),
-  worldEvents:[],decisions:[]
+  worldEvents:[],
+  decisions:DECISIONS.map((d,i)=>({id:'dec_'+i,title:d.title,text:d.text,status:'defined',source:'decision',relatedSystems:[],relatedEntities:[],comment:'',createdAt:''}))
 };
 fs.writeFileSync(path.join(ROOT,'story.json'),JSON.stringify(story,null,2)+'\n');
 
@@ -127,7 +129,7 @@ const fmtTrig=n=>{ const t=trig(n);
 const nodeTitle=ref=>(nodeById.get(ref)||{}).title||ref;
 const entName=ref=>(ENTITIES.find(e=>e.ref===ref)||{}).name||ref;
 CATEGORIES.forEach((cat,i)=>{
-  const L=[`# ${cat.title}`,'',cat.intro,'',`Пометки: ✅ из GDD · 💡 предложение · ❓ не решено. Источник правок — \`src/world-data.js\`, этот файл собирается автоматически.`,''];
+  const L=[`# ${cat.title}`,'',cat.intro,'',`Пометки: ⭐ решение автора · ✅ из GDD · 💡 предложение · ❓ не решено. Источник правок — \`src/world-data.js\`, этот файл собирается автоматически.`,''];
   cat.nodes.forEach(n=>{
     L.push(`## ${SRC_MARK[n.src]} ${n.title}`,'');
     L.push(`\`${n.ref}\` · ${SOURCE_LABEL[n.source]||'—'} · ${fmtTrig(n)}${n.gdd?` · GDD ${n.gdd}`:''}`,'');
@@ -149,15 +151,17 @@ CATEGORIES.forEach((cat,i)=>{
   fs.writeFileSync(path.join(ROOT,'md',fileBase(cat,i)+'.md'),L.join('\n'));
 });
 // Переменные и сущности — отдельным MD
-const V=['# Мировые переменные и сущности','','Пометки: ✅ из GDD · 💡 предложение · ❓ не решено.','','## Переменные','','| id | Название | Тип | Старт | Диапазон | Откуда | Заметка |','|---|---|---|---|---|---|---|'];
+const V=['# Мировые переменные и сущности','','Пометки: ⭐ решение автора · ✅ из GDD · 💡 предложение · ❓ не решено.','','## Переменные','','| id | Название | Тип | Старт | Диапазон | Откуда | Заметка |','|---|---|---|---|---|---|---|'];
 VARIABLES.forEach(v=>V.push(`| \`${v.id}\` | ${v.name} | ${v.type==='flag'?'флаг':'число'} | ${v.start} | ${v.min}…${v.max} | ${SRC_MARK[v.src]}${v.ref?' '+v.ref:''} | ${v.note||''} |`));
 V.push('','## Сущности мира','','| id | Вид | Название | Откуда | Заметка |','|---|---|---|---|---|');
 ENTITIES.forEach(e=>V.push(`| \`${e.ref}\` | ${e.kind} | ${e.name} | ${SRC_MARK[e.src]} | ${e.note||''} |`));
 V.push('','## Связи','');
 RELATIONS.forEach(r=>V.push(`- ${entName(r.from)} — *${r.type}* → ${entName(r.to)}${r.status==='proposed'?' (💡 предложение)':''}${r.comment?' — '+r.comment:''}`));
+V.push('','## ⭐ Решения автора','');
+DECISIONS.forEach((d,i)=>V.push(`${i+1}. **${d.title}.** ${d.text}`));
 V.push('','## ❓ Открытые вопросы','');
 OPEN_QUESTIONS.forEach((q,i)=>V.push(`${i+1}. **${q.title}.** ${q.text}`));
 fs.writeFileSync(path.join(ROOT,'md','00-variables-entities.md'),V.join('\n')+'\n');
 
-const counts={gdd:0,idea:0,open:0}; allNodes.forEach(n=>counts[n.src]++);
-console.log(`OK: ${allNodes.length} событий (✅${counts.gdd} 💡${counts.idea} ❓${counts.open}), ${VARIABLES.length} переменных, ${ENTITIES.length} сущностей, ${RELATIONS.length} связей, ${CATEGORIES.length} категорий`);
+const counts={gdd:0,idea:0,open:0,user:0}; allNodes.forEach(n=>counts[n.src]++);
+console.log(`OK: ${allNodes.length} событий (⭐${counts.user} ✅${counts.gdd} 💡${counts.idea} ❓${counts.open}), ${VARIABLES.length} переменных, ${ENTITIES.length} сущностей, ${RELATIONS.length} связей, ${CATEGORIES.length} категорий`);

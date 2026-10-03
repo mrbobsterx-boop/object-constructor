@@ -81,6 +81,14 @@
       "start": 0,
       "min": 0,
       "max": 1
+    },
+    {
+      "id": "season",
+      "name": "Сезон (0 весна · 1 лето · 2 осень · 3 зима)",
+      "type": "counter",
+      "start": 0,
+      "min": 0,
+      "max": 3
     }
   ],
   "nodes": [
@@ -497,9 +505,14 @@
             "value": 1
           },
           {
+            "var": "season",
+            "op": "==",
+            "value": 3
+          },
+          {
             "var": "shelter_energy",
             "op": "<",
-            "value": 20
+            "value": 40
           }
         ]
       },

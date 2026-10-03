@@ -518,7 +518,7 @@
     {
       "ref": "loc_city",
       "kind": "location",
-      "name": "Город"
+      "name": "Городок"
     },
     {
       "ref": "loc_other_bunker",

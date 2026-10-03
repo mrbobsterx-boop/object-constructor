@@ -1,6 +1,6 @@
 {
   "idea_id": "world_time",
-  "title": "Время, погода и фазы мира",
+  "title": "Время, погода и сезоны",
   "variables": [
     {
       "id": "day",
@@ -35,12 +35,28 @@
       "max": 60
     },
     {
-      "id": "shelter_known",
-      "name": "Убежище обнаружено чужими",
-      "type": "flag",
+      "id": "shelter_fuel",
+      "name": "Топливо, л",
+      "type": "counter",
+      "start": 20,
+      "min": 0,
+      "max": 200
+    },
+    {
+      "id": "group_morale",
+      "name": "Мораль группы",
+      "type": "counter",
+      "start": 60,
+      "min": 0,
+      "max": 100
+    },
+    {
+      "id": "noise_level",
+      "name": "Шумность игрока",
+      "type": "counter",
       "start": 0,
       "min": 0,
-      "max": 1
+      "max": 100
     },
     {
       "id": "world_danger",
@@ -57,6 +73,14 @@
       "start": 15,
       "min": 0,
       "max": 100
+    },
+    {
+      "id": "season",
+      "name": "Сезон (0 весна · 1 лето · 2 осень · 3 зима)",
+      "type": "counter",
+      "start": 0,
+      "min": 0,
+      "max": 3
     }
   ],
   "nodes": [
@@ -187,49 +211,9 @@
       ]
     },
     {
-      "ref": "time.phase_settling",
-      "title": "Фаза «Обживание»",
-      "text": "💡 Предложение\nДень 8. Мир начинает замечать новичков: первые торговцы и случайные гости.",
-      "type": "background",
-      "category": "time",
-      "eventSource": "timer",
-      "refs": [],
-      "trigger": {
-        "kind": "scheduled",
-        "afterHours": 168,
-        "sinceNode": "",
-        "repeat": false
-      },
-      "effects": [],
-      "sim": {
-        "durationHours": 1,
-        "dangerChance": 0,
-        "foodCost": 0,
-        "waterCost": 0,
-        "requiresItems": [],
-        "requiresSkills": [],
-        "resourceEffects": []
-      },
-      "ending": "",
-      "choices": [
-        {
-          "label": "Первый караван",
-          "target_ref": "trade.caravan_arrives",
-          "requires": [],
-          "effects": []
-        },
-        {
-          "label": "Кто-то у двери",
-          "target_ref": "group.newcomer_arrives",
-          "requires": [],
-          "effects": []
-        }
-      ]
-    },
-    {
-      "ref": "time.phase_noticed",
-      "title": "Фаза «Мир заметил тебя»",
-      "text": "💡 Предложение\nДень 30. Фракции знают об убежище, растут требования.",
+      "ref": "time.season_change",
+      "title": "Смена сезона",
+      "text": "⭐ Решение автора\nКаждые 30 дней (💡 длина сезона). В игре сезон идёт по кругу: после зимы снова весна (season по модулю 4) — Story Map не умеет «по кругу», поэтому здесь значение просто растёт до зимы.",
       "type": "background",
       "category": "time",
       "eventSource": "timer",
@@ -238,90 +222,113 @@
         "kind": "scheduled",
         "afterHours": 720,
         "sinceNode": "",
-        "repeat": false
+        "repeat": true
       },
       "effects": [
         {
-          "var": "shelter_known",
-          "op": "set",
+          "var": "season",
+          "op": "add",
           "value": 1
+        }
+      ],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "ending": "",
+      "choices": [
+        {
+          "label": "Лето",
+          "target_ref": "time.season_summer",
+          "requires": [],
+          "effects": []
         },
         {
-          "var": "world_danger",
-          "op": "add",
-          "value": 10
-        }
-      ],
-      "sim": {
-        "durationHours": 1,
-        "dangerChance": 0,
-        "foodCost": 0,
-        "waterCost": 0,
-        "requiresItems": [],
-        "requiresSkills": [],
-        "resourceEffects": []
-      },
-      "ending": "",
-      "choices": [
+          "label": "Осень",
+          "target_ref": "time.season_autumn",
+          "requires": [],
+          "effects": []
+        },
         {
-          "label": "Требуют дань",
-          "target_ref": "factions.demand_tribute",
+          "label": "Зима",
+          "target_ref": "time.season_winter",
+          "requires": [],
+          "effects": []
+        },
+        {
+          "label": "Весна",
+          "target_ref": "time.season_spring",
           "requires": [],
           "effects": []
         }
       ]
     },
     {
-      "ref": "time.phase_politics",
-      "title": "Фаза «Большая политика»",
-      "text": "💡 Предложение\nДень 60. Войны, союзы, большие сдвиги территорий.",
-      "type": "background",
-      "category": "time",
-      "eventSource": "timer",
-      "refs": [],
-      "trigger": {
-        "kind": "scheduled",
-        "afterHours": 1440,
-        "sinceNode": "",
-        "repeat": false
-      },
-      "effects": [
-        {
-          "var": "world_danger",
-          "op": "add",
-          "value": 10
-        }
-      ],
-      "sim": {
-        "durationHours": 1,
-        "dangerChance": 0,
-        "foodCost": 0,
-        "waterCost": 0,
-        "requiresItems": [],
-        "requiresSkills": [],
-        "resourceEffects": []
-      },
-      "ending": "",
-      "choices": [
-        {
-          "label": "Фракции сталкиваются",
-          "target_ref": "factions.groups_clash",
-          "requires": [],
-          "effects": []
-        }
-      ]
-    },
-    {
-      "ref": "time.seasons",
-      "title": "Сезоны и зима?",
-      "text": "❓ Не решено\n❓ В документах нет сезонов. Зима сильно влияет на воду, еду и топливо — нужны ли они?",
+      "ref": "time.season_spring",
+      "title": "Весна",
+      "text": "⭐ Решение автора\nИгра начинается весной. Талая вода, первые посадки. Пережившие зиму выходят на дороги.",
       "type": "event",
       "category": "time",
       "eventSource": "weather",
       "refs": [],
       "trigger": {
         "kind": "conditions",
-        "all": []
+        "all": [
+          {
+            "var": "season",
+            "op": "==",
+            "value": 0
+          }
+        ]
+      },
+      "effects": [
+        {
+          "var": "shelter_water",
+          "op": "add",
+          "value": 100
+        }
+      ],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "ending": "",
+      "choices": [
+        {
+          "label": "Новые люди на дорогах",
+          "target_ref": "group.newcomer_arrives",
+          "requires": [],
+          "effects": []
+        }
+      ]
+    },
+    {
+      "ref": "time.season_summer",
+      "title": "Лето",
+      "text": "⭐ Решение автора\nЖара. Дожди редкие — растёт риск засухи. Хорошее время для дальних вылазок.",
+      "type": "event",
+      "category": "time",
+      "eventSource": "weather",
+      "refs": [],
+      "trigger": {
+        "kind": "conditions",
+        "all": [
+          {
+            "var": "season",
+            "op": "==",
+            "value": 1
+          }
+        ]
       },
       "effects": [],
       "sim": {
@@ -334,7 +341,206 @@
         "resourceEffects": []
       },
       "ending": "",
-      "choices": []
+      "choices": [
+        {
+          "label": "Засуха",
+          "target_ref": "water.drought",
+          "requires": [],
+          "effects": []
+        }
+      ]
+    },
+    {
+      "ref": "time.season_autumn",
+      "title": "Осень",
+      "text": "⭐ Решение автора\nУрожай и заготовки на зиму. Фракции тоже запасаются — торговля оживает, стычки за ресурсы тоже.",
+      "type": "event",
+      "category": "time",
+      "eventSource": "weather",
+      "refs": [],
+      "trigger": {
+        "kind": "conditions",
+        "all": [
+          {
+            "var": "season",
+            "op": "==",
+            "value": 2
+          }
+        ]
+      },
+      "effects": [],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "ending": "",
+      "choices": [
+        {
+          "label": "Караван за запасами",
+          "target_ref": "trade.caravan_arrives",
+          "requires": [],
+          "effects": []
+        }
+      ]
+    },
+    {
+      "ref": "time.season_winter",
+      "title": "Зима",
+      "text": "⭐ Решение автора\nХолод. Дождя нет, урожая нет, нужно топливо на обогрев. Зомби медленнее, люди отчаяннее.",
+      "type": "event",
+      "category": "time",
+      "eventSource": "weather",
+      "refs": [],
+      "trigger": {
+        "kind": "conditions",
+        "all": [
+          {
+            "var": "season",
+            "op": "==",
+            "value": 3
+          }
+        ]
+      },
+      "effects": [],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "ending": "",
+      "choices": [
+        {
+          "label": "Холод в убежище",
+          "target_ref": "time.winter_cold",
+          "requires": [],
+          "effects": []
+        },
+        {
+          "label": "Резервуар замёрз",
+          "target_ref": "time.tank_frozen",
+          "requires": [],
+          "effects": []
+        }
+      ]
+    },
+    {
+      "ref": "time.winter_cold",
+      "title": "Холод в убежище",
+      "text": "⭐ Решение автора\nНужно греться: жечь топливо или терпеть.",
+      "type": "choice",
+      "category": "time",
+      "eventSource": "weather",
+      "refs": [],
+      "trigger": {
+        "kind": "conditions",
+        "all": [
+          {
+            "var": "season",
+            "op": "==",
+            "value": 3
+          }
+        ]
+      },
+      "effects": [],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "ending": "",
+      "choices": [
+        {
+          "label": "Жечь топливо",
+          "target_ref": "energy.ok",
+          "requires": [],
+          "effects": [
+            {
+              "var": "shelter_fuel",
+              "op": "subtract",
+              "value": 20
+            },
+            {
+              "var": "noise_level",
+              "op": "add",
+              "value": 5
+            }
+          ]
+        },
+        {
+          "label": "Терпеть",
+          "target_ref": "health.illness_spreads",
+          "requires": [],
+          "effects": [
+            {
+              "var": "group_morale",
+              "op": "subtract",
+              "value": 10
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "ref": "time.tank_frozen",
+      "title": "Резервуар замёрз",
+      "text": "⭐ Решение автора\nБез обогрева вода во внешнем резервуаре замёрзла и разорвала трубу.",
+      "type": "event",
+      "category": "time",
+      "eventSource": "weather",
+      "refs": [],
+      "trigger": {
+        "kind": "conditions",
+        "all": [
+          {
+            "var": "season",
+            "op": "==",
+            "value": 3
+          },
+          {
+            "var": "shelter_energy",
+            "op": "<",
+            "value": 50
+          }
+        ]
+      },
+      "effects": [
+        {
+          "var": "shelter_water",
+          "op": "subtract",
+          "value": 80
+        }
+      ],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "ending": "",
+      "choices": [
+        {
+          "label": "Чинить",
+          "target_ref": "repair.equipment_breaks",
+          "requires": [],
+          "effects": []
+        }
+      ]
     }
   ],
   "entities": []

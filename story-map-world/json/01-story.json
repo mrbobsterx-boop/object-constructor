@@ -51,6 +51,22 @@
       "max": 100
     },
     {
+      "id": "rep_community",
+      "name": "Отношение общины",
+      "type": "counter",
+      "start": 0,
+      "min": -100,
+      "max": 100
+    },
+    {
+      "id": "truth_clues",
+      "name": "Улики о катастрофе",
+      "type": "counter",
+      "start": 0,
+      "min": 0,
+      "max": 10
+    },
+    {
       "id": "moved_shelter",
       "name": "Сменил основное убежище",
       "type": "flag",
@@ -63,7 +79,7 @@
     {
       "ref": "story.game_start",
       "title": "Первое утро в бункере",
-      "text": "💡 Предложение\nДвое выживших в маленьком подземном убежище. Воды на месяц, еды на десять дней. Снаружи тихо.",
+      "text": "💡 Предложение\nБольше десяти лет после Падения. Двое выживших в маленьком подземном убежище. Весна. Воды на месяц, еды на десять дней. Старых запасов в округе почти не осталось — живут те, кто умеет добывать и производить.",
       "type": "choice",
       "category": "story",
       "eventSource": "system",
@@ -325,14 +341,57 @@
       "choices": []
     },
     {
-      "ref": "story.world_history",
-      "title": "Что случилось с миром",
-      "text": "❓ Не решено · GDD §1.3\n❓ Игрок должен «узнать историю мира» (§1.3), но сама история катастрофы нигде не описана.",
+      "ref": "story.clue_note",
+      "title": "Записи старого мира",
+      "text": "⭐ Решение автора\nВ брошенном доме — дневник, газета или служебная записка времён Падения. Ещё одна версия того, что случилось.",
       "type": "event",
       "category": "story",
       "eventSource": "location",
       "refs": [
         "k_catastrophe"
+      ],
+      "trigger": {
+        "kind": "scheduled",
+        "afterHours": 288,
+        "sinceNode": "",
+        "repeat": true
+      },
+      "effects": [
+        {
+          "var": "truth_clues",
+          "op": "add",
+          "value": 1
+        }
+      ],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "ending": "",
+      "choices": [
+        {
+          "label": "Сравнить с тем, что уже знаем",
+          "target_ref": "story.clue_contradiction",
+          "requires": [],
+          "effects": []
+        }
+      ]
+    },
+    {
+      "ref": "story.clue_npc",
+      "title": "Старик помнит Падение",
+      "text": "⭐ Решение автора\nЧеловек, заставший старый мир, рассказывает свою версию. Молодые его не слушают — они родились после.",
+      "type": "choice",
+      "category": "story",
+      "eventSource": "npc",
+      "refs": [
+        "k_catastrophe",
+        "g_loners"
       ],
       "trigger": {
         "kind": "conditions",
@@ -349,12 +408,109 @@
         "resourceEffects": []
       },
       "ending": "",
+      "choices": [
+        {
+          "label": "Выслушать (отдать еду за рассказ)",
+          "target_ref": "story.clue_contradiction",
+          "requires": [],
+          "effects": [
+            {
+              "var": "truth_clues",
+              "op": "add",
+              "value": 1
+            },
+            {
+              "var": "shelter_food_days",
+              "op": "subtract",
+              "value": 1
+            }
+          ]
+        },
+        {
+          "label": "Позвать в группу",
+          "target_ref": "group.newcomer_arrives",
+          "requires": [],
+          "effects": []
+        }
+      ]
+    },
+    {
+      "ref": "story.clue_contradiction",
+      "title": "Версии не сходятся",
+      "text": "⭐ Решение автора\nУлики противоречат друг другу. Тайна остаётся тайной — финала у неё нет, но чем больше знаешь, тем больше людей готовы с тобой говорить.",
+      "type": "event",
+      "category": "story",
+      "eventSource": "system",
+      "refs": [
+        "k_catastrophe"
+      ],
+      "trigger": {
+        "kind": "conditions",
+        "all": [
+          {
+            "var": "truth_clues",
+            "op": ">=",
+            "value": 3
+          }
+        ]
+      },
+      "effects": [
+        {
+          "var": "rep_community",
+          "op": "add",
+          "value": 5
+        }
+      ],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "ending": "",
       "choices": []
+    },
+    {
+      "ref": "story.born_after",
+      "title": "Родившиеся после",
+      "text": "⭐ Решение автора\nВстречен молодой человек, который никогда не видел старого мира: не знает, что такое электричество из розетки, зато отлично выживает.",
+      "type": "event",
+      "category": "story",
+      "eventSource": "npc",
+      "refs": [],
+      "trigger": {
+        "kind": "scheduled",
+        "afterHours": 360,
+        "sinceNode": "",
+        "repeat": true
+      },
+      "effects": [],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "ending": "",
+      "choices": [
+        {
+          "label": "Принять в группу",
+          "target_ref": "group.newcomer_arrives",
+          "requires": [],
+          "effects": []
+        }
+      ]
     },
     {
       "ref": "death.group_wiped",
       "title": "Группа погибла",
-      "text": "✅ Из GDD · GDD §27\nСмерть постоянна. Мир продолжает жить без игрока.",
+      "text": "⭐ Решение автора · GDD §27\nСмерть постоянна, и это единственный конец: игра — бесконечная песочница. Мир продолжает жить без игрока.",
       "type": "event",
       "category": "death",
       "eventSource": "system",
@@ -395,6 +551,11 @@
       "name": "Чужой бункер"
     },
     {
+      "ref": "g_loners",
+      "kind": "group",
+      "name": "Одиночки и мародёры"
+    },
+    {
       "ref": "g_player",
       "kind": "group",
       "name": "Группа игрока"
@@ -402,7 +563,7 @@
     {
       "ref": "k_catastrophe",
       "kind": "concept",
-      "name": "Катастрофа (что случилось с миром)"
+      "name": "Падение (катастрофа)"
     }
   ]
 }
