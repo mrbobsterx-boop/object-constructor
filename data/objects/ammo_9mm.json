@@ -12,8 +12,8 @@
   "appearance": {
     "mode": "IMAGE",
     "asset": "item/ammo/ammo_9mm_patrony_9_mm.png",
-    "imageWidth": 0,
-    "imageHeight": 0,
+    "imageWidth": 273,
+    "imageHeight": 217,
     "collision": null
   },
   "behavior": {
