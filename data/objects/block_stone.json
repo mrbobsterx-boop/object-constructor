@@ -12,8 +12,8 @@
   "appearance": {
     "mode": "IMAGE",
     "asset": "block/terrain/block_stone_kamen.png",
-    "imageWidth": 0,
-    "imageHeight": 0,
+    "imageWidth": 625,
+    "imageHeight": 629,
     "collision": null
   },
   "behavior": {

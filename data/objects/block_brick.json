@@ -12,8 +12,8 @@
   "appearance": {
     "mode": "IMAGE",
     "asset": "block/wall/block_brick_kirpich.png",
-    "imageWidth": 0,
-    "imageHeight": 0,
+    "imageWidth": 625,
+    "imageHeight": 625,
     "collision": null
   },
   "behavior": {
