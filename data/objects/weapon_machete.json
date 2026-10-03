@@ -12,8 +12,8 @@
   "appearance": {
     "mode": "IMAGE",
     "asset": "weapon/melee/weapon_machete_machete.png",
-    "imageWidth": 0,
-    "imageHeight": 0,
+    "imageWidth": 547,
+    "imageHeight": 175,
     "collision": null
   },
   "behavior": {
