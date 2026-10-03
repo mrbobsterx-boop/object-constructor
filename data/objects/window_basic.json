@@ -12,8 +12,8 @@
   "appearance": {
     "mode": "IMAGE",
     "asset": "building/window/window_basic_okno.png",
-    "imageWidth": 0,
-    "imageHeight": 0,
+    "imageWidth": 341,
+    "imageHeight": 360,
     "collision": null
   },
   "behavior": {
@@ -159,7 +159,11 @@
       "REMOVE"
     ],
     "damaged": null,
-    "broken": null,
+    "broken": {
+      "nativeWidth": 343,
+      "nativeHeight": 361,
+      "image": "building/window/window_basic_okno_broken.png"
+    },
     "destroyAnimation": null
   },
   "block": null,
