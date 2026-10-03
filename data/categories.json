@@ -1,0 +1,66 @@
+[
+  {
+    "id": "character",
+    "name": "Персонаж"
+  },
+  {
+    "id": "creature",
+    "name": "Существо"
+  },
+  {
+    "id": "item",
+    "name": "Предмет"
+  },
+  {
+    "id": "tool",
+    "name": "Инструмент"
+  },
+  {
+    "id": "weapon",
+    "name": "Оружие"
+  },
+  {
+    "id": "clothing",
+    "name": "Одежда"
+  },
+  {
+    "id": "furniture",
+    "name": "Мебель"
+  },
+  {
+    "id": "decor",
+    "name": "Декор"
+  },
+  {
+    "id": "container",
+    "name": "Контейнер"
+  },
+  {
+    "id": "workbench",
+    "name": "Верстак"
+  },
+  {
+    "id": "machine",
+    "name": "Машина"
+  },
+  {
+    "id": "building",
+    "name": "Строительный объект"
+  },
+  {
+    "id": "door",
+    "name": "Дверь"
+  },
+  {
+    "id": "plant",
+    "name": "Растение"
+  },
+  {
+    "id": "resource",
+    "name": "Точка ресурса"
+  },
+  {
+    "id": "special",
+    "name": "Специальный"
+  }
+]
