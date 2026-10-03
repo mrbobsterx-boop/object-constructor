@@ -1,0 +1,177 @@
+{
+  "schema_version": 4,
+  "id": "table_wood",
+  "name": "Стол",
+  "category": "furniture",
+  "category_name": "Мебель",
+  "subtype": "table",
+  "description": "Твёрдая поверхность для размещения объектов; несущая способность ограничена — тяжёлый груз со временем повреждает стол и приводит к падению.",
+  "transform": {
+    "layer": 0
+  },
+  "appearance": {
+    "mode": "IMAGE",
+    "asset": "furniture/table/table_wood_stol.png",
+    "imageWidth": 440,
+    "imageHeight": 232,
+    "collision": null
+  },
+  "behavior": {
+    "carryable": false,
+    "placeable": true,
+    "collision": "RECT",
+    "physics": "DYNAMIC",
+    "interactive": true,
+    "hasWeight": true,
+    "weight": 50,
+    "real_width_cm": 120,
+    "real_height_cm": 75,
+    "placement_mode": "FLOOR_ONLY",
+    "variant_group": "table",
+    "allowed_room_types": [
+      "kitchen",
+      "bedroom",
+      "workshop",
+      "office",
+      "house_living"
+    ],
+    "light": null,
+    "shadow": null,
+    "needs": {
+      "food": false,
+      "water": false,
+      "sleep": false,
+      "health": false,
+      "stress": false,
+      "water_params": null
+    },
+    "autonomy": {
+      "enabled": false,
+      "satisfy_needs": false,
+      "search_water": false,
+      "search_food": false,
+      "sleep": false
+    },
+    "perception": {
+      "vision": null,
+      "hearing": null
+    },
+    "movement": {
+      "enabled": false,
+      "speed_mps": 0
+    },
+    "danger": {
+      "reacts": false,
+      "can_flee": false,
+      "can_hide": false
+    },
+    "makes_sounds": false
+  },
+  "actions": [
+    "REPAIR",
+    "DISMANTLE"
+  ],
+  "action_settings": {
+    "REPAIR": {
+      "requirements": "",
+      "time": 10,
+      "tool": "",
+      "consume": {
+        "item": "",
+        "amount": 0
+      },
+      "produce": {
+        "item": "",
+        "amount": 0
+      },
+      "required_skill": null,
+      "effects": []
+    },
+    "DISMANTLE": {
+      "requirements": "",
+      "time": 8,
+      "tool": "",
+      "consume": {
+        "item": "",
+        "amount": 0
+      },
+      "produce": {
+        "item": "",
+        "amount": 0
+      },
+      "required_skill": null,
+      "effects": []
+    }
+  },
+  "combat": {
+    "dealsDamage": false,
+    "damageAmount": 0,
+    "providesDefense": false,
+    "defenseAmount": 0,
+    "wearsOut": false,
+    "wearAmount": 0,
+    "wearLifetimeDays": 0
+  },
+  "inventory": {
+    "enabled": false,
+    "slots": 0,
+    "maxWeight": 0,
+    "storage": "GENERAL"
+  },
+  "resource": null,
+  "destruction": {
+    "enabled": true,
+    "hp": 70,
+    "damaged_threshold_percent": 50,
+    "onDestroy": [
+      "DROP_ITEMS"
+    ],
+    "damaged": null,
+    "broken": {
+      "nativeWidth": 534,
+      "nativeHeight": 196,
+      "image": "furniture/table/table_wood_stol_broken.png"
+    },
+    "destroyAnimation": null
+  },
+  "block": null,
+  "crafting": {
+    "enabled": true,
+    "recipe": {
+      "id": "TABLE_WOOD",
+      "ingredients": [
+        {
+          "item": "mat_plank",
+          "count": 8
+        },
+        {
+          "item": "mat_nails",
+          "count": 12
+        }
+      ],
+      "result": {
+        "id": "table_wood",
+        "amount": 1,
+        "label": "Стол",
+        "category": "furniture"
+      },
+      "recipeImage": null
+    }
+  },
+  "visuals": {
+    "idle": null,
+    "animations": [],
+    "images": []
+  },
+  "character_ref": null,
+  "animation_enabled": false,
+  "tags": [
+    "physics",
+    "rooms"
+  ],
+  "components": [],
+  "custom": {
+    "load_capacity_kg": 100,
+    "structural_strength": 1
+  }
+}

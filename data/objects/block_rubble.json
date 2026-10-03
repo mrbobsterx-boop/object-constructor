@@ -1,0 +1,139 @@
+{
+  "schema_version": 4,
+  "id": "block_rubble",
+  "name": "Завал",
+  "category": "block",
+  "category_name": "Блок / материал",
+  "subtype": "debris",
+  "description": "Низкая твёрдость; расчищается лопатой; даёт мусор.",
+  "transform": {
+    "layer": 0
+  },
+  "appearance": {
+    "mode": "IMAGE",
+    "asset": "block/debris/block_rubble_zaval.png",
+    "imageWidth": 0,
+    "imageHeight": 0,
+    "collision": null
+  },
+  "behavior": {
+    "carryable": false,
+    "placeable": true,
+    "collision": "NONE",
+    "physics": "STATIC",
+    "interactive": false,
+    "hasWeight": false,
+    "weight": 0,
+    "real_width_cm": 100,
+    "real_height_cm": 100,
+    "placement_mode": "ANYWHERE",
+    "variant_group": "terrain",
+    "allowed_room_types": [
+      "street",
+      "house_living"
+    ],
+    "light": null,
+    "shadow": null,
+    "needs": {
+      "food": false,
+      "water": false,
+      "sleep": false,
+      "health": false,
+      "stress": false,
+      "water_params": null
+    },
+    "autonomy": {
+      "enabled": false,
+      "satisfy_needs": false,
+      "search_water": false,
+      "search_food": false,
+      "sleep": false
+    },
+    "perception": {
+      "vision": null,
+      "hearing": null
+    },
+    "movement": {
+      "enabled": false,
+      "speed_mps": 0
+    },
+    "danger": {
+      "reacts": false,
+      "can_flee": false,
+      "can_hide": false
+    },
+    "makes_sounds": false
+  },
+  "actions": [],
+  "action_settings": {},
+  "combat": {
+    "dealsDamage": false,
+    "damageAmount": 0,
+    "providesDefense": false,
+    "defenseAmount": 0,
+    "wearsOut": false,
+    "wearAmount": 0,
+    "wearLifetimeDays": 0
+  },
+  "inventory": {
+    "enabled": false,
+    "slots": 0,
+    "maxWeight": 0,
+    "storage": "GENERAL"
+  },
+  "resource": null,
+  "destruction": {
+    "enabled": false,
+    "hp": 100,
+    "damaged_threshold_percent": 50,
+    "onDestroy": [
+      "REMOVE"
+    ],
+    "damaged": null,
+    "broken": null,
+    "destroyAnimation": null
+  },
+  "block": {
+    "piece_size_cm": 20,
+    "pieces_per_side": 5,
+    "hardness": 1.5,
+    "tool": "tool_shovel",
+    "bevel_px": null,
+    "drop_table": [
+      {
+        "item": "mat_rubble",
+        "chance": 0.8,
+        "min": 1,
+        "max": 1
+      },
+      {
+        "item": "mat_scrap",
+        "chance": 0.1,
+        "min": 1,
+        "max": 1
+      }
+    ],
+    "drop_chance_modifiers": {
+      "skill": "",
+      "skill_bonus_per_level": 0,
+      "tool_bonus": 0
+    }
+  },
+  "crafting": {
+    "enabled": false,
+    "recipe": null
+  },
+  "visuals": {
+    "idle": null,
+    "animations": [],
+    "images": []
+  },
+  "character_ref": null,
+  "animation_enabled": false,
+  "tags": [
+    "digging",
+    "exploration"
+  ],
+  "components": [],
+  "custom": {}
+}

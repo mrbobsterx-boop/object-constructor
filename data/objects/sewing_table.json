@@ -1,0 +1,172 @@
+{
+  "schema_version": 4,
+  "id": "sewing_table",
+  "name": "Швейный стол",
+  "category": "workbench",
+  "category_name": "Верстак",
+  "subtype": "sewing",
+  "description": "Крафт одежды, тряпок и бинтов из ткани.",
+  "transform": {
+    "layer": 0
+  },
+  "appearance": {
+    "mode": "IMAGE",
+    "asset": "workbench/sewing/sewing_table_shveynyy_stol.png",
+    "imageWidth": 588,
+    "imageHeight": 559,
+    "collision": null
+  },
+  "behavior": {
+    "carryable": false,
+    "placeable": true,
+    "collision": "RECT",
+    "physics": "DYNAMIC",
+    "interactive": true,
+    "hasWeight": true,
+    "weight": 25,
+    "real_width_cm": 110,
+    "real_height_cm": 85,
+    "placement_mode": "FLOOR_ONLY",
+    "variant_group": null,
+    "allowed_room_types": [
+      "workshop",
+      "house_living"
+    ],
+    "light": null,
+    "shadow": null,
+    "needs": {
+      "food": false,
+      "water": false,
+      "sleep": false,
+      "health": false,
+      "stress": false,
+      "water_params": null
+    },
+    "autonomy": {
+      "enabled": false,
+      "satisfy_needs": false,
+      "search_water": false,
+      "search_food": false,
+      "sleep": false
+    },
+    "perception": {
+      "vision": null,
+      "hearing": null
+    },
+    "movement": {
+      "enabled": false,
+      "speed_mps": 0
+    },
+    "danger": {
+      "reacts": false,
+      "can_flee": false,
+      "can_hide": false
+    },
+    "makes_sounds": false
+  },
+  "actions": [
+    "CRAFT",
+    "REPAIR"
+  ],
+  "action_settings": {
+    "CRAFT": {
+      "requirements": "",
+      "time": 5,
+      "tool": "",
+      "consume": {
+        "item": "",
+        "amount": 0
+      },
+      "produce": {
+        "item": "",
+        "amount": 0
+      },
+      "required_skill": null,
+      "effects": []
+    },
+    "REPAIR": {
+      "requirements": "",
+      "time": 10,
+      "tool": "",
+      "consume": {
+        "item": "",
+        "amount": 0
+      },
+      "produce": {
+        "item": "",
+        "amount": 0
+      },
+      "required_skill": null,
+      "effects": []
+    }
+  },
+  "combat": {
+    "dealsDamage": false,
+    "damageAmount": 0,
+    "providesDefense": false,
+    "defenseAmount": 0,
+    "wearsOut": false,
+    "wearAmount": 0,
+    "wearLifetimeDays": 0
+  },
+  "inventory": {
+    "enabled": false,
+    "slots": 0,
+    "maxWeight": 0,
+    "storage": "GENERAL"
+  },
+  "resource": null,
+  "destruction": {
+    "enabled": true,
+    "hp": 100,
+    "damaged_threshold_percent": 50,
+    "onDestroy": [
+      "REMOVE"
+    ],
+    "damaged": null,
+    "broken": {
+      "nativeWidth": 568,
+      "nativeHeight": 552,
+      "image": "workbench/sewing/sewing_table_shveynyy_stol_broken.png"
+    },
+    "destroyAnimation": null
+  },
+  "block": null,
+  "crafting": {
+    "enabled": true,
+    "recipe": {
+      "id": "SEWING_TABLE",
+      "ingredients": [
+        {
+          "item": "mat_cloth",
+          "count": 4
+        },
+        {
+          "item": "part_mech",
+          "count": 2
+        }
+      ],
+      "result": {
+        "id": "sewing_table",
+        "amount": 1,
+        "label": "Швейный стол",
+        "category": "workbench"
+      },
+      "recipeImage": null
+    }
+  },
+  "visuals": {
+    "idle": null,
+    "animations": [],
+    "images": []
+  },
+  "character_ref": null,
+  "animation_enabled": false,
+  "tags": [
+    "crafting",
+    "equipment",
+    "repair"
+  ],
+  "components": [],
+  "custom": {}
+}

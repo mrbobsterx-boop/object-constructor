@@ -1,0 +1,228 @@
+{
+  "schema_version": 4,
+  "id": "fridge",
+  "name": "Холодильник",
+  "category": "machine",
+  "category_name": "Машина",
+  "subtype": "kitchen",
+  "description": "Хранилище со сниженной скоростью порчи, пока есть энергия; без питания превращается в обычный ящик с быстро портящейся едой.",
+  "transform": {
+    "layer": 0
+  },
+  "appearance": {
+    "mode": "IMAGE",
+    "asset": "machine/kitchen/fridge_holodilnik.png",
+    "imageWidth": 223,
+    "imageHeight": 446,
+    "collision": null
+  },
+  "behavior": {
+    "carryable": false,
+    "placeable": true,
+    "collision": "RECT",
+    "physics": "DYNAMIC",
+    "interactive": true,
+    "hasWeight": true,
+    "weight": 60,
+    "real_width_cm": 70,
+    "real_height_cm": 180,
+    "placement_mode": "FLOOR_ONLY",
+    "variant_group": "fridge",
+    "allowed_room_types": [
+      "kitchen",
+      "shelter_living"
+    ],
+    "light": null,
+    "shadow": null,
+    "needs": {
+      "food": false,
+      "water": false,
+      "sleep": false,
+      "health": false,
+      "stress": false,
+      "water_params": null
+    },
+    "autonomy": {
+      "enabled": false,
+      "satisfy_needs": false,
+      "search_water": false,
+      "search_food": false,
+      "sleep": false
+    },
+    "perception": {
+      "vision": null,
+      "hearing": null
+    },
+    "movement": {
+      "enabled": false,
+      "speed_mps": 0
+    },
+    "danger": {
+      "reacts": false,
+      "can_flee": false,
+      "can_hide": false
+    },
+    "makes_sounds": false
+  },
+  "actions": [
+    "OPEN",
+    "CLOSE",
+    "STORE",
+    "TAKE_FROM",
+    "SEARCH"
+  ],
+  "action_settings": {
+    "OPEN": {
+      "requirements": "",
+      "time": 1,
+      "tool": "",
+      "consume": {
+        "item": "",
+        "amount": 0
+      },
+      "produce": {
+        "item": "",
+        "amount": 0
+      },
+      "required_skill": null,
+      "effects": []
+    },
+    "CLOSE": {
+      "requirements": "",
+      "time": 1,
+      "tool": "",
+      "consume": {
+        "item": "",
+        "amount": 0
+      },
+      "produce": {
+        "item": "",
+        "amount": 0
+      },
+      "required_skill": null,
+      "effects": []
+    },
+    "STORE": {
+      "requirements": "",
+      "time": 1,
+      "tool": "",
+      "consume": {
+        "item": "",
+        "amount": 0
+      },
+      "produce": {
+        "item": "",
+        "amount": 0
+      },
+      "required_skill": null,
+      "effects": []
+    },
+    "TAKE_FROM": {
+      "requirements": "",
+      "time": 1,
+      "tool": "",
+      "consume": {
+        "item": "",
+        "amount": 0
+      },
+      "produce": {
+        "item": "",
+        "amount": 0
+      },
+      "required_skill": null,
+      "effects": []
+    },
+    "SEARCH": {
+      "requirements": "",
+      "time": 4,
+      "tool": "",
+      "consume": {
+        "item": "",
+        "amount": 0
+      },
+      "produce": {
+        "item": "",
+        "amount": 0
+      },
+      "required_skill": null,
+      "effects": []
+    }
+  },
+  "combat": {
+    "dealsDamage": false,
+    "damageAmount": 0,
+    "providesDefense": false,
+    "defenseAmount": 0,
+    "wearsOut": false,
+    "wearAmount": 0,
+    "wearLifetimeDays": 0
+  },
+  "inventory": {
+    "enabled": true,
+    "slots": 20,
+    "maxWeight": 60,
+    "storage": "GENERAL"
+  },
+  "resource": null,
+  "destruction": {
+    "enabled": true,
+    "hp": 100,
+    "damaged_threshold_percent": 50,
+    "onDestroy": [
+      "REMOVE"
+    ],
+    "damaged": null,
+    "broken": {
+      "nativeWidth": 249,
+      "nativeHeight": 437,
+      "image": "machine/kitchen/fridge_holodilnik_broken.png"
+    },
+    "destroyAnimation": null
+  },
+  "block": null,
+  "crafting": {
+    "enabled": true,
+    "recipe": {
+      "id": "FRIDGE",
+      "ingredients": [
+        {
+          "item": "mat_sheet_metal",
+          "count": 6
+        },
+        {
+          "item": "part_electronic",
+          "count": 3
+        },
+        {
+          "item": "mat_pipe_metal",
+          "count": 2
+        }
+      ],
+      "result": {
+        "id": "fridge",
+        "amount": 1,
+        "label": "Холодильник",
+        "category": "machine"
+      },
+      "recipeImage": null
+    }
+  },
+  "visuals": {
+    "idle": null,
+    "animations": [],
+    "images": []
+  },
+  "character_ref": null,
+  "animation_enabled": false,
+  "tags": [
+    "energy",
+    "food",
+    "storage",
+    "time"
+  ],
+  "components": [],
+  "custom": {
+    "spoilage_multiplier": 0.25,
+    "power_w": 100
+  }
+}

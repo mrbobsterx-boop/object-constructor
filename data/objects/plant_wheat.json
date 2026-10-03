@@ -1,0 +1,141 @@
+{
+  "schema_version": 4,
+  "id": "plant_wheat",
+  "name": "Пшеница (растение)",
+  "category": "plant",
+  "category_name": "Растение",
+  "subtype": "crop",
+  "description": "Растёт дольше картофеля; даёт зерно.",
+  "transform": {
+    "layer": 0
+  },
+  "appearance": {
+    "mode": "IMAGE",
+    "asset": "plant/crop/plant_wheat_pshenitsa_rastenie.png",
+    "imageWidth": 292,
+    "imageHeight": 602,
+    "collision": null
+  },
+  "behavior": {
+    "carryable": false,
+    "placeable": true,
+    "collision": "NONE",
+    "physics": "STATIC",
+    "interactive": true,
+    "hasWeight": false,
+    "weight": 0,
+    "real_width_cm": 50,
+    "real_height_cm": 80,
+    "placement_mode": "ANYWHERE",
+    "variant_group": null,
+    "allowed_room_types": [
+      "greenhouse",
+      "camp"
+    ],
+    "light": null,
+    "shadow": null,
+    "needs": {
+      "food": false,
+      "water": false,
+      "sleep": false,
+      "health": false,
+      "stress": false,
+      "water_params": null
+    },
+    "autonomy": {
+      "enabled": false,
+      "satisfy_needs": false,
+      "search_water": false,
+      "search_food": false,
+      "sleep": false
+    },
+    "perception": {
+      "vision": null,
+      "hearing": null
+    },
+    "movement": {
+      "enabled": false,
+      "speed_mps": 0
+    },
+    "danger": {
+      "reacts": false,
+      "can_flee": false,
+      "can_hide": false
+    },
+    "makes_sounds": false
+  },
+  "actions": [
+    "HARVEST"
+  ],
+  "action_settings": {
+    "HARVEST": {
+      "requirements": "",
+      "time": 3,
+      "tool": "",
+      "consume": {
+        "item": "",
+        "amount": 0
+      },
+      "produce": {
+        "item": "food_grain",
+        "amount": 6
+      },
+      "required_skill": null,
+      "effects": []
+    }
+  },
+  "combat": {
+    "dealsDamage": false,
+    "damageAmount": 0,
+    "providesDefense": false,
+    "defenseAmount": 0,
+    "wearsOut": false,
+    "wearAmount": 0,
+    "wearLifetimeDays": 0
+  },
+  "inventory": {
+    "enabled": false,
+    "slots": 0,
+    "maxWeight": 0,
+    "storage": "GENERAL"
+  },
+  "resource": null,
+  "destruction": {
+    "enabled": true,
+    "hp": 100,
+    "damaged_threshold_percent": 50,
+    "onDestroy": [
+      "REMOVE"
+    ],
+    "damaged": null,
+    "broken": {
+      "nativeWidth": 140,
+      "nativeHeight": 261,
+      "image": "plant/crop/plant_wheat_pshenitsa_rastenie_broken.png"
+    },
+    "destroyAnimation": null
+  },
+  "block": null,
+  "crafting": {
+    "enabled": false,
+    "recipe": null
+  },
+  "visuals": {
+    "idle": null,
+    "animations": [],
+    "images": []
+  },
+  "character_ref": null,
+  "animation_enabled": false,
+  "tags": [
+    "farming",
+    "food",
+    "time"
+  ],
+  "components": [],
+  "custom": {
+    "growth_time_h": 120,
+    "yield_min": 5,
+    "yield_max": 8
+  }
+}

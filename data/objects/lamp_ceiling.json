@@ -1,0 +1,166 @@
+{
+  "schema_version": 4,
+  "id": "lamp_ceiling",
+  "name": "Лампа потолочная",
+  "category": "machine",
+  "category_name": "Машина",
+  "subtype": "lamp",
+  "description": "Излучает свет (круг или конус), потребляет энергию, включается/выключается, лампочка перегорает по параметру времени lightbulb_lifetime.",
+  "transform": {
+    "layer": 0
+  },
+  "appearance": {
+    "mode": "IMAGE",
+    "asset": "machine/lamp/lamp_ceiling_lampa_potolochnaya.png",
+    "imageWidth": 0,
+    "imageHeight": 0,
+    "collision": null
+  },
+  "behavior": {
+    "carryable": false,
+    "placeable": true,
+    "collision": "RECT",
+    "physics": "DYNAMIC",
+    "interactive": true,
+    "hasWeight": false,
+    "weight": 0,
+    "real_width_cm": 30,
+    "real_height_cm": 25,
+    "placement_mode": "ANYWHERE",
+    "variant_group": "lamp",
+    "allowed_room_types": [
+      "shelter_living",
+      "bedroom",
+      "kitchen",
+      "workshop",
+      "machine_room",
+      "storage"
+    ],
+    "light": {
+      "radius_m": 3,
+      "color": "#ffcc66",
+      "intensity": 1,
+      "shape": "CIRCLE",
+      "angle": null,
+      "spread": null,
+      "softness": null
+    },
+    "shadow": {
+      "absorption": 0
+    },
+    "needs": {
+      "food": false,
+      "water": false,
+      "sleep": false,
+      "health": false,
+      "stress": false,
+      "water_params": null
+    },
+    "autonomy": {
+      "enabled": false,
+      "satisfy_needs": false,
+      "search_water": false,
+      "search_food": false,
+      "sleep": false
+    },
+    "perception": {
+      "vision": null,
+      "hearing": null
+    },
+    "movement": {
+      "enabled": false,
+      "speed_mps": 0
+    },
+    "danger": {
+      "reacts": false,
+      "can_flee": false,
+      "can_hide": false
+    },
+    "makes_sounds": false
+  },
+  "actions": [
+    "USE",
+    "REPAIR"
+  ],
+  "action_settings": {
+    "USE": {
+      "requirements": "",
+      "time": 1,
+      "tool": "",
+      "consume": {
+        "item": "",
+        "amount": 0
+      },
+      "produce": {
+        "item": "",
+        "amount": 0
+      },
+      "required_skill": null,
+      "effects": []
+    },
+    "REPAIR": {
+      "requirements": "",
+      "time": 10,
+      "tool": "",
+      "consume": {
+        "item": "",
+        "amount": 0
+      },
+      "produce": {
+        "item": "",
+        "amount": 0
+      },
+      "required_skill": null,
+      "effects": []
+    }
+  },
+  "combat": {
+    "dealsDamage": false,
+    "damageAmount": 0,
+    "providesDefense": false,
+    "defenseAmount": 0,
+    "wearsOut": false,
+    "wearAmount": 0,
+    "wearLifetimeDays": 0
+  },
+  "inventory": {
+    "enabled": false,
+    "slots": 0,
+    "maxWeight": 0,
+    "storage": "GENERAL"
+  },
+  "resource": null,
+  "destruction": {
+    "enabled": true,
+    "hp": 100,
+    "damaged_threshold_percent": 50,
+    "onDestroy": [
+      "REMOVE"
+    ],
+    "damaged": null,
+    "broken": null,
+    "destroyAnimation": null
+  },
+  "block": null,
+  "crafting": {
+    "enabled": false,
+    "recipe": null
+  },
+  "visuals": {
+    "idle": null,
+    "animations": [],
+    "images": []
+  },
+  "character_ref": null,
+  "animation_enabled": false,
+  "tags": [
+    "light",
+    "energy",
+    "time"
+  ],
+  "components": [],
+  "custom": {
+    "power_w": 10,
+    "bulb_lifetime_key": "lightbulb_lifetime"
+  }
+}

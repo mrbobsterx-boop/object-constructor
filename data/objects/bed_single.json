@@ -1,0 +1,198 @@
+{
+  "schema_version": 4,
+  "id": "bed_single",
+  "name": "Кровать",
+  "category": "furniture",
+  "category_name": "Мебель",
+  "subtype": "bed",
+  "description": "Место сна: персонаж ложится (lie_down), спит и восстанавливает энергию; сон идёт по единому игровому времени и может ускоряться.",
+  "transform": {
+    "layer": 0
+  },
+  "appearance": {
+    "mode": "IMAGE",
+    "asset": "furniture/bed/bed_single_krovat.png",
+    "imageWidth": 511,
+    "imageHeight": 231,
+    "collision": null
+  },
+  "behavior": {
+    "carryable": false,
+    "placeable": true,
+    "collision": "RECT",
+    "physics": "DYNAMIC",
+    "interactive": true,
+    "hasWeight": true,
+    "weight": 40,
+    "real_width_cm": 200,
+    "real_height_cm": 60,
+    "placement_mode": "FLOOR_ONLY",
+    "variant_group": "bed",
+    "allowed_room_types": [
+      "bedroom",
+      "shelter_living",
+      "house_living"
+    ],
+    "light": null,
+    "shadow": null,
+    "needs": {
+      "food": false,
+      "water": false,
+      "sleep": false,
+      "health": false,
+      "stress": false,
+      "water_params": null
+    },
+    "autonomy": {
+      "enabled": false,
+      "satisfy_needs": false,
+      "search_water": false,
+      "search_food": false,
+      "sleep": false
+    },
+    "perception": {
+      "vision": null,
+      "hearing": null
+    },
+    "movement": {
+      "enabled": false,
+      "speed_mps": 0
+    },
+    "danger": {
+      "reacts": false,
+      "can_flee": false,
+      "can_hide": false
+    },
+    "makes_sounds": false
+  },
+  "actions": [
+    "SLEEP",
+    "REPAIR",
+    "DISMANTLE"
+  ],
+  "action_settings": {
+    "SLEEP": {
+      "requirements": "",
+      "time": 0,
+      "tool": "",
+      "consume": {
+        "item": "",
+        "amount": 0
+      },
+      "produce": {
+        "item": "",
+        "amount": 0
+      },
+      "required_skill": null,
+      "effects": []
+    },
+    "REPAIR": {
+      "requirements": "",
+      "time": 10,
+      "tool": "",
+      "consume": {
+        "item": "",
+        "amount": 0
+      },
+      "produce": {
+        "item": "",
+        "amount": 0
+      },
+      "required_skill": null,
+      "effects": []
+    },
+    "DISMANTLE": {
+      "requirements": "",
+      "time": 8,
+      "tool": "",
+      "consume": {
+        "item": "",
+        "amount": 0
+      },
+      "produce": {
+        "item": "",
+        "amount": 0
+      },
+      "required_skill": null,
+      "effects": []
+    }
+  },
+  "combat": {
+    "dealsDamage": false,
+    "damageAmount": 0,
+    "providesDefense": false,
+    "defenseAmount": 0,
+    "wearsOut": false,
+    "wearAmount": 0,
+    "wearLifetimeDays": 0
+  },
+  "inventory": {
+    "enabled": false,
+    "slots": 0,
+    "maxWeight": 0,
+    "storage": "GENERAL"
+  },
+  "resource": null,
+  "destruction": {
+    "enabled": true,
+    "hp": 60,
+    "damaged_threshold_percent": 50,
+    "onDestroy": [
+      "REPLACE_OBJECT",
+      "DROP_ITEMS"
+    ],
+    "damaged": null,
+    "broken": {
+      "nativeWidth": 579,
+      "nativeHeight": 237,
+      "image": "furniture/bed/bed_single_krovat_broken.png"
+    },
+    "destroyAnimation": null
+  },
+  "block": null,
+  "crafting": {
+    "enabled": true,
+    "recipe": {
+      "id": "BED_SINGLE",
+      "ingredients": [
+        {
+          "item": "mat_plank",
+          "count": 6
+        },
+        {
+          "item": "mat_cloth",
+          "count": 2
+        },
+        {
+          "item": "mat_nails",
+          "count": 10
+        }
+      ],
+      "result": {
+        "id": "bed_single",
+        "amount": 1,
+        "label": "Кровать",
+        "category": "furniture"
+      },
+      "recipeImage": null
+    }
+  },
+  "visuals": {
+    "idle": null,
+    "animations": [],
+    "images": []
+  },
+  "character_ref": null,
+  "animation_enabled": false,
+  "tags": [
+    "needs",
+    "time",
+    "rooms",
+    "ai"
+  ],
+  "components": [],
+  "custom": {
+    "sleep_energy_per_hour": 12,
+    "sleep_quality": 1
+  }
+}

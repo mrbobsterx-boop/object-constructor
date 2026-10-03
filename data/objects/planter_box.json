@@ -1,0 +1,197 @@
+{
+  "schema_version": 4,
+  "id": "planter_box",
+  "name": "Грядка",
+  "category": "furniture",
+  "category_name": "Мебель",
+  "subtype": "farm",
+  "description": "Хранит грунт и воду; на неё сажают растения из семян; определяет плодородие.",
+  "transform": {
+    "layer": 0
+  },
+  "appearance": {
+    "mode": "IMAGE",
+    "asset": "furniture/farm/planter_box_gryadka.png",
+    "imageWidth": 520,
+    "imageHeight": 177,
+    "collision": null
+  },
+  "behavior": {
+    "carryable": false,
+    "placeable": true,
+    "collision": "RECT",
+    "physics": "DYNAMIC",
+    "interactive": true,
+    "hasWeight": true,
+    "weight": 30,
+    "real_width_cm": 120,
+    "real_height_cm": 40,
+    "placement_mode": "FLOOR_ONLY",
+    "variant_group": "planter",
+    "allowed_room_types": [
+      "greenhouse",
+      "shelter_living",
+      "camp"
+    ],
+    "light": null,
+    "shadow": null,
+    "needs": {
+      "food": false,
+      "water": false,
+      "sleep": false,
+      "health": false,
+      "stress": false,
+      "water_params": null
+    },
+    "autonomy": {
+      "enabled": false,
+      "satisfy_needs": false,
+      "search_water": false,
+      "search_food": false,
+      "sleep": false
+    },
+    "perception": {
+      "vision": null,
+      "hearing": null
+    },
+    "movement": {
+      "enabled": false,
+      "speed_mps": 0
+    },
+    "danger": {
+      "reacts": false,
+      "can_flee": false,
+      "can_hide": false
+    },
+    "makes_sounds": false
+  },
+  "actions": [
+    "USE",
+    "STORE",
+    "REPAIR"
+  ],
+  "action_settings": {
+    "USE": {
+      "requirements": "",
+      "time": 1,
+      "tool": "",
+      "consume": {
+        "item": "",
+        "amount": 0
+      },
+      "produce": {
+        "item": "",
+        "amount": 0
+      },
+      "required_skill": null,
+      "effects": []
+    },
+    "STORE": {
+      "requirements": "",
+      "time": 1,
+      "tool": "",
+      "consume": {
+        "item": "",
+        "amount": 0
+      },
+      "produce": {
+        "item": "",
+        "amount": 0
+      },
+      "required_skill": null,
+      "effects": []
+    },
+    "REPAIR": {
+      "requirements": "",
+      "time": 10,
+      "tool": "",
+      "consume": {
+        "item": "",
+        "amount": 0
+      },
+      "produce": {
+        "item": "",
+        "amount": 0
+      },
+      "required_skill": null,
+      "effects": []
+    }
+  },
+  "combat": {
+    "dealsDamage": false,
+    "damageAmount": 0,
+    "providesDefense": false,
+    "defenseAmount": 0,
+    "wearsOut": false,
+    "wearAmount": 0,
+    "wearLifetimeDays": 0
+  },
+  "inventory": {
+    "enabled": false,
+    "slots": 0,
+    "maxWeight": 0,
+    "storage": "GENERAL"
+  },
+  "resource": null,
+  "destruction": {
+    "enabled": true,
+    "hp": 100,
+    "damaged_threshold_percent": 50,
+    "onDestroy": [
+      "REMOVE"
+    ],
+    "damaged": null,
+    "broken": {
+      "nativeWidth": 555,
+      "nativeHeight": 196,
+      "image": "furniture/farm/planter_box_gryadka_broken.png"
+    },
+    "destroyAnimation": null
+  },
+  "block": null,
+  "crafting": {
+    "enabled": true,
+    "recipe": {
+      "id": "PLANTER_BOX",
+      "ingredients": [
+        {
+          "item": "mat_plank",
+          "count": 6
+        },
+        {
+          "item": "mat_nails",
+          "count": 10
+        },
+        {
+          "item": "soil_clump",
+          "count": 10
+        }
+      ],
+      "result": {
+        "id": "planter_box",
+        "amount": 1,
+        "label": "Грядка",
+        "category": "furniture"
+      },
+      "recipeImage": null
+    }
+  },
+  "visuals": {
+    "idle": null,
+    "animations": [],
+    "images": []
+  },
+  "character_ref": null,
+  "animation_enabled": false,
+  "tags": [
+    "farming",
+    "water",
+    "food"
+  ],
+  "components": [],
+  "custom": {
+    "soil_capacity": 10,
+    "water_capacity_l": 5,
+    "fertility": 1
+  }
+}
