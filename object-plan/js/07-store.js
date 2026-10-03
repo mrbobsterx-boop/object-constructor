@@ -40,10 +40,9 @@ function mergeVariationOverrides(diskObj,memObj){
   return out;
 }
 async function saveStoreToProject(){
-  if(!projectDirHandle){ alert('Сначала подключи папку проекта.'); return; }
+  if(!projectDirHandle&&!ghIsConnected()){ alert('Сначала подключи папку проекта или GitHub.'); return; }
   try{
-    const dir=await getSubdir(projectDirHandle,'data',false).catch(()=>null);
-    const onDisk=dir?(await readJsonFile(dir,'object_plan.json')).data:null;
+    const onDisk=(await readSingleJsonFromProject('data/object_plan.json')).data;
     const data={
       schema_version:1,saved_at:new Date().toISOString(),
       status:store.status,steps:store.steps,notes:store.notes, // чисто наши поля, image-prep-tool их не трогает
@@ -61,7 +60,7 @@ async function saveStoreToProject(){
 // объектов" (см. 14-view-dictionaries.js) — файл, выгруженный этой кнопкой, можно скачать, отредактировать
 // и утащить обратно; встроенные объекты просто будут пропущены как "уже есть в каталоге".
 async function exportAllItemsToProject(){
-  if(!projectDirHandle){ alert('Сначала подключи папку проекта.'); return; }
+  if(!projectDirHandle&&!ghIsConnected()){ alert('Сначала подключи папку проекта или GitHub.'); return; }
   try{
     const data={schema_version:1,saved_at:new Date().toISOString(),items:PLAN_ITEMS.concat(store.custom||[])};
     await writeFileToProject('data/object_plan_items.json',new TextEncoder().encode(JSON.stringify(data,null,2)));
@@ -69,10 +68,9 @@ async function exportAllItemsToProject(){
   }catch(e){ console.error(e); alert('Не удалось записать: '+e.message); }
 }
 async function loadStoreFromProject(){
-  if(!projectDirHandle){ alert('Сначала подключи папку проекта.'); return; }
+  if(!projectDirHandle&&!ghIsConnected()){ alert('Сначала подключи папку проекта или GitHub.'); return; }
   try{
-    const dir=await getSubdir(projectDirHandle,'data',false);
-    const r=await readJsonFile(dir,'object_plan.json');
+    const r=await readSingleJsonFromProject('data/object_plan.json');
     if(!r.data){ alert('Файл data/object_plan.json не найден или повреждён.'); return; }
     if(!confirm('Заменить текущие отметки в браузере отметками из data/object_plan.json?')) return;
     store={status:r.data.status||{},steps:r.data.steps||{},notes:r.data.notes||{},custom:Array.isArray(r.data.custom)?r.data.custom:[],customGroups:Array.isArray(r.data.customGroups)?r.data.customGroups:[],variationOverrides:(r.data.variationOverrides&&typeof r.data.variationOverrides==='object')?r.data.variationOverrides:{}};
@@ -85,21 +83,29 @@ async function loadStoreFromProject(){
 // refs — превью-кропы из image-prep-tool (assets/refs/<id>_<вариация-en>.*): имя → object URL для миниатюры
 // рядом с вариацией на карточке объекта.
 let PROJECT={scanned:false,at:null,found:new Map(),sprites:new Set(),refs:new Map(),usage:new Map(),extra:[],missingObjects:false};
+// Вызывается shared/js/github-sync.js сразу после успешного подключения GitHub (connectGithub()).
+async function onGithubConnected(){ await scanProjectObjects(); }
 async function scanProjectObjects(){
-  if(!projectDirHandle) return;
+  if(!projectDirHandle&&!ghIsConnected()) return;
   const el=document.getElementById('scanStatus'); if(el) el.textContent='Сверка с проектом…';
   const P={scanned:true,at:new Date(),found:new Map(),sprites:new Set(),refs:new Map(),usage:new Map(),extra:[],missingObjects:false};
   const use=(id,n)=>{ if(id) P.usage.set(id,(P.usage.get(id)||0)+(n||1)); };
   const objs=await listJsonDir('data/objects'); P.missingObjects=objs.missing;
   const sp=await listFilesRecursive('assets/sprites',SPRITE_EXT); sp.files.forEach(f=>P.sprites.add(f));
-  for(const [oldPath,oldUrl] of PROJECT.refs) URL.revokeObjectURL(oldUrl);
+  for(const [oldPath,oldUrl] of PROJECT.refs) if(!ghIsConnected()) URL.revokeObjectURL(oldUrl); // GitHub-превью кэшируются в ghThumbCache — не отзываем
   const rf=await listFilesRecursive('assets/refs',SPRITE_EXT);
-  for(const relPath of rf.files){
-    try{
-      const dir=await getSubdir(projectDirHandle,'assets/refs/'+relPath.split('/').slice(0,-1).join('/'),false);
-      const file=await (await dir.getFileHandle(relPath.split('/').pop())).getFile();
-      P.refs.set(relPath,URL.createObjectURL(file));
-    }catch(e){ /* пропускаем нечитаемый файл превью */ }
+  if(ghIsConnected()){
+    // Сотни файлов — не скачиваем байты всех сразу (это было бы по одному HTTP-запросу на файл),
+    // только список путей; сами превью подгружаются лениво в refStateThumbs по требованию.
+    rf.files.forEach(relPath=>P.refs.set(relPath,null));
+  }else{
+    for(const relPath of rf.files){
+      try{
+        const dir=await getSubdir(projectDirHandle,'assets/refs/'+relPath.split('/').slice(0,-1).join('/'),false);
+        const file=await (await dir.getFileHandle(relPath.split('/').pop())).getFile();
+        P.refs.set(relPath,URL.createObjectURL(file));
+      }catch(e){ /* пропускаем нечитаемый файл превью */ }
+    }
   }
   objs.items.forEach(f=>{
     if(!f.data||typeof f.data!=='object') return;
@@ -134,11 +140,17 @@ function found(item){ return PROJECT.found.get(item.id)||null; }
 function refSuffixMatches(rest){ return rest===''||/^_(idle|broken|icon)(_\d+)?$/.test(rest); }
 // Превью вариации: первый файл assets/refs/, чьё имя начинается с <id>_<английская вариация> — так их
 // сохраняет image-prep-tool. Без подключённой папки/скана — ничего.
+// url===null в PROJECT.refs значит "путь известен (из GitHub-дерева), байты ещё не скачаны" —
+// resolveGithubThumbUrl подгружает их лениво и дозывается через render() когда готово.
+function resolvedRefUrl(relPath,url){
+  if(url) return url;
+  return ghIsConnected()?resolveGithubThumbUrl(relPath,render):null;
+}
 function refThumbFor(item,v){
   const prefix=(item.id+'_'+variationEn(v)).toLowerCase();
   for(const [relPath,url] of PROJECT.refs){
     const base=relPath.split('/').pop().replace(/\.[a-z0-9]+$/i,'').toLowerCase();
-    if(base.indexOf(prefix)===0 && refSuffixMatches(base.slice(prefix.length))) return url;
+    if(base.indexOf(prefix)===0 && refSuffixMatches(base.slice(prefix.length))) return resolvedRefUrl(relPath,url);
   }
   return null;
 }
@@ -153,11 +165,12 @@ function refStateThumbs(item,v){
     if(base.indexOf(prefix)!==0) continue;
     const rest=base.slice(prefix.length);
     if(!refSuffixMatches(rest)) continue;
-    if(!out.any) out.any=url;
-    if(/^_idle(_\d+)?$/.test(rest)){ if(!out.idle) out.idle=url; }
-    else if(/^_broken(_\d+)?$/.test(rest)){ if(!out.broken) out.broken=url; }
-    else if(/^_icon(_\d+)?$/.test(rest)){ if(!out.icon) out.icon=url; }
-    else if(rest===''&&!out.idle) out.idle=url;
+    const resolved=resolvedRefUrl(relPath,url);
+    if(!out.any) out.any=resolved;
+    if(/^_idle(_\d+)?$/.test(rest)){ if(!out.idle) out.idle=resolved; }
+    else if(/^_broken(_\d+)?$/.test(rest)){ if(!out.broken) out.broken=resolved; }
+    else if(/^_icon(_\d+)?$/.test(rest)){ if(!out.icon) out.icon=resolved; }
+    else if(rest===''&&!out.idle) out.idle=resolved;
   }
   return out;
 }
