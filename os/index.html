@@ -49,6 +49,9 @@
   <button id="btnConnectFolder">📁 Подключить папку проекта</button>
   <span id="folderStatus" class="status">Папка не подключена</span>
   <button id="btnRegrantFolder" style="display:none">Разрешить доступ</button>
+  <button id="btnConnectGithub" title="Читать/писать файлы проекта напрямую через GitHub (personal access token), вместо или вместе с папкой">🐙 Подключить GitHub</button>
+  <button id="btnGithubDisconnect" style="display:none" title="Удалить токен из этого браузера">Отключить GitHub</button>
+  <span id="githubStatus" class="status">GitHub не подключён</span>
   <button id="btnSaveToFolder" class="primary">💾 Сохранить в папку проекта</button>
   <button id="btnCheckLinks">🔍 Проверить ссылки проекта</button>
 </header>
@@ -753,6 +756,7 @@
   </div>
 </div>
 
+<script src="../shared/js/github-sync.js"></script>
 <script src="js/01-core-utils.js"></script>
 <script src="js/02-image-document.js"></script>
 <script src="js/03-main-editor.js"></script>

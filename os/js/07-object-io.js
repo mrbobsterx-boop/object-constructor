@@ -15,7 +15,7 @@ async function openCraftModal(){
     Object.keys(CAT_LABELS).forEach(k=>{ const opt=document.createElement('option'); opt.value=k; opt.textContent=CAT_LABELS[k]; sel.appendChild(opt); });
     craftLibCategoryPopulated=true;
   }
-  if(projectDirHandle) await scanProjectFolderCatalog();
+  if(projectDirHandle||ghIsConnected()) await scanProjectFolderCatalog();
   renderCraftLib(); renderCraftGrid(); renderCraftResult(); updateCraftCode();
 }
 function closeCraftModal(){ document.getElementById('craftModal').classList.remove('open'); }
@@ -26,7 +26,7 @@ function renderCraftLib(){
   const grid=document.getElementById('craftLibGrid'); grid.innerHTML='';
   const search=document.getElementById('craftLibSearch').value.trim().toLowerCase();
   const cat=document.getElementById('craftLibCategory').value;
-  const source=projectDirHandle?projectCatalog:loadCatalog();
+  const source=(projectDirHandle||ghIsConnected())?projectCatalog:loadCatalog();
   const items=source.filter(e=>(!cat||e.category===cat) && (!search||(e.name||'').toLowerCase().includes(search)||(e.id||'').toLowerCase().includes(search)));
   if(!items.length){ grid.innerHTML='<div class="muted" style="grid-column:1/-1">Ничего не найдено. Сохрани подходящий объект (кнопка «Сохранить в папку проекта» или «Экспорт JSON»), он появится здесь.</div>'; return; }
   items.forEach(e=>{
@@ -104,7 +104,7 @@ function migrateCraftRecipe(recipe){
   return {...recipe, ingredients:recipe.ingredients||[]};
 }
 function craftGridFromIngredients(ingredients){
-  const source=projectDirHandle?projectCatalog:loadCatalog();
+  const source=(projectDirHandle||ghIsConnected())?projectCatalog:loadCatalog();
   const lookup={}; source.forEach(e=>{ lookup[e.id]=e; });
   const grid=Array(15).fill(null);
   let idx=0;
@@ -182,29 +182,17 @@ function localeText(key,lang){
 }
 async function loadProjectLocales(){
   projectLocales={};
-  if(!projectDirHandle)return;
-  try{
-    const dir=await getSubdir(projectDirHandle,'data/locale',false);
-    for await(const [name,handle] of dir.entries()){
-      if(handle.kind!=='file' || !name.endsWith('.json'))continue;
-      const lang=name.replace(/\.json$/,'');
-      try{ const file=await handle.getFile(); projectLocales[lang]=JSON.parse(await file.text()); }
-      catch(e){ projectLocales[lang]={}; }
-    }
-  }catch(e){ /* data/locale ещё не существует — это нормально для новой папки */ }
+  if(!projectDirHandle&&!ghIsConnected())return;
+  const r=await listJsonDir('data/locale');
+  r.items.forEach(f=>{ const lang=f.name.replace(/\.json$/,''); projectLocales[lang]=f.broken?{}:(f.data||{}); });
 }
 async function writeLocaleKey(key,text,lang){
   lang=lang||DEFAULT_LOCALE_LANG;
-  if(!projectDirHandle || !key)return;
-  const dir=await getSubdir(projectDirHandle,'data/locale',true);
-  let existing={};
-  try{ const file=await (await dir.getFileHandle(lang+'.json')).getFile(); existing=JSON.parse(await file.text()); }catch(e){}
+  if((!projectDirHandle&&!ghIsConnected()) || !key)return;
+  const existing=(await readSingleJsonFromProject('data/locale/'+lang+'.json')).data||{};
   if(existing[key]!==text){
     existing[key]=text;
-    const fileHandle=await dir.getFileHandle(lang+'.json',{create:true});
-    const writable=await fileHandle.createWritable();
-    await writable.write(new TextEncoder().encode(JSON.stringify(existing,null,2)));
-    await writable.close();
+    await writeFileToProject('data/locale/'+lang+'.json', new TextEncoder().encode(JSON.stringify(existing,null,2)));
   }
   projectLocales[lang]=projectLocales[lang]||{}; projectLocales[lang][key]=text;
 }
@@ -212,7 +200,7 @@ async function writeLocaleKey(key,text,lang){
 // уже помеченных как «подтверждено локализовано» (confirmed='1'), чтобы не
 // записать молча текст старого немигрированного объекта (см. restoreLocalizedField).
 async function syncCurrentLocaleKeys(){
-  if(!projectDirHandle)return;
+  if(!projectDirHandle&&!ghIsConnected())return;
   const lkEl=document.getElementById('localeKey');
   if(lkEl.dataset.confirmed==='1'){ const key=val('localeKey').trim(), text=val('name').trim(); if(key&&text) await writeLocaleKey(key,text,DEFAULT_LOCALE_LANG); }
   const lkdEl=document.getElementById('localeKey_desc');
@@ -245,7 +233,7 @@ function renderLocaleStatus(){
   renderOneLocaleStatus('description','localeKey_desc','localeStatusDesc','_desc');
 }
 async function migrateFieldToLocale(fieldId,keyFieldId,suffix){
-  if(!projectDirHandle){ alert('Сначала подключи папку проекта — иначе некуда сохранить перевод.'); return; }
+  if(!projectDirHandle&&!ghIsConnected()){ alert('Сначала подключи папку проекта или GitHub — иначе некуда сохранить перевод.'); return; }
   const text=val(fieldId).trim(); if(!text)return;
   const keyEl=document.getElementById(keyFieldId);
   const key = keyEl.value.trim() || (id()+suffix);
@@ -538,7 +526,7 @@ function populateBlockSkillSelect(){
 function updateBlockDropsStatus(){
   const el=document.getElementById('blockDropsStatus'); if(!el)return;
   const {rows,bad}=parseBlockDrops(val('blockDropsText'));
-  const source=projectDirHandle?projectCatalog:loadCatalog();
+  const source=(projectDirHandle||ghIsConnected())?projectCatalog:loadCatalog();
   const knownIds=new Set(source.map(e=>e.id));
   const unknown=[...new Set(rows.map(r=>r.item).filter(iid=>!knownIds.has(iid)))];
   let txt=rows.length?`Строк добычи: ${rows.length}`:'Пока пусто — кусок ничего не даёт.';
@@ -1107,14 +1095,9 @@ let linkedCharacter=null; // содержимое data/characters/<id>.json
 let availableAssemblerChars=[];
 async function scanAssemblerCharacters(){
   availableAssemblerChars=[];
-  if(!projectDirHandle){ populateAssemblerCharSelect(); return; }
-  try{
-    const dir=await getSubdir(projectDirHandle,'data/characters',false);
-    for await (const [name,handle] of dir.entries()){
-      if(handle.kind!=='file' || !name.endsWith('.json'))continue;
-      try{ const file=await handle.getFile(); availableAssemblerChars.push(JSON.parse(await file.text())); }catch(e){}
-    }
-  }catch(e){}
+  if(!projectDirHandle&&!ghIsConnected()){ populateAssemblerCharSelect(); return; }
+  const r=await listJsonDir('data/characters');
+  r.items.forEach(f=>{ if(!f.broken&&f.data) availableAssemblerChars.push(f.data); });
   populateAssemblerCharSelect();
 }
 function populateAssemblerCharSelect(){
@@ -1124,18 +1107,15 @@ function populateAssemblerCharSelect(){
   if(availableAssemblerChars.find(c=>c.id===cur)) sel.value=cur;
 }
 async function loadImageFromProjectPath(relPathUnderSprites){
-  const spritesDir=await getSubdir(projectDirHandle,'assets/sprites',false);
-  const parts=relPathUnderSprites.split('/'); const fileName=parts.pop();
-  const subDir=parts.length? await getSubdir(spritesDir,parts.join('/'),false) : spritesDir;
-  const fileHandle=await subDir.getFileHandle(fileName);
-  const file=await fileHandle.getFile();
+  const file=await readProjectFileBlob('assets/sprites/'+relPathUnderSprites);
+  if(!file) throw new Error('файл не найден');
   return new Promise((res,reject)=>{ const r=new FileReader(); r.onload=()=>res(r.result); r.onerror=reject; r.readAsDataURL(file); });
 }
 async function applyLinkedCharacter(){
   const card=document.getElementById('assemblerCharCard');
   if(!linkedCharacter){ card.innerHTML=''; return; }
   let previewImg='';
-  if(linkedCharacter.preview && projectDirHandle){
+  if(linkedCharacter.preview && (projectDirHandle||ghIsConnected())){
     try{
       const dataUrl=await loadImageFromProjectPath(linkedCharacter.preview);
       previewImg=`<img src="${dataUrl}" style="width:40px;height:40px;object-fit:contain;image-rendering:pixelated;background:#0d1116;border-radius:4px;vertical-align:middle;margin-right:8px">`;
@@ -1181,19 +1161,11 @@ document.getElementById('assemblerCharSelect').addEventListener('change', async 
    ПРОВЕРКА ССЫЛОК ПО ВСЕМУ ПРОЕКТУ
    ============================================================ */
 async function scanJsonDirRaw(path){
-  const out=[];
-  try{
-    const dir=await getSubdir(projectDirHandle, path, false);
-    for await (const [name,handle] of dir.entries()){
-      if(handle.kind!=='file' || !name.endsWith('.json'))continue;
-      try{ const file=await handle.getFile(); out.push({name, data:JSON.parse(await file.text())}); }
-      catch(e){ out.push({name, data:null, broken:true}); }
-    }
-  }catch(e){}
-  return out;
+  const r=await listJsonDir(path);
+  return r.items;
 }
 async function runProjectLinkCheck(){
-  if(!projectDirHandle){ alert('Сначала подключи папку проекта.'); return; }
+  if(!projectDirHandle&&!ghIsConnected()){ alert('Сначала подключи папку проекта или GitHub.'); return; }
   document.getElementById('linkCheckSummary').textContent='Сканирую...';
   document.getElementById('linkCheckList').innerHTML='';
   document.getElementById('linkCheckModal').style.display='flex';
@@ -1212,21 +1184,34 @@ async function runProjectLinkCheck(){
   const characters={}; charList.forEach(({name,data,broken})=>{ if(broken){ problems.push(`⚠ Битый JSON: data/characters/${name}`); return; } characters[data.id]=data; });
 
   const partsByRigSlot={};
-  try{
-    const partsRoot=await getSubdir(projectDirHandle,'data/parts',false);
-    for await (const [rigName,rigHandle] of partsRoot.entries()){
-      if(rigHandle.kind!=='directory')continue;
-      for await (const [slotName,slotHandle] of rigHandle.entries()){
-        if(slotHandle.kind!=='directory')continue;
-        const key=rigName+'/'+slotName;
-        const set=new Set();
-        for await (const [fname,fhandle] of slotHandle.entries()){
-          if(fhandle.kind==='file' && fname.endsWith('.json')) set.add(fname.replace(/\.json$/,''));
+  if(ghIsConnected()){
+    try{
+      const tree=await ghFetchTree();
+      tree.forEach(t=>{
+        const m=t.type==='blob'&&t.path.match(/^data\/parts\/([^/]+)\/([^/]+)\/([^/]+)\.json$/);
+        if(!m) return;
+        const key=m[1]+'/'+m[2];
+        if(!partsByRigSlot[key]) partsByRigSlot[key]=new Set();
+        partsByRigSlot[key].add(m[3]);
+      });
+    }catch(e){}
+  }else{
+    try{
+      const partsRoot=await getSubdir(projectDirHandle,'data/parts',false);
+      for await (const [rigName,rigHandle] of partsRoot.entries()){
+        if(rigHandle.kind!=='directory')continue;
+        for await (const [slotName,slotHandle] of rigHandle.entries()){
+          if(slotHandle.kind!=='directory')continue;
+          const key=rigName+'/'+slotName;
+          const set=new Set();
+          for await (const [fname,fhandle] of slotHandle.entries()){
+            if(fhandle.kind==='file' && fname.endsWith('.json')) set.add(fname.replace(/\.json$/,''));
+          }
+          partsByRigSlot[key]=set;
         }
-        partsByRigSlot[key]=set;
       }
-    }
-  }catch(e){}
+    }catch(e){}
+  }
 
   objList.forEach(({name,data})=>{
     if(!data)return;
@@ -1278,15 +1263,10 @@ let existingObjectsList=[];
 async function refreshAllowedRoomTypesOptions(){
   const sel=document.getElementById('allowedRoomTypes');
   const wasSelected=new Set([...sel.selectedOptions].map(o=>o.value));
-  if(!projectDirHandle){ alert('Сначала подключи папку проекта — список берётся из уже сохранённых комнат.'); return; }
+  if(!projectDirHandle&&!ghIsConnected()){ alert('Сначала подключи папку проекта или GitHub — список берётся из уже сохранённых комнат.'); return; }
   const found=new Set();
-  try{
-    const dir=await getSubdir(projectDirHandle,'data/rooms',false);
-    for await (const [name,handle] of dir.entries()){
-      if(handle.kind!=='file' || !name.endsWith('.json'))continue;
-      try{ const file=await handle.getFile(); const data=JSON.parse(await file.text()); if(data.type) found.add(data.type); }catch(e){}
-    }
-  }catch(e){}
+  const r=await listJsonDir('data/rooms');
+  r.items.forEach(f=>{ if(!f.broken&&f.data&&f.data.type) found.add(f.data.type); });
   const existingValues=new Set([...sel.options].map(o=>o.value));
   found.forEach(t=>{ if(!existingValues.has(t)){ const opt=document.createElement('option'); opt.value=t; opt.textContent=t; sel.appendChild(opt); } });
   [...sel.options].forEach(o=>{ o.selected=wasSelected.has(o.value); });
@@ -1296,16 +1276,9 @@ document.getElementById('btnRefreshAllowedRoomTypes').onclick=refreshAllowedRoom
 
 async function scanExistingObjects(){
   existingObjectsList=[];
-  if(!projectDirHandle){ populateOpenObjectSelect(); return; }
-  try{
-    const dir=await getSubdir(projectDirHandle,'data/objects',false);
-    for await(const [name,handle] of dir.entries()){
-      if(handle.kind!=='file'||!name.endsWith('.json'))continue;
-      const objId=name.replace(/\.json$/,'');
-      try{ const data=JSON.parse(await (await handle.getFile()).text()); existingObjectsList.push({id:objId,name:data.name||objId}); }
-      catch(e){ existingObjectsList.push({id:objId,name:objId}); }
-    }
-  }catch(e){}
+  if(!projectDirHandle&&!ghIsConnected()){ populateOpenObjectSelect(); return; }
+  const r=await listJsonDir('data/objects');
+  r.items.forEach(f=>{ const objId=f.name.replace(/\.json$/,''); existingObjectsList.push({id:objId,name:(!f.broken&&f.data&&f.data.name)||objId}); });
   populateOpenObjectSelect();
 }
 function populateOpenObjectSelect(){
@@ -1369,10 +1342,10 @@ function restoreJsonFields(data){
 }
 // rootRel — 'assets/sprites' для картинок, 'assets/sounds' для звука анимаций.
 async function loadProjectFileAsDataURL(rootRel,relPath){
-  if(!projectDirHandle||!relPath)return null;
+  if((!projectDirHandle&&!ghIsConnected())||!relPath)return null;
   try{
-    const root=await getSubdir(projectDirHandle,rootRel,false);const parts=String(relPath).split('/');const fn=parts.pop();const dir=parts.length?await getSubdir(root,parts.join('/'),false):root;
-    const file=await(await dir.getFileHandle(fn)).getFile();
+    const file=await readProjectFileBlob(rootRel+'/'+relPath);
+    if(!file) throw new Error('файл не найден');
     return await new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(r.result);r.onerror=rej;r.readAsDataURL(file);});
   }catch(e){console.warn('Не удалось загрузить файл проекта:',relPath,e);return null;}
 }
@@ -1458,20 +1431,18 @@ async function restoreObjectProjectData(data,objId){
   renderVisualList();if(animations.length)await selectVisual('animation',animations[0].id);else if(imageStates.length)await selectVisual('image',imageStates[0].id);
 }
 async function openObjectFromProject(objId){
-  if(!projectDirHandle)return;
+  if(!projectDirHandle&&!ghIsConnected())return;
   try{
-    const sessDir=await getSubdir(projectDirHandle,'data/objects/.sessions',false).catch(()=>null);
-    if(sessDir){
+    const sess=(await readSingleJsonFromProject('data/objects/.sessions/'+objId+'.json')).data;
+    if(sess){
       try{
-        const file=await (await sessDir.getFileHandle(objId+'.json')).getFile();
-        const state=JSON.parse(await file.text()); await restoreSessionState(state);
+        await restoreSessionState(sess);
         document.getElementById('folderStatus').textContent='Открыт «'+val('name')+'» — рабочий снимок восстановлен.';
         return;
       }catch(e){}
     }
-    const objDir=await getSubdir(projectDirHandle,'data/objects',false);
-    const file=await (await objDir.getFileHandle(objId+'.json')).getFile();
-    const data=JSON.parse(await file.text());
+    const data=(await readSingleJsonFromProject('data/objects/'+objId+'.json')).data;
+    if(!data) throw new Error('объект не найден');
     await restoreObjectProjectData(data,objId);
     if(window.update)window.update();
     document.getElementById('folderStatus').textContent='Открыт «'+(data.name||objId)+'» — JSON восстановлен в редактор.';
@@ -1487,9 +1458,10 @@ document.getElementById('btnOpenObject').onclick=()=>{
    Порядок поиска картинки: основная → статичное состояние → первый кадр анимации (idle, иначе первая).
    Файл читается и проверяется на «декодируемость» — пустой/битый PNG даёт заглушку, а не битую иконку. */
 async function readSpriteFile(spritesDir,rel){
-  if(!spritesDir||!rel) return null;
+  if(!rel||(!spritesDir&&!ghIsConnected())) return null;
+  const clean=String(rel).replace(/^assets\/sprites\//,'').replace(/^\//,'');
+  if(ghIsConnected()) return readProjectFileBlob('assets/sprites/'+clean);
   try{
-    const clean=String(rel).replace(/^assets\/sprites\//,'').replace(/^\//,'');
     const parts=clean.split('/'); const fileName=parts.pop();
     const subDir=parts.length? await getSubdir(spritesDir,parts.join('/'),false) : spritesDir;
     return await (await subDir.getFileHandle(fileName)).getFile();
@@ -1531,23 +1503,35 @@ async function loadCatalogThumb(spritesDir,obj){
   return out;
 }
 async function scanProjectFolderCatalog(){
-  if(!projectDirHandle)return;
+  if(!projectDirHandle&&!ghIsConnected())return;
   projectCatalog.forEach(e=>{ if(e.image) URL.revokeObjectURL(e.image); });
   const result=[];
-  try{
-    const objectsDir=await getSubdir(projectDirHandle,'data/objects',false);
-    let spritesDir=null;
-    try{ spritesDir=await getSubdir(projectDirHandle,'assets/sprites',false); }catch(e){}
-    for await (const [name,handle] of objectsDir.entries()){
-      if(handle.kind!=='file' || !name.endsWith('.json'))continue;
+  if(ghIsConnected()){
+    const objs=await listJsonDir('data/objects');
+    for(const f of objs.items){
+      if(f.broken||!f.data) continue;
       try{
-        const file=await handle.getFile();
-        const obj=JSON.parse(await file.text());
-        const thumb=await loadCatalogThumb(spritesDir,obj); // основная картинка → состояние → кадр анимации; иначе заглушка
+        const obj=f.data;
+        const thumb=await loadCatalogThumb(null,obj); // readSpriteFile сам берёт файлы с GitHub
         result.push({ id:obj.id, category:obj.category, name:obj.name||obj.id, image:thumb.image, imageIssue:thumb.imageIssue, json:obj });
-      }catch(e){ console.warn('Пропущен повреждённый файл каталога:',name,e); }
+      }catch(e){ console.warn('Пропущен повреждённый файл каталога:',f.name,e); }
     }
-  }catch(e){ /* data/objects ещё не существует — каталог пуст, это нормально для новой папки */ }
+  }else{
+    try{
+      const objectsDir=await getSubdir(projectDirHandle,'data/objects',false);
+      let spritesDir=null;
+      try{ spritesDir=await getSubdir(projectDirHandle,'assets/sprites',false); }catch(e){}
+      for await (const [name,handle] of objectsDir.entries()){
+        if(handle.kind!=='file' || !name.endsWith('.json'))continue;
+        try{
+          const file=await handle.getFile();
+          const obj=JSON.parse(await file.text());
+          const thumb=await loadCatalogThumb(spritesDir,obj); // основная картинка → состояние → кадр анимации; иначе заглушка
+          result.push({ id:obj.id, category:obj.category, name:obj.name||obj.id, image:thumb.image, imageIssue:thumb.imageIssue, json:obj });
+        }catch(e){ console.warn('Пропущен повреждённый файл каталога:',name,e); }
+      }
+    }catch(e){ /* data/objects ещё не существует — каталог пуст, это нормально для новой папки */ }
+  }
   projectCatalog=result;
   renderCatalogSidebar();
 }
@@ -1588,18 +1572,76 @@ async function getSubdir(root,pathStr,create){
   for(const p of pathStr.split('/').filter(Boolean)) dir=await dir.getDirectoryHandle(p,{create:!!create});
   return dir;
 }
+// Пишет во ВСЕ подключённые места сразу (и в папку, и в GitHub) — не either/or.
 async function writeFileToProject(relPath,bytes){
-  if(!projectDirHandle)return false;
-  const parts=relPath.split('/'); const fileName=parts.pop();
-  const dir=parts.length ? await getSubdir(projectDirHandle,parts.join('/'),true) : projectDirHandle;
-  const fileHandle=await dir.getFileHandle(fileName,{create:true});
-  const writable=await fileHandle.createWritable();
-  await writable.write(bytes);
-  await writable.close();
-  return true;
+  let ok=false;
+  if(projectDirHandle){
+    const parts=relPath.split('/'); const fileName=parts.pop();
+    const dir=parts.length ? await getSubdir(projectDirHandle,parts.join('/'),true) : projectDirHandle;
+    const fileHandle=await dir.getFileHandle(fileName,{create:true});
+    const writable=await fileHandle.createWritable();
+    await writable.write(bytes);
+    await writable.close();
+    ok=true;
+  }
+  if(ghIsConnected()){ await writeFileToGithub(relPath,bytes,'Object Constructor: '+relPath); ok=true; }
+  return ok;
 }
+// GitHub в приоритете при чтении, если подключён — иначе папка проекта. См. shared/js/github-sync.js.
+async function listJsonDir(path){
+  if(ghIsConnected()) return listJsonDirGithub(path);
+  const out={items:[],missing:false};
+  try{
+    const dir=await getSubdir(projectDirHandle,path,false);
+    for await(const [name,h] of dir.entries()){
+      if(h.kind!=='file'||!/\.json$/i.test(name)) continue;
+      try{ const f=await h.getFile(); out.items.push({name,data:JSON.parse(await f.text()),broken:false}); }
+      catch(e){ out.items.push({name,data:null,broken:true}); }
+    }
+  }catch(e){ out.missing=true; }
+  return out;
+}
+async function listFilesRecursive(path,re){
+  if(ghIsConnected()) return listFilesRecursiveGithub(path,re);
+  const out={files:[],missing:false};
+  let root; try{ root=await getSubdir(projectDirHandle,path,false); }catch(e){ out.missing=true; return out; }
+  async function walk(dir,prefix){
+    for await(const [name,h] of dir.entries()){
+      if(name.startsWith('.')) continue;
+      if(h.kind==='directory') await walk(h,prefix+name+'/');
+      else if(re.test(name)) out.files.push(prefix+name);
+    }
+  }
+  try{ await walk(root,''); }catch(e){}
+  return out;
+}
+async function readSingleJsonFromProject(relPath){
+  if(ghIsConnected()) return readJsonFromGithub(relPath);
+  try{
+    const parts=relPath.split('/'); const fileName=parts.pop();
+    const dir=parts.length?await getSubdir(projectDirHandle,parts.join('/'),false):projectDirHandle;
+    const f=await (await dir.getFileHandle(fileName)).getFile();
+    return {data:JSON.parse(await f.text()),broken:false};
+  }catch(e){ return {data:null,broken:false,missing:true}; }
+}
+// Один файл (картинка/звук) по пути от корня проекта, как Blob — GitHub или папка.
+async function readProjectFileBlob(relPath){
+  if(ghIsConnected()){
+    try{ const r=await ghReadFileRaw(relPath); return r?new Blob([r.bytes]):null; }catch(e){ return null; }
+  }
+  try{
+    const parts=relPath.split('/'); const fileName=parts.pop();
+    const dir=parts.length?await getSubdir(projectDirHandle,parts.join('/'),false):projectDirHandle;
+    return await (await dir.getFileHandle(fileName)).getFile();
+  }catch(e){ return null; }
+}
+// Вызывается shared/js/github-sync.js после успешного подключения GitHub. scanProjectFolderCatalog
+// ссылается на себя же ПОЗЖЕ переопределённую обёртку (см. ниже), поэтому достаточно звать по имени —
+// к моменту реального вызова (из init) переменная уже указывает на полную версию со сканами фонов/
+// локалей/категорий.
+async function onGithubConnected(){ await scanProjectFolderCatalog(); }
 async function saveToProjectFolder(){
-  if(!projectDirHandle){ alert('Сначала подключи папку проекта (кнопка слева от этой).'); return; }
+  if(!projectDirHandle&&!ghIsConnected()){ alert('Сначала подключи папку проекта или GitHub (кнопка слева от этой).'); return; }
   const base=sanitizeSlug(id())||'object';
   const existing=projectCatalog.find(e=>e.id===base);
   if(existing && existing.name && existing.name!==val('name')){
@@ -1639,7 +1681,7 @@ async function saveToProjectFolder(){
     await writeFileToProject('data/objects/'+base+'.json', new TextEncoder().encode(JSON.stringify(collect(),null,2)));
     if(craftRecipe && craftRecipe.recipeImage && craftRecipeImageDataUrl) await writeFileToProject('assets/sprites/'+craftRecipe.recipeImage, await dataURLToBytes(craftRecipeImageDataUrl));
     await scanProjectFolderCatalog();
-    document.getElementById('folderStatus').textContent='Папка: '+projectDirHandle.name+' ✓ · сохранено '+new Date().toLocaleTimeString();
+    document.getElementById('folderStatus').textContent=(projectDirHandle?'Папка: '+projectDirHandle.name+' ✓':'')+(ghIsConnected()?' · GitHub ✓':'')+' · сохранено '+new Date().toLocaleTimeString();
   }catch(e){
     console.error(e);
     alert('Не удалось сохранить в папку: '+e.message+'\nПопробуй «Разрешить доступ» и повтори.');
@@ -1648,7 +1690,7 @@ async function saveToProjectFolder(){
 document.getElementById('btnConnectFolder').onclick=connectProjectFolder;
 document.getElementById('btnRegrantFolder').onclick=regrantProjectFolder;
 document.getElementById('btnSaveToFolder').onclick=saveToProjectFolder;
-document.getElementById('btnRefreshCatalog').onclick=()=>{ if(projectDirHandle) scanProjectFolderCatalog(); else renderCatalogSidebar(); };
+document.getElementById('btnRefreshCatalog').onclick=()=>{ if(projectDirHandle||ghIsConnected()) scanProjectFolderCatalog(); else renderCatalogSidebar(); };
 const __scanProjectFolderCatalog=scanProjectFolderCatalog;
 scanProjectFolderCatalog=async function(){
   await __scanProjectFolderCatalog();
@@ -1662,22 +1704,19 @@ scanProjectFolderCatalog=async function(){
 };
 // Список категорий (CAT_LABELS) → data/categories.json, в порядке ОС; не пишет, если содержимое не изменилось.
 async function syncCategoriesFile(){
-  if(!projectDirHandle)return;
+  if(!projectDirHandle&&!ghIsConnected())return;
   const list=Object.entries(CAT_LABELS).map(([id,name])=>({id,name}));
   const newText=JSON.stringify(list,null,2);
   try{
-    const dir=await getSubdir(projectDirHandle,'data',true);
-    let existingText=null;
-    try{ const file=await (await dir.getFileHandle('categories.json')).getFile(); existingText=await file.text(); }catch(e){}
-    if(existingText===newText)return;
-    const fileHandle=await dir.getFileHandle('categories.json',{create:true});
-    const writable=await fileHandle.createWritable();
-    await writable.write(newText);
-    await writable.close();
+    const existing=(await readSingleJsonFromProject('data/categories.json')).data;
+    if(existing&&JSON.stringify(existing,null,2)===newText)return;
+    await writeFileToProject('data/categories.json',new TextEncoder().encode(newText));
   }catch(e){ console.warn('Не удалось записать data/categories.json:',e); }
 }
 
 tryRestoreProjectFolder();
+wireGithubButtons();
+if(ghIsConnected()) onGithubConnected();
 
 /* ============================================================
    INIT
