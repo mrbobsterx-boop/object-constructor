@@ -12,8 +12,8 @@
   "appearance": {
     "mode": "IMAGE",
     "asset": "block/ore/block_ore_iron_zheleznaya_ruda_plast.png",
-    "imageWidth": 0,
-    "imageHeight": 0,
+    "imageWidth": 621,
+    "imageHeight": 622,
     "collision": null
   },
   "behavior": {
