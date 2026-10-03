@@ -12,7 +12,10 @@
   <h1>Story Bot</h1>
   <button id="btnConnect" class="primary">📁 Подключить папку проекта</button>
   <button id="btnRegrant" style="display:none">Разрешить доступ</button>
+  <button id="btnConnectGithub" title="Читать data/story.json и писать data/story_playtest.json напрямую через GitHub (personal access token), вместо или вместе с папкой">🐙 Подключить GitHub</button>
+  <button id="btnGithubDisconnect" style="display:none" title="Удалить токен из этого браузера">Отключить GitHub</button>
   <span id="folderStatus" class="status">Папка не подключена</span>
+  <span id="githubStatus" class="status">GitHub не подключён</span>
   <span id="storyStatus" class="status"></span>
   <div class="spacer"></div>
 </header>
@@ -52,6 +55,7 @@
 </main>
 </div>
 
+<script src="../shared/js/github-sync.js"></script>
 <script src="js/01-core-utils.js"></script>
 <script src="js/02-engine.js"></script>
 <script src="js/03-single-run-view.js"></script>
