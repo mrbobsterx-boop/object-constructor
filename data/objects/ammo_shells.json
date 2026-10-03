@@ -12,8 +12,8 @@
   "appearance": {
     "mode": "IMAGE",
     "asset": "item/ammo/ammo_shells_patrony_dlya_drobovika.png",
-    "imageWidth": 0,
-    "imageHeight": 0,
+    "imageWidth": 452,
+    "imageHeight": 227,
     "collision": null
   },
   "behavior": {
