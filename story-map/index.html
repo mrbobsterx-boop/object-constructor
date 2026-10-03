@@ -17,8 +17,11 @@
   </div>
   <button id="btnConnect" class="primary">📁 Подключить папку проекта</button>
   <button id="btnRegrant" style="display:none">Разрешить доступ</button>
+  <button id="btnConnectGithub" title="Читать/писать data/story.json напрямую через GitHub (personal access token), вместо или вместе с папкой">🐙 Подключить GitHub</button>
+  <button id="btnGithubDisconnect" style="display:none" title="Удалить токен из этого браузера">Отключить GitHub</button>
   <button id="btnRefreshObjectPlan" title="Перечитать data/object_plan.json без переподключения папки — подхватить новые статусы и свои объекты, добавленные в Object Plan">🔄 Object Plan</button>
   <span id="folderStatus" class="status">Папка не подключена</span>
+  <span id="githubStatus" class="status">GitHub не подключён</span>
   <button id="btnSave" title="Ctrl+S">💾 Сохранить</button>
   <button id="btnDownloadStory" title="Скачать текущий сюжет как story.json — чтобы отправить правки (онлайн-версия не пишет в репозиторий)">⬇ Скачать JSON</button>
   <span id="dirtyStatus" class="status"></span>
@@ -245,6 +248,7 @@
 <script src="../Shelter-Architecture-Map/js/05-data-systems-world-npc.js"></script>
 <script src="../Shelter-Architecture-Map/js/06-data-systems-livingworld-consequences.js"></script>
 
+<script src="../shared/js/github-sync.js"></script>
 <script src="js/01-core-utils.js"></script>
 <script src="js/02-graph-state.js"></script>
 <script src="js/03-canvas.js"></script>

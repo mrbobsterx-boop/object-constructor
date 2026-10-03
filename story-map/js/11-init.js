@@ -89,9 +89,12 @@ renderAll();
 renderDirtyStatus();
 renderReadOnlyStatus();
 // Онлайн-режим: сначала данные из репозитория; если в этом браузере уже подключена папка проекта,
-// tryRestoreProjectFolder загрузит её поверх.
+// tryRestoreProjectFolder загрузит её поверх; если подключён GitHub — он загружается последним и
+// имеет приоритет (работаем через GitHub, а не через папку).
+wireGithubButtons();
 (async()=>{
   const url=storyOnlineUrl();
   if(url) await loadStoryFromUrl(url);
   await tryRestoreProjectFolder();
+  if(ghIsConnected()) await onGithubConnected();
 })();
