@@ -64,13 +64,25 @@ const ENTITIES=[
   {ref:'loc_raider_camp',kind:'location',name:'Лагерь рейдеров',src:'idea'},
   {ref:'loc_water_tower',kind:'location',name:'Водонапорная башня',src:'gdd',note:'§7.2 источник воды.'},
   // фракции (архетипы)
-  {ref:'f_community',kind:'faction',name:'Община',src:'user',note:'Выжившие в другом бункере/поселении (§3.4). Ферма, вода, ремонт.'},
-  {ref:'f_traders',kind:'faction',name:'Торговцы / караван',src:'user',note:'Торговля и торговые маршруты (§21).'},
-  {ref:'f_raiders',kind:'faction',name:'Рейдеры / банда',src:'user',note:'Рейдеры, банды, мародёры (§22).'},
-  {ref:'f_slavers',kind:'faction',name:'Работорговцы',src:'user',note:'Плен и рабство (§21). База за пределами карты — приходят по трассе.'},
-  {ref:'f_remnant',kind:'faction',name:'Остатки порядка',src:'user',note:'Бывшие военные/власть: оружие, дисциплина, свои правила. База за пределами карты, в городке держат водонапорную башню.'},
+  {ref:'f_community',kind:'faction',name:'Община «Родник»',src:'idea',note:'⭐ архетип: община. 💡 ~40 человек в бывшем бункере гражданской обороны «Родник» (это и есть «чужой бункер»). Ферма под лампами, своя скважина, ремонтная мастерская. Живут договорами: помогают тем, кто помогает им. Боятся рейдеров и работорговцев.'},
+  {ref:'f_traders',kind:'faction',name:'Караван «Колесо»',src:'idea',note:'⭐ архетип: торговцы. 💡 3–4 старых грузовика и охрана, круг по трассе раз в неделю. Торгуют топливом, лекарствами, патронами, дают в долг и ведут долговые книги. Нейтральны ко всем, пока им платят.'},
+  {ref:'f_raiders',kind:'faction',name:'Банда «Ржавые»',src:'idea',note:'⭐ архетип: рейдеры. 💡 15–20 человек в лагере у сгоревшей заправки на трассе. Живут данью и грабежом, держат участок дороги. Не производят ничего — поэтому зимой особенно опасны.'},
+  {ref:'f_slavers',kind:'faction',name:'«Перевозчики»',src:'idea',note:'⭐ архетип: работорговцы. 💡 Называют себя «перевозчиками людей»: покупают, продают, меняют пленных, берут выкуп. База за краем карты; в мир приходят колонной раз в 2–3 недели. Торгуют и с «Ржавыми», и с «Колесом».'},
+  {ref:'f_remnant',kind:'faction',name:'«Гарнизон»',src:'idea',note:'⭐ архетип: остатки порядка. 💡 Бывшая воинская часть: оружие, дисциплина, устав вместо закона. База за краем карты, в городке держат водонапорную башню и берут за воду «налог порядка». Отрицают версию «Опыт».'},
   {ref:'g_loners',kind:'group',name:'Одиночки и мародёры',src:'gdd',note:'Независимые NPC (§21) — источник новых членов группы.'},
   {ref:'g_player',kind:'group',name:'Группа игрока',src:'gdd',note:'§6, §24.'},
+  // лидеры фракций (💡 придумано)
+  {ref:'c_vetrova',kind:'character',name:'Анна Ветрова',src:'idea',note:'Лидер «Родника». Бывший фельдшер, ~50 лет. Держит общину на договорах и честном слове; не прощает предательства. Верит версии «Лихорадка» — сама видела первых больных.'},
+  {ref:'c_savva',kind:'character',name:'Савва «Хромой»',src:'idea',note:'Глава каравана «Колесо». Помнит каждый долг. Говорит, что прошлое не продаётся, — но за хорошую цену расскажет любую версию Падения.'},
+  {ref:'c_borzov',kind:'character',name:'Глеб Борзов («Борзый»)',src:'idea',note:'Главарь «Ржавых». Бывший охранник склада. Верит версии «Нарочно» и считает, что раз власть сама всех предала, правил больше нет.'},
+  {ref:'c_marta',kind:'character',name:'Марта «Счетовод»',src:'idea',note:'Ведёт «Перевозчиков». Холодная и вежливая, считает людей как груз. Никогда не врёт о цене.'},
+  {ref:'c_rovnov',kind:'character',name:'Майор Игнат Ровнов',src:'idea',note:'Командир «Гарнизона». Порядок любой ценой. Что-то знает про «Объект-9» и молчит.'},
+  // версии Падения (💡 придумано) — противоречат друг другу, правды в игре нет
+  {ref:'v_fever',kind:'concept',name:'Версия «Лихорадка»',src:'idea',note:'Болезнь пришла с юга через больницы: сначала жар, потом безумие. Врачи заболели первыми. Против: болезнь не объясняет, почему мёртвые встают.'},
+  {ref:'v_object9',kind:'concept',name:'Версия «Опыт» (Объект-9)',src:'idea',note:'Утечка из закрытой военной лаборатории «Объект-9». Против: Гарнизон всё отрицает, а лабораторию никто не видел.'},
+  {ref:'v_water',kind:'concept',name:'Версия «Вода»',src:'idea',note:'Заразу разнёс городской водопровод: в старых газетах «не пейте воду из-под крана». Против: заболели и те, кто пил только из колодцев.'},
+  {ref:'v_sky',kind:'concept',name:'Версия «Небо»',src:'idea',note:'Перед Падением ночью была вспышка в небе, а потом серая пыль. Её помнят старики и рисуют дети. Против: никаких следов падения нет.'},
+  {ref:'v_onpurpose',kind:'concept',name:'Версия «Нарочно»',src:'idea',note:'Власть сама выпустила заразу, чтобы сократить население, а себе построила бункеры. Любимая версия «Ржавых» и «Перевозчиков» — оправдывает всё. Против: бункеры власти тоже вымерли.'},
   // угрозы
   {ref:'t_zombies',kind:'group',name:'Зомби',src:'gdd',note:'§22. ❓ Количество типов не определено.'},
   {ref:'t_animals',kind:'group',name:'Опасные животные',src:'gdd',note:'§22.'},
@@ -103,7 +115,23 @@ const RELATIONS=[
   {from:'f_traders',type:'владеет',to:'r_fuel',status:'proposed'},
   {from:'f_remnant',type:'владеет',to:'loc_water_tower',status:'proposed',comment:'держат источник воды'},
   {from:'t_zombies',type:'находится_в',to:'loc_danger'},
-  {from:'g_loners',type:'находится_в',to:'loc_city'}
+  {from:'g_loners',type:'находится_в',to:'loc_city'},
+  {from:'c_vetrova',type:'состоит_в',to:'f_community',comment:'лидер'},
+  {from:'c_savva',type:'состоит_в',to:'f_traders',comment:'лидер'},
+  {from:'c_borzov',type:'состоит_в',to:'f_raiders',comment:'лидер'},
+  {from:'c_marta',type:'состоит_в',to:'f_slavers',comment:'лидер'},
+  {from:'c_rovnov',type:'состоит_в',to:'f_remnant',comment:'командир'},
+  {from:'f_slavers',type:'друг_с',to:'f_raiders',status:'proposed',comment:'покупают у «Ржавых» пленных'},
+  {from:'f_remnant',type:'враг_с',to:'f_raiders',status:'proposed',comment:'«Гарнизон» гоняет «Ржавых» с трассы, но до конца не добивает'},
+  {from:'c_vetrova',type:'поддерживает',to:'v_fever'},
+  {from:'c_borzov',type:'поддерживает',to:'v_onpurpose'},
+  {from:'f_slavers',type:'поддерживает',to:'v_onpurpose',status:'proposed'},
+  {from:'c_rovnov',type:'враг_с',to:'v_object9',status:'proposed',comment:'отрицает и не любит разговоров'},
+  {from:'v_fever',type:'является',to:'k_catastrophe',comment:'версия'},
+  {from:'v_object9',type:'является',to:'k_catastrophe',comment:'версия'},
+  {from:'v_water',type:'является',to:'k_catastrophe',comment:'версия'},
+  {from:'v_sky',type:'является',to:'k_catastrophe',comment:'версия'},
+  {from:'v_onpurpose',type:'является',to:'k_catastrophe',comment:'версия'}
 ];
 
 // ---------- События по категориям ----------
@@ -130,17 +158,37 @@ const CATEGORIES=[
      effects:[add('world_danger',5),set('shelter_known',1)]},
     {ref:'story.become_leader',title:'Возглавить чужую группу',type:'event',src:'gdd',gdd:'§21',source:'relationship',
      text:'После переворота или смерти лидера игроку предлагают возглавить чужую группу.'},
-    {ref:'story.clue_note',title:'Записи старого мира',type:'event',src:'user',source:'location',refs:['k_catastrophe'],
+    {ref:'story.clue_note',title:'Записи старого мира',type:'choice',src:'user',source:'location',refs:['k_catastrophe'],
      trigger:every(24*12),effects:[add('truth_clues',1)],
-     text:'В брошенном доме — дневник, газета или служебная записка времён Падения. Ещё одна версия того, что случилось.',
-     choices:[ch('Сравнить с тем, что уже знаем','story.clue_contradiction')]},
+     text:'В брошенном доме — дневник, газета или служебная записка времён Падения. О чём она?',
+     choices:[ch('Больничная карта с жалобами на жар','story.version_fever'),ch('Записка с грифом «Объект-9»','story.version_object9'),
+              ch('Газета: «Не пейте воду из-под крана»','story.version_water'),ch('Детский рисунок: вспышка в небе','story.version_sky')]},
     {ref:'story.clue_npc',title:'Старик помнит Падение',type:'choice',src:'user',source:'npc',refs:['k_catastrophe','g_loners'],
      text:'Человек, заставший старый мир, рассказывает свою версию. Молодые его не слушают — они родились после.',
-     choices:[ch('Выслушать (отдать еду за рассказ)','story.clue_contradiction',{effects:[add('truth_clues',1),sub('shelter_food_days',1)]}),
+     choices:[ch('Выслушать (отдать еду за рассказ)','story.version_sky',{effects:[add('truth_clues',1),sub('shelter_food_days',1)]}),
               ch('Позвать в группу','group.newcomer_arrives')]},
+    {ref:'story.version_fever',title:'Версия «Лихорадка»',type:'event',src:'idea',source:'location',refs:['v_fever','c_vetrova'],
+     text:'Болезнь пришла с юга через больницы. Анна Ветрова из «Родника» верит в это: сама видела первых больных. Но почему тогда мёртвые встают?',
+     effects:[add('rep_community',3)],choices:[ch('Сравнить с другими версиями','story.clue_contradiction')]},
+    {ref:'story.version_object9',title:'Версия «Опыт»',type:'choice',src:'idea',source:'location',refs:['v_object9','c_rovnov'],
+     text:'Утечка из закрытой лаборатории «Объект-9». «Гарнизон» всё отрицает — и очень не любит, когда об этом спрашивают.',
+     choices:[ch('Спросить майора Ровнова','story.clue_contradiction',{effects:[sub('rep_remnant',10),add('truth_clues',1)]}),
+              ch('Сжечь записку и молчать','story.clue_contradiction',{effects:[add('rep_remnant',5)]})]},
+    {ref:'story.version_water',title:'Версия «Вода»',type:'event',src:'idea',source:'location',refs:['v_water'],
+     text:'Заразу разнёс городской водопровод. Но заболели и те, кто пил только из колодцев. После этой газеты группа косо смотрит на свой резервуар.',
+     effects:[add('group_tension',5)],choices:[ch('Сравнить с другими версиями','story.clue_contradiction')]},
+    {ref:'story.version_sky',title:'Версия «Небо»',type:'event',src:'idea',source:'npc',refs:['v_sky'],
+     text:'Перед Падением ночью была вспышка в небе, потом серая пыль. Это помнят старики и рисуют дети. Следов падения никто не нашёл.',
+     choices:[ch('Сравнить с другими версиями','story.clue_contradiction')]},
+    {ref:'story.version_onpurpose',title:'Версия «Нарочно»',type:'choice',src:'idea',source:'faction',refs:['v_onpurpose','c_borzov','f_slavers'],
+     text:'«Власть сама выпустила заразу, а себе построила бункеры». Так говорят «Ржавые» и «Перевозчики» — и этим оправдывают всё. Но бункеры власти тоже вымерли.',
+     choices:[ch('Спорить','story.clue_contradiction',{effects:[sub('rep_raiders',5)]}),ch('Промолчать','story.clue_contradiction')]},
     {ref:'story.clue_contradiction',title:'Версии не сходятся',type:'event',src:'user',source:'system',refs:['k_catastrophe'],
      text:'Улики противоречат друг другу. Тайна остаётся тайной — финала у неё нет, но чем больше знаешь, тем больше людей готовы с тобой говорить.',
      trigger:when(c('truth_clues','>=',3)),effects:[add('rep_community',5)]},
+    {ref:'story.raider_talk',title:'Разговор у костра «Ржавых»',type:'event',src:'idea',source:'faction',refs:['c_borzov'],
+     trigger:when(c('rep_raiders','>=',0)),text:'Борзый, подвыпив, объясняет, почему правил больше нет.',
+     choices:[ch('Слушать','story.version_onpurpose')]},
     {ref:'story.born_after',title:'Родившиеся после',type:'event',src:'user',source:'npc',
      trigger:every(24*15),text:'Встречен молодой человек, который никогда не видел старого мира: не знает, что такое электричество из розетки, зато отлично выживает.',
      choices:[ch('Принять в группу','group.newcomer_arrives')]},
@@ -551,13 +599,12 @@ const DECISIONS=[
   {title:'Маленький мир на старте',text:'Бункер, окрестности, трасса, городок (5–10 домов), чужой бункер, лагерь рейдеров. Промзона и заражённые зоны — расширение.'},
   {title:'4 сезона',text:'Игра начинается весной. Лето — засухи, осень — заготовки, зима — нет дождя и урожая, нужно топливо.'},
   {title:'Мир живой с первого дня',text:'Никаких фаз: фракции, караваны и угрозы работают сразу. Защита новичка — только то, что убежище поначалу никому не известно.'},
-  {title:'Бесконечная песочница',text:'Финала нет. Единственный конец — гибель всей группы.'}
+  {title:'Бесконечная песочница',text:'Финала нет. Единственный конец — гибель всей группы.'},
+  {title:'Сезон = 30 игровых дней',status:'tentative',text:'💡 Придумано: год = 120 дней. Предварительно, проверить на балансе.'},
+  {title:'Пять версий Падения',status:'tentative',text:'💡 Придумано: «Лихорадка», «Опыт» (Объект-9), «Вода», «Небо», «Нарочно». Каждая чем-то опровергается, правды в игре нет.'},
+  {title:'Имена фракций и лидеры',status:'tentative',text:'💡 Придумано: Община «Родник» (Анна Ветрова), Караван «Колесо» (Савва «Хромой»), Банда «Ржавые» (Глеб «Борзый»), «Перевозчики» (Марта «Счетовод»), «Гарнизон» (майор Игнат Ровнов).'}
 ];
-// Новые открытые вопросы, появившиеся после решений.
-const OPEN_QUESTIONS=[
-  {title:'Длина сезона',text:'Сейчас 30 игровых дней на сезон (💡). Подходит?'},
-  {title:'Версии Падения',text:'Какие версии катастрофы ходят среди людей? Нужно 3–5 правдоподобных и противоречащих друг другу.'},
-  {title:'Имена фракций',text:'У фракций пока только архетипы — нужны названия и лидеры.'}
-];
+// Открытые вопросы. Всё придуманное за автора помечено 💡 в самих данных — правится там же.
+const OPEN_QUESTIONS=[];
 
 module.exports={VARIABLES,ENTITIES,RELATIONS,CATEGORIES,DECISIONS,OPEN_QUESTIONS};

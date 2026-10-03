@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "saved_at": "2026-10-03T10:04:22.517Z",
+  "saved_at": "2026-10-03T11:06:41.052Z",
   "variables": [
     {
       "id": "day",
@@ -583,8 +583,8 @@
     {
       "id": "story.clue_note",
       "title": "Записи старого мира",
-      "text": "⭐ Решение автора\nВ брошенном доме — дневник, газета или служебная записка времён Падения. Ещё одна версия того, что случилось.",
-      "type": "event",
+      "text": "⭐ Решение автора\nВ брошенном доме — дневник, газета или служебная записка времён Падения. О чём она?",
+      "type": "choice",
       "category": "story",
       "tags": [],
       "samSystem": "",
@@ -626,8 +626,32 @@
       "choices": [
         {
           "id": "story.clue_note#0",
-          "label": "Сравнить с тем, что уже знаем",
-          "target": "story.clue_contradiction",
+          "label": "Больничная карта с жалобами на жар",
+          "target": "story.version_fever",
+          "requires": [],
+          "effects": [],
+          "sim": {}
+        },
+        {
+          "id": "story.clue_note#1",
+          "label": "Записка с грифом «Объект-9»",
+          "target": "story.version_object9",
+          "requires": [],
+          "effects": [],
+          "sim": {}
+        },
+        {
+          "id": "story.clue_note#2",
+          "label": "Газета: «Не пейте воду из-под крана»",
+          "target": "story.version_water",
+          "requires": [],
+          "effects": [],
+          "sim": {}
+        },
+        {
+          "id": "story.clue_note#3",
+          "label": "Детский рисунок: вспышка в небе",
+          "target": "story.version_sky",
           "requires": [],
           "effects": [],
           "sim": {}
@@ -675,7 +699,7 @@
         {
           "id": "story.clue_npc#0",
           "label": "Выслушать (отдать еду за рассказ)",
-          "target": "story.clue_contradiction",
+          "target": "story.version_sky",
           "requires": [],
           "effects": [
             {
@@ -703,6 +727,296 @@
       "ending": ""
     },
     {
+      "id": "story.version_fever",
+      "title": "Версия «Лихорадка»",
+      "text": "💡 Предложение\nБолезнь пришла с юга через больницы. Анна Ветрова из «Родника» верит в это: сама видела первых больных. Но почему тогда мёртвые встают?",
+      "type": "event",
+      "category": "story",
+      "tags": [],
+      "samSystem": "",
+      "arc": "",
+      "chapter": "",
+      "eventSource": "location",
+      "actionRef": {
+        "action": "",
+        "target": ""
+      },
+      "implementationStatus": {},
+      "refs": [
+        "v_fever",
+        "c_vetrova"
+      ],
+      "x": 270,
+      "y": 560,
+      "trigger": {
+        "kind": "conditions",
+        "all": []
+      },
+      "effects": [
+        {
+          "var": "rep_community",
+          "op": "add",
+          "value": 3
+        }
+      ],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "choices": [
+        {
+          "id": "story.version_fever#0",
+          "label": "Сравнить с другими версиями",
+          "target": "story.clue_contradiction",
+          "requires": [],
+          "effects": [],
+          "sim": {}
+        }
+      ],
+      "ending": ""
+    },
+    {
+      "id": "story.version_object9",
+      "title": "Версия «Опыт»",
+      "text": "💡 Предложение\nУтечка из закрытой лаборатории «Объект-9». «Гарнизон» всё отрицает — и очень не любит, когда об этом спрашивают.",
+      "type": "choice",
+      "category": "story",
+      "tags": [],
+      "samSystem": "",
+      "arc": "",
+      "chapter": "",
+      "eventSource": "location",
+      "actionRef": {
+        "action": "",
+        "target": ""
+      },
+      "implementationStatus": {},
+      "refs": [
+        "v_object9",
+        "c_rovnov"
+      ],
+      "x": 270,
+      "y": 690,
+      "trigger": {
+        "kind": "conditions",
+        "all": []
+      },
+      "effects": [],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "choices": [
+        {
+          "id": "story.version_object9#0",
+          "label": "Спросить майора Ровнова",
+          "target": "story.clue_contradiction",
+          "requires": [],
+          "effects": [
+            {
+              "var": "rep_remnant",
+              "op": "subtract",
+              "value": 10
+            },
+            {
+              "var": "truth_clues",
+              "op": "add",
+              "value": 1
+            }
+          ],
+          "sim": {}
+        },
+        {
+          "id": "story.version_object9#1",
+          "label": "Сжечь записку и молчать",
+          "target": "story.clue_contradiction",
+          "requires": [],
+          "effects": [
+            {
+              "var": "rep_remnant",
+              "op": "add",
+              "value": 5
+            }
+          ],
+          "sim": {}
+        }
+      ],
+      "ending": ""
+    },
+    {
+      "id": "story.version_water",
+      "title": "Версия «Вода»",
+      "text": "💡 Предложение\nЗаразу разнёс городской водопровод. Но заболели и те, кто пил только из колодцев. После этой газеты группа косо смотрит на свой резервуар.",
+      "type": "event",
+      "category": "story",
+      "tags": [],
+      "samSystem": "",
+      "arc": "",
+      "chapter": "",
+      "eventSource": "location",
+      "actionRef": {
+        "action": "",
+        "target": ""
+      },
+      "implementationStatus": {},
+      "refs": [
+        "v_water"
+      ],
+      "x": 270,
+      "y": 820,
+      "trigger": {
+        "kind": "conditions",
+        "all": []
+      },
+      "effects": [
+        {
+          "var": "group_tension",
+          "op": "add",
+          "value": 5
+        }
+      ],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "choices": [
+        {
+          "id": "story.version_water#0",
+          "label": "Сравнить с другими версиями",
+          "target": "story.clue_contradiction",
+          "requires": [],
+          "effects": [],
+          "sim": {}
+        }
+      ],
+      "ending": ""
+    },
+    {
+      "id": "story.version_sky",
+      "title": "Версия «Небо»",
+      "text": "💡 Предложение\nПеред Падением ночью была вспышка в небе, потом серая пыль. Это помнят старики и рисуют дети. Следов падения никто не нашёл.",
+      "type": "event",
+      "category": "story",
+      "tags": [],
+      "samSystem": "",
+      "arc": "",
+      "chapter": "",
+      "eventSource": "npc",
+      "actionRef": {
+        "action": "",
+        "target": ""
+      },
+      "implementationStatus": {},
+      "refs": [
+        "v_sky"
+      ],
+      "x": 270,
+      "y": 950,
+      "trigger": {
+        "kind": "conditions",
+        "all": []
+      },
+      "effects": [],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "choices": [
+        {
+          "id": "story.version_sky#0",
+          "label": "Сравнить с другими версиями",
+          "target": "story.clue_contradiction",
+          "requires": [],
+          "effects": [],
+          "sim": {}
+        }
+      ],
+      "ending": ""
+    },
+    {
+      "id": "story.version_onpurpose",
+      "title": "Версия «Нарочно»",
+      "text": "💡 Предложение\n«Власть сама выпустила заразу, а себе построила бункеры». Так говорят «Ржавые» и «Перевозчики» — и этим оправдывают всё. Но бункеры власти тоже вымерли.",
+      "type": "choice",
+      "category": "story",
+      "tags": [],
+      "samSystem": "",
+      "arc": "",
+      "chapter": "",
+      "eventSource": "faction",
+      "actionRef": {
+        "action": "",
+        "target": ""
+      },
+      "implementationStatus": {},
+      "refs": [
+        "v_onpurpose",
+        "c_borzov",
+        "f_slavers"
+      ],
+      "x": 270,
+      "y": 1080,
+      "trigger": {
+        "kind": "conditions",
+        "all": []
+      },
+      "effects": [],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "choices": [
+        {
+          "id": "story.version_onpurpose#0",
+          "label": "Спорить",
+          "target": "story.clue_contradiction",
+          "requires": [],
+          "effects": [
+            {
+              "var": "rep_raiders",
+              "op": "subtract",
+              "value": 5
+            }
+          ],
+          "sim": {}
+        },
+        {
+          "id": "story.version_onpurpose#1",
+          "label": "Промолчать",
+          "target": "story.clue_contradiction",
+          "requires": [],
+          "effects": [],
+          "sim": {}
+        }
+      ],
+      "ending": ""
+    },
+    {
       "id": "story.clue_contradiction",
       "title": "Версии не сходятся",
       "text": "⭐ Решение автора\nУлики противоречат друг другу. Тайна остаётся тайной — финала у неё нет, но чем больше знаешь, тем больше людей готовы с тобой говорить.",
@@ -721,8 +1035,8 @@
       "refs": [
         "k_catastrophe"
       ],
-      "x": 270,
-      "y": 560,
+      "x": 540,
+      "y": 170,
       "trigger": {
         "kind": "conditions",
         "all": [
@@ -753,6 +1067,59 @@
       "ending": ""
     },
     {
+      "id": "story.raider_talk",
+      "title": "Разговор у костра «Ржавых»",
+      "text": "💡 Предложение\nБорзый, подвыпив, объясняет, почему правил больше нет.",
+      "type": "event",
+      "category": "story",
+      "tags": [],
+      "samSystem": "",
+      "arc": "",
+      "chapter": "",
+      "eventSource": "faction",
+      "actionRef": {
+        "action": "",
+        "target": ""
+      },
+      "implementationStatus": {},
+      "refs": [
+        "c_borzov"
+      ],
+      "x": 0,
+      "y": 950,
+      "trigger": {
+        "kind": "conditions",
+        "all": [
+          {
+            "var": "rep_raiders",
+            "op": ">=",
+            "value": 0
+          }
+        ]
+      },
+      "effects": [],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "choices": [
+        {
+          "id": "story.raider_talk#0",
+          "label": "Слушать",
+          "target": "story.version_onpurpose",
+          "requires": [],
+          "effects": [],
+          "sim": {}
+        }
+      ],
+      "ending": ""
+    },
+    {
       "id": "story.born_after",
       "title": "Родившиеся после",
       "text": "⭐ Решение автора\nВстречен молодой человек, который никогда не видел старого мира: не знает, что такое электричество из розетки, зато отлично выживает.",
@@ -770,7 +1137,7 @@
       "implementationStatus": {},
       "refs": [],
       "x": 0,
-      "y": 950,
+      "y": 1080,
       "trigger": {
         "kind": "scheduled",
         "afterHours": 360,
@@ -817,7 +1184,7 @@
       "implementationStatus": {},
       "refs": [],
       "x": 0,
-      "y": 1080,
+      "y": 1210,
       "trigger": {
         "kind": "conditions",
         "all": [
@@ -858,7 +1225,7 @@
       },
       "implementationStatus": {},
       "refs": [],
-      "x": 760,
+      "x": 970,
       "y": 170,
       "trigger": {
         "kind": "scheduled",
@@ -917,7 +1284,7 @@
       },
       "implementationStatus": {},
       "refs": [],
-      "x": 760,
+      "x": 970,
       "y": 300,
       "trigger": {
         "kind": "scheduled",
@@ -961,7 +1328,7 @@
       },
       "implementationStatus": {},
       "refs": [],
-      "x": 760,
+      "x": 970,
       "y": 430,
       "trigger": {
         "kind": "scheduled",
@@ -1019,7 +1386,7 @@
       },
       "implementationStatus": {},
       "refs": [],
-      "x": 760,
+      "x": 970,
       "y": 560,
       "trigger": {
         "kind": "scheduled",
@@ -1096,7 +1463,7 @@
       },
       "implementationStatus": {},
       "refs": [],
-      "x": 1030,
+      "x": 1240,
       "y": 170,
       "trigger": {
         "kind": "conditions",
@@ -1153,7 +1520,7 @@
       },
       "implementationStatus": {},
       "refs": [],
-      "x": 1030,
+      "x": 1240,
       "y": 300,
       "trigger": {
         "kind": "conditions",
@@ -1204,7 +1571,7 @@
       },
       "implementationStatus": {},
       "refs": [],
-      "x": 1030,
+      "x": 1240,
       "y": 430,
       "trigger": {
         "kind": "conditions",
@@ -1255,7 +1622,7 @@
       },
       "implementationStatus": {},
       "refs": [],
-      "x": 1030,
+      "x": 1240,
       "y": 560,
       "trigger": {
         "kind": "conditions",
@@ -1314,7 +1681,7 @@
       },
       "implementationStatus": {},
       "refs": [],
-      "x": 1300,
+      "x": 1510,
       "y": 170,
       "trigger": {
         "kind": "conditions",
@@ -1390,7 +1757,7 @@
       },
       "implementationStatus": {},
       "refs": [],
-      "x": 1300,
+      "x": 1510,
       "y": 300,
       "trigger": {
         "kind": "conditions",
@@ -1454,7 +1821,7 @@
       "refs": [
         "r_water"
       ],
-      "x": 1730,
+      "x": 1940,
       "y": 170,
       "trigger": {
         "kind": "scheduled",
@@ -1498,7 +1865,7 @@
       },
       "implementationStatus": {},
       "refs": [],
-      "x": 1730,
+      "x": 1940,
       "y": 300,
       "trigger": {
         "kind": "conditions",
@@ -1554,7 +1921,7 @@
       },
       "implementationStatus": {},
       "refs": [],
-      "x": 1730,
+      "x": 1940,
       "y": 430,
       "trigger": {
         "kind": "scheduled",
@@ -1612,7 +1979,7 @@
       },
       "implementationStatus": {},
       "refs": [],
-      "x": 1730,
+      "x": 1940,
       "y": 560,
       "trigger": {
         "kind": "conditions",
@@ -1697,7 +2064,7 @@
       },
       "implementationStatus": {},
       "refs": [],
-      "x": 2000,
+      "x": 2210,
       "y": 170,
       "trigger": {
         "kind": "conditions",
@@ -1735,7 +2102,7 @@
       "refs": [
         "loc_water_tower"
       ],
-      "x": 2000,
+      "x": 2210,
       "y": 300,
       "trigger": {
         "kind": "conditions",
@@ -1801,7 +2168,7 @@
       "refs": [
         "f_remnant"
       ],
-      "x": 2270,
+      "x": 2480,
       "y": 170,
       "trigger": {
         "kind": "conditions",
@@ -1874,7 +2241,7 @@
       },
       "implementationStatus": {},
       "refs": [],
-      "x": 1730,
+      "x": 1940,
       "y": 690,
       "trigger": {
         "kind": "conditions",
@@ -1951,7 +2318,7 @@
       "refs": [
         "loc_raider_camp"
       ],
-      "x": 1730,
+      "x": 1940,
       "y": 820,
       "trigger": {
         "kind": "conditions",
@@ -2010,7 +2377,7 @@
       },
       "implementationStatus": {},
       "refs": [],
-      "x": 2000,
+      "x": 2210,
       "y": 430,
       "trigger": {
         "kind": "conditions",
@@ -2087,7 +2454,7 @@
       "refs": [
         "r_water"
       ],
-      "x": 2000,
+      "x": 2210,
       "y": 560,
       "trigger": {
         "kind": "conditions",
@@ -2157,7 +2524,7 @@
       },
       "implementationStatus": {},
       "refs": [],
-      "x": 2700,
+      "x": 2910,
       "y": 170,
       "trigger": {
         "kind": "scheduled",
@@ -2201,7 +2568,7 @@
       },
       "implementationStatus": {},
       "refs": [],
-      "x": 2700,
+      "x": 2910,
       "y": 300,
       "trigger": {
         "kind": "conditions",
@@ -2254,7 +2621,7 @@
       "refs": [
         "r_energy"
       ],
-      "x": 2700,
+      "x": 2910,
       "y": 430,
       "trigger": {
         "kind": "conditions",
@@ -2343,7 +2710,7 @@
       },
       "implementationStatus": {},
       "refs": [],
-      "x": 2970,
+      "x": 3180,
       "y": 170,
       "trigger": {
         "kind": "conditions",
@@ -2379,7 +2746,7 @@
       },
       "implementationStatus": {},
       "refs": [],
-      "x": 2970,
+      "x": 3180,
       "y": 300,
       "trigger": {
         "kind": "conditions",
@@ -2441,7 +2808,7 @@
       },
       "implementationStatus": {},
       "refs": [],
-      "x": 2700,
+      "x": 2910,
       "y": 560,
       "trigger": {
         "kind": "conditions",
@@ -2483,7 +2850,7 @@
       },
       "implementationStatus": {},
       "refs": [],
-      "x": 2700,
+      "x": 2910,
       "y": 690,
       "trigger": {
         "kind": "scheduled",
@@ -2537,7 +2904,7 @@
       "implementationStatus": {},
       "refs": [],
       "x": 0,
-      "y": 1540,
+      "y": 1670,
       "trigger": {
         "kind": "scheduled",
         "afterHours": 168,
@@ -2581,7 +2948,7 @@
       "implementationStatus": {},
       "refs": [],
       "x": 270,
-      "y": 1540,
+      "y": 1670,
       "trigger": {
         "kind": "conditions",
         "all": []
@@ -2651,7 +3018,7 @@
       "implementationStatus": {},
       "refs": [],
       "x": 540,
-      "y": 1540,
+      "y": 1670,
       "trigger": {
         "kind": "conditions",
         "all": []
@@ -2710,7 +3077,7 @@
       "implementationStatus": {},
       "refs": [],
       "x": 540,
-      "y": 1670,
+      "y": 1800,
       "trigger": {
         "kind": "conditions",
         "all": []
@@ -2748,7 +3115,7 @@
         "r_food"
       ],
       "x": 0,
-      "y": 1670,
+      "y": 1800,
       "trigger": {
         "kind": "conditions",
         "all": [
@@ -2826,7 +3193,7 @@
       "implementationStatus": {},
       "refs": [],
       "x": 270,
-      "y": 1670,
+      "y": 1800,
       "trigger": {
         "kind": "conditions",
         "all": []
@@ -2912,7 +3279,7 @@
         "f_traders"
       ],
       "x": 270,
-      "y": 1800,
+      "y": 1930,
       "trigger": {
         "kind": "conditions",
         "all": []
@@ -2992,7 +3359,7 @@
       "implementationStatus": {},
       "refs": [],
       "x": 0,
-      "y": 1800,
+      "y": 1930,
       "trigger": {
         "kind": "conditions",
         "all": [
@@ -3045,7 +3412,7 @@
       "implementationStatus": {},
       "refs": [],
       "x": 0,
-      "y": 1930,
+      "y": 2060,
       "trigger": {
         "kind": "conditions",
         "all": [
@@ -3103,7 +3470,7 @@
       "implementationStatus": {},
       "refs": [],
       "x": 970,
-      "y": 1540,
+      "y": 1670,
       "trigger": {
         "kind": "conditions",
         "all": []
@@ -3168,7 +3535,7 @@
       "implementationStatus": {},
       "refs": [],
       "x": 1240,
-      "y": 1540,
+      "y": 1670,
       "trigger": {
         "kind": "conditions",
         "all": []
@@ -3204,7 +3571,7 @@
       "implementationStatus": {},
       "refs": [],
       "x": 1240,
-      "y": 1670,
+      "y": 1800,
       "trigger": {
         "kind": "conditions",
         "all": []
@@ -3263,7 +3630,7 @@
       "implementationStatus": {},
       "refs": [],
       "x": 970,
-      "y": 1670,
+      "y": 1800,
       "trigger": {
         "kind": "conditions",
         "all": []
@@ -3330,7 +3697,7 @@
         "r_meds"
       ],
       "x": 1240,
-      "y": 1800,
+      "y": 1930,
       "trigger": {
         "kind": "conditions",
         "all": [
@@ -3397,7 +3764,7 @@
       "implementationStatus": {},
       "refs": [],
       "x": 1510,
-      "y": 1540,
+      "y": 1670,
       "trigger": {
         "kind": "conditions",
         "all": []
@@ -3462,7 +3829,7 @@
       "implementationStatus": {},
       "refs": [],
       "x": 1510,
-      "y": 1670,
+      "y": 1800,
       "trigger": {
         "kind": "conditions",
         "all": []
@@ -3526,7 +3893,7 @@
       "implementationStatus": {},
       "refs": [],
       "x": 1780,
-      "y": 1540,
+      "y": 1670,
       "trigger": {
         "kind": "conditions",
         "all": []
@@ -3605,7 +3972,7 @@
       "implementationStatus": {},
       "refs": [],
       "x": 1780,
-      "y": 1670,
+      "y": 1800,
       "trigger": {
         "kind": "conditions",
         "all": []
@@ -3664,7 +4031,7 @@
       "implementationStatus": {},
       "refs": [],
       "x": 970,
-      "y": 1800,
+      "y": 1930,
       "trigger": {
         "kind": "conditions",
         "all": []
@@ -3725,7 +4092,7 @@
         "loc_outskirts"
       ],
       "x": 2210,
-      "y": 1540,
+      "y": 1670,
       "trigger": {
         "kind": "conditions",
         "all": []
@@ -3794,7 +4161,7 @@
         "loc_highway"
       ],
       "x": 2480,
-      "y": 1540,
+      "y": 1670,
       "trigger": {
         "kind": "conditions",
         "all": []
@@ -3857,7 +4224,7 @@
         "loc_city"
       ],
       "x": 2480,
-      "y": 1670,
+      "y": 1800,
       "trigger": {
         "kind": "conditions",
         "all": []
@@ -3934,7 +4301,7 @@
       "implementationStatus": {},
       "refs": [],
       "x": 2750,
-      "y": 1540,
+      "y": 1670,
       "trigger": {
         "kind": "conditions",
         "all": []
@@ -4001,7 +4368,7 @@
       "implementationStatus": {},
       "refs": [],
       "x": 3020,
-      "y": 1540,
+      "y": 1670,
       "trigger": {
         "kind": "conditions",
         "all": []
@@ -4037,7 +4404,7 @@
       "implementationStatus": {},
       "refs": [],
       "x": 2480,
-      "y": 1800,
+      "y": 1930,
       "trigger": {
         "kind": "conditions",
         "all": []
@@ -4090,7 +4457,7 @@
       "implementationStatus": {},
       "refs": [],
       "x": 2750,
-      "y": 1670,
+      "y": 1800,
       "trigger": {
         "kind": "conditions",
         "all": []
@@ -4151,7 +4518,7 @@
         "loc_other_bunker"
       ],
       "x": 2210,
-      "y": 1670,
+      "y": 1800,
       "trigger": {
         "kind": "conditions",
         "all": [
@@ -4210,7 +4577,7 @@
       "implementationStatus": {},
       "refs": [],
       "x": 2750,
-      "y": 1800,
+      "y": 1930,
       "trigger": {
         "kind": "conditions",
         "all": []
@@ -4252,7 +4619,7 @@
       "implementationStatus": {},
       "refs": [],
       "x": 2210,
-      "y": 1800,
+      "y": 1930,
       "trigger": {
         "kind": "scheduled",
         "afterHours": 240,
@@ -4290,7 +4657,7 @@
       "implementationStatus": {},
       "refs": [],
       "x": 2750,
-      "y": 1930,
+      "y": 2060,
       "trigger": {
         "kind": "conditions",
         "all": []
@@ -4326,7 +4693,7 @@
       "implementationStatus": {},
       "refs": [],
       "x": 2210,
-      "y": 1930,
+      "y": 2060,
       "trigger": {
         "kind": "conditions",
         "all": []
@@ -4362,7 +4729,7 @@
       "implementationStatus": {},
       "refs": [],
       "x": 3450,
-      "y": 1540,
+      "y": 1670,
       "trigger": {
         "kind": "scheduled",
         "afterHours": 96,
@@ -4409,7 +4776,7 @@
       "implementationStatus": {},
       "refs": [],
       "x": 3720,
-      "y": 1540,
+      "y": 1670,
       "trigger": {
         "kind": "scheduled",
         "afterHours": 192,
@@ -4456,7 +4823,7 @@
       "implementationStatus": {},
       "refs": [],
       "x": 3450,
-      "y": 1670,
+      "y": 1800,
       "trigger": {
         "kind": "scheduled",
         "afterHours": 360,
@@ -4509,7 +4876,7 @@
       "implementationStatus": {},
       "refs": [],
       "x": 3450,
-      "y": 1800,
+      "y": 1930,
       "trigger": {
         "kind": "conditions",
         "all": []
@@ -4568,7 +4935,7 @@
       "implementationStatus": {},
       "refs": [],
       "x": 3450,
-      "y": 1930,
+      "y": 2060,
       "trigger": {
         "kind": "scheduled",
         "afterHours": 480,
@@ -4615,7 +4982,7 @@
       "implementationStatus": {},
       "refs": [],
       "x": 3450,
-      "y": 2060,
+      "y": 2190,
       "trigger": {
         "kind": "conditions",
         "all": []
@@ -4662,7 +5029,7 @@
         "f_slavers"
       ],
       "x": 3450,
-      "y": 2190,
+      "y": 2320,
       "trigger": {
         "kind": "scheduled",
         "afterHours": 288,
@@ -4709,7 +5076,7 @@
       "implementationStatus": {},
       "refs": [],
       "x": 3450,
-      "y": 2320,
+      "y": 2450,
       "trigger": {
         "kind": "conditions",
         "all": []
@@ -4764,7 +5131,7 @@
         "f_community"
       ],
       "x": 3450,
-      "y": 2450,
+      "y": 2580,
       "trigger": {
         "kind": "conditions",
         "all": []
@@ -4837,7 +5204,7 @@
       "implementationStatus": {},
       "refs": [],
       "x": 3720,
-      "y": 1670,
+      "y": 1800,
       "trigger": {
         "kind": "conditions",
         "all": [
@@ -4904,7 +5271,7 @@
         "f_raiders"
       ],
       "x": 3990,
-      "y": 1540,
+      "y": 1670,
       "trigger": {
         "kind": "conditions",
         "all": []
@@ -4987,7 +5354,7 @@
       "implementationStatus": {},
       "refs": [],
       "x": 4260,
-      "y": 1540,
+      "y": 1670,
       "trigger": {
         "kind": "conditions",
         "all": []
@@ -5031,7 +5398,7 @@
         "f_remnant"
       ],
       "x": 4260,
-      "y": 1670,
+      "y": 1800,
       "trigger": {
         "kind": "conditions",
         "all": []
@@ -5095,7 +5462,7 @@
       "implementationStatus": {},
       "refs": [],
       "x": 4530,
-      "y": 1540,
+      "y": 1670,
       "trigger": {
         "kind": "conditions",
         "all": []
@@ -5154,7 +5521,7 @@
       "implementationStatus": {},
       "refs": [],
       "x": 4530,
-      "y": 1670,
+      "y": 1800,
       "trigger": {
         "kind": "conditions",
         "all": []
@@ -5205,7 +5572,7 @@
       "implementationStatus": {},
       "refs": [],
       "x": 3720,
-      "y": 1800,
+      "y": 1930,
       "trigger": {
         "kind": "conditions",
         "all": []
@@ -5275,7 +5642,7 @@
       "implementationStatus": {},
       "refs": [],
       "x": 3720,
-      "y": 1930,
+      "y": 2060,
       "trigger": {
         "kind": "conditions",
         "all": []
@@ -5334,7 +5701,7 @@
       "implementationStatus": {},
       "refs": [],
       "x": 3450,
-      "y": 2580,
+      "y": 2710,
       "trigger": {
         "kind": "conditions",
         "all": []
@@ -5390,7 +5757,7 @@
       "implementationStatus": {},
       "refs": [],
       "x": 3450,
-      "y": 2710,
+      "y": 2840,
       "trigger": {
         "kind": "conditions",
         "all": []
@@ -5444,7 +5811,7 @@
         "f_traders"
       ],
       "x": 3720,
-      "y": 2060,
+      "y": 2190,
       "trigger": {
         "kind": "scheduled",
         "afterHours": 144,
@@ -5518,7 +5885,7 @@
       "implementationStatus": {},
       "refs": [],
       "x": 3990,
-      "y": 1670,
+      "y": 1800,
       "trigger": {
         "kind": "conditions",
         "all": []
@@ -5569,7 +5936,7 @@
       "implementationStatus": {},
       "refs": [],
       "x": 4260,
-      "y": 1800,
+      "y": 1930,
       "trigger": {
         "kind": "conditions",
         "all": [
@@ -5645,7 +6012,7 @@
       "implementationStatus": {},
       "refs": [],
       "x": 3450,
-      "y": 2840,
+      "y": 2970,
       "trigger": {
         "kind": "scheduled",
         "afterHours": 432,
@@ -5686,7 +6053,7 @@
         "f_slavers"
       ],
       "x": 0,
-      "y": 3300,
+      "y": 3430,
       "trigger": {
         "kind": "conditions",
         "all": []
@@ -5784,7 +6151,7 @@
       "implementationStatus": {},
       "refs": [],
       "x": 270,
-      "y": 3300,
+      "y": 3430,
       "trigger": {
         "kind": "conditions",
         "all": []
@@ -5836,7 +6203,7 @@
       "implementationStatus": {},
       "refs": [],
       "x": 270,
-      "y": 3430,
+      "y": 3560,
       "trigger": {
         "kind": "conditions",
         "all": []
@@ -5878,7 +6245,7 @@
       "implementationStatus": {},
       "refs": [],
       "x": 0,
-      "y": 3430,
+      "y": 3560,
       "trigger": {
         "kind": "conditions",
         "all": []
@@ -5975,7 +6342,7 @@
         "f_slavers"
       ],
       "x": 0,
-      "y": 3560,
+      "y": 3690,
       "trigger": {
         "kind": "conditions",
         "all": []
@@ -6064,7 +6431,7 @@
       "implementationStatus": {},
       "refs": [],
       "x": 0,
-      "y": 3690,
+      "y": 3820,
       "trigger": {
         "kind": "conditions",
         "all": []
@@ -6156,7 +6523,7 @@
       "implementationStatus": {},
       "refs": [],
       "x": 0,
-      "y": 3820,
+      "y": 3950,
       "trigger": {
         "kind": "conditions",
         "all": [
@@ -6239,7 +6606,7 @@
         "g_loners"
       ],
       "x": 760,
-      "y": 3300,
+      "y": 3430,
       "trigger": {
         "kind": "conditions",
         "all": []
@@ -6311,7 +6678,7 @@
       "implementationStatus": {},
       "refs": [],
       "x": 1030,
-      "y": 3300,
+      "y": 3430,
       "trigger": {
         "kind": "conditions",
         "all": []
@@ -6347,7 +6714,7 @@
       "implementationStatus": {},
       "refs": [],
       "x": 760,
-      "y": 3430,
+      "y": 3560,
       "trigger": {
         "kind": "conditions",
         "all": [
@@ -6423,7 +6790,7 @@
       "implementationStatus": {},
       "refs": [],
       "x": 760,
-      "y": 3560,
+      "y": 3690,
       "trigger": {
         "kind": "scheduled",
         "afterHours": 480,
@@ -6467,7 +6834,7 @@
       "implementationStatus": {},
       "refs": [],
       "x": 760,
-      "y": 3690,
+      "y": 3820,
       "trigger": {
         "kind": "conditions",
         "all": [
@@ -6515,7 +6882,7 @@
       "implementationStatus": {},
       "refs": [],
       "x": 760,
-      "y": 3820,
+      "y": 3950,
       "trigger": {
         "kind": "conditions",
         "all": [
@@ -6577,7 +6944,7 @@
       "implementationStatus": {},
       "refs": [],
       "x": 1030,
-      "y": 3430,
+      "y": 3560,
       "trigger": {
         "kind": "conditions",
         "all": []
@@ -6633,7 +7000,7 @@
       "implementationStatus": {},
       "refs": [],
       "x": 1030,
-      "y": 3560,
+      "y": 3690,
       "trigger": {
         "kind": "conditions",
         "all": []
@@ -6680,7 +7047,7 @@
       "implementationStatus": {},
       "refs": [],
       "x": 1300,
-      "y": 3300,
+      "y": 3430,
       "trigger": {
         "kind": "conditions",
         "all": []
@@ -6727,7 +7094,7 @@
       "implementationStatus": {},
       "refs": [],
       "x": 1030,
-      "y": 3690,
+      "y": 3820,
       "trigger": {
         "kind": "conditions",
         "all": []
@@ -6794,7 +7161,7 @@
         "f_raiders"
       ],
       "x": 1730,
-      "y": 3300,
+      "y": 3430,
       "trigger": {
         "kind": "conditions",
         "all": []
@@ -6883,7 +7250,7 @@
         "t_zombies"
       ],
       "x": 1730,
-      "y": 3430,
+      "y": 3560,
       "trigger": {
         "kind": "conditions",
         "all": [
@@ -6945,7 +7312,7 @@
       "implementationStatus": {},
       "refs": [],
       "x": 2000,
-      "y": 3300,
+      "y": 3430,
       "trigger": {
         "kind": "conditions",
         "all": [
@@ -7026,7 +7393,7 @@
       "implementationStatus": {},
       "refs": [],
       "x": 1730,
-      "y": 3560,
+      "y": 3690,
       "trigger": {
         "kind": "conditions",
         "all": [
@@ -7112,7 +7479,7 @@
       "implementationStatus": {},
       "refs": [],
       "x": 1730,
-      "y": 3690,
+      "y": 3820,
       "trigger": {
         "kind": "conditions",
         "all": []
@@ -7190,7 +7557,7 @@
       "implementationStatus": {},
       "refs": [],
       "x": 2490,
-      "y": 3300,
+      "y": 3430,
       "trigger": {
         "kind": "conditions",
         "all": [
@@ -7255,7 +7622,7 @@
       "implementationStatus": {},
       "refs": [],
       "x": 2760,
-      "y": 3300,
+      "y": 3430,
       "trigger": {
         "kind": "conditions",
         "all": []
@@ -7291,7 +7658,7 @@
       "implementationStatus": {},
       "refs": [],
       "x": 2490,
-      "y": 3430,
+      "y": 3560,
       "trigger": {
         "kind": "scheduled",
         "afterHours": 384,
@@ -7340,7 +7707,7 @@
       "implementationStatus": {},
       "refs": [],
       "x": 2490,
-      "y": 3560,
+      "y": 3690,
       "trigger": {
         "kind": "conditions",
         "all": []
@@ -7392,7 +7759,7 @@
       "implementationStatus": {},
       "refs": [],
       "x": 2490,
-      "y": 3690,
+      "y": 3820,
       "trigger": {
         "kind": "conditions",
         "all": []
@@ -7445,7 +7812,7 @@
       "implementationStatus": {},
       "refs": [],
       "x": 2490,
-      "y": 3820,
+      "y": 3950,
       "trigger": {
         "kind": "conditions",
         "all": []
@@ -7492,7 +7859,7 @@
       "implementationStatus": {},
       "refs": [],
       "x": 2490,
-      "y": 3950,
+      "y": 4080,
       "trigger": {
         "kind": "conditions",
         "all": []
@@ -7521,21 +7888,21 @@
     },
     {
       "id": "note_time",
-      "x": 760,
+      "x": 970,
       "y": 0,
       "text": "Время, погода и сезоны — Единое игровое время (§9). Решения: мир живой с первого дня (без фаз), 4 сезона, игра начинается весной.",
       "color": "yellow"
     },
     {
       "id": "note_water",
-      "x": 1730,
+      "x": 1940,
       "y": 0,
       "text": "Вода — Вода — ресурс внутри объектов (резервуар, бочка). Баланс: производство + накопление − потребление (§7, §10.2).",
       "color": "yellow"
     },
     {
       "id": "note_energy",
-      "x": 2700,
+      "x": 2910,
       "y": 0,
       "text": "Энергия — Свой энергоконтур у объектов: аккумуляторы, солнечные панели, ветряки, велогенераторы (§8).",
       "color": "yellow"
@@ -7543,56 +7910,56 @@
     {
       "id": "note_food",
       "x": 0,
-      "y": 1370,
+      "y": 1500,
       "text": "Еда и ферма — Еда: консервы, сырьё, готовая еда; порча со временем (§10.1). Растения — объекты мира (§10.7).",
       "color": "yellow"
     },
     {
       "id": "note_health",
       "x": 970,
-      "y": 1370,
+      "y": 1500,
       "text": "Здоровье и смерть — Единая система здоровья: травмы, болезни, инфекции, лечение через действия (§26). Смерть постоянна и оставляет след (§27).",
       "color": "yellow"
     },
     {
       "id": "note_exploration",
       "x": 2210,
-      "y": 1370,
+      "y": 1500,
       "text": "Исследование, лут и переходы — Мир физический: игрок сам идёт, переходы через двери, края, лестницы, указатели (§4). Места меняют состояние (§18).",
       "color": "yellow"
     },
     {
       "id": "note_factions",
       "x": 3450,
-      "y": 1370,
+      "y": 1500,
       "text": "Фракции и торговля — Фракции живут без игрока: добывают, торгуют, воюют, раскалываются, меняют лидеров (§21).",
       "color": "yellow"
     },
     {
       "id": "note_capture",
       "x": 0,
-      "y": 3130,
+      "y": 3260,
       "text": "Плен и рабство — В GDD это расписано подробно: захват, плен, продажа, обмен, выкуп, побег, рабство (§21).",
       "color": "yellow"
     },
     {
       "id": "note_ai",
       "x": 760,
-      "y": 3130,
+      "y": 3260,
       "text": "Группа и отношения — Любой NPC может стать членом группы (§24). Отношения влияют на доверие, лояльность, предательство, раскол (§23).",
       "color": "yellow"
     },
     {
       "id": "note_combat",
       "x": 1730,
-      "y": 3130,
+      "y": 3260,
       "text": "Бой, угрозы и шум — Угрозы реагируют на время суток, погоду, шум, следы и нехватку ресурсов (§22).",
       "color": "yellow"
     },
     {
       "id": "note_building",
       "x": 2490,
-      "y": 3130,
+      "y": 3260,
       "text": "Убежище как место — Механики (рецепты, прочность, нагрузка) описывают ОС и Object Plan. Здесь только события, которые из них вытекают (§14–16).",
       "color": "yellow"
     }
@@ -7691,45 +8058,45 @@
     {
       "id": "f_community",
       "kind": "faction",
-      "name": "Община",
+      "name": "Община «Родник»",
       "ref": null,
-      "note": "⭐ Решение автора · Выжившие в другом бункере/поселении (§3.4). Ферма, вода, ремонт.",
+      "note": "💡 Предложение · ⭐ архетип: община. 💡 ~40 человек в бывшем бункере гражданской обороны «Родник» (это и есть «чужой бункер»). Ферма под лампами, своя скважина, ремонтная мастерская. Живут договорами: помогают тем, кто помогает им. Боятся рейдеров и работорговцев.",
       "status": "active",
       "lifecycle": ""
     },
     {
       "id": "f_traders",
       "kind": "faction",
-      "name": "Торговцы / караван",
+      "name": "Караван «Колесо»",
       "ref": null,
-      "note": "⭐ Решение автора · Торговля и торговые маршруты (§21).",
+      "note": "💡 Предложение · ⭐ архетип: торговцы. 💡 3–4 старых грузовика и охрана, круг по трассе раз в неделю. Торгуют топливом, лекарствами, патронами, дают в долг и ведут долговые книги. Нейтральны ко всем, пока им платят.",
       "status": "active",
       "lifecycle": ""
     },
     {
       "id": "f_raiders",
       "kind": "faction",
-      "name": "Рейдеры / банда",
+      "name": "Банда «Ржавые»",
       "ref": null,
-      "note": "⭐ Решение автора · Рейдеры, банды, мародёры (§22).",
+      "note": "💡 Предложение · ⭐ архетип: рейдеры. 💡 15–20 человек в лагере у сгоревшей заправки на трассе. Живут данью и грабежом, держат участок дороги. Не производят ничего — поэтому зимой особенно опасны.",
       "status": "active",
       "lifecycle": ""
     },
     {
       "id": "f_slavers",
       "kind": "faction",
-      "name": "Работорговцы",
+      "name": "«Перевозчики»",
       "ref": null,
-      "note": "⭐ Решение автора · Плен и рабство (§21). База за пределами карты — приходят по трассе.",
+      "note": "💡 Предложение · ⭐ архетип: работорговцы. 💡 Называют себя «перевозчиками людей»: покупают, продают, меняют пленных, берут выкуп. База за краем карты; в мир приходят колонной раз в 2–3 недели. Торгуют и с «Ржавыми», и с «Колесом».",
       "status": "active",
       "lifecycle": ""
     },
     {
       "id": "f_remnant",
       "kind": "faction",
-      "name": "Остатки порядка",
+      "name": "«Гарнизон»",
       "ref": null,
-      "note": "⭐ Решение автора · Бывшие военные/власть: оружие, дисциплина, свои правила. База за пределами карты, в городке держат водонапорную башню.",
+      "note": "💡 Предложение · ⭐ архетип: остатки порядка. 💡 Бывшая воинская часть: оружие, дисциплина, устав вместо закона. База за краем карты, в городке держат водонапорную башню и берут за воду «налог порядка». Отрицают версию «Опыт».",
       "status": "active",
       "lifecycle": ""
     },
@@ -7748,6 +8115,96 @@
       "name": "Группа игрока",
       "ref": null,
       "note": "✅ Из GDD · §6, §24.",
+      "status": "active",
+      "lifecycle": ""
+    },
+    {
+      "id": "c_vetrova",
+      "kind": "character",
+      "name": "Анна Ветрова",
+      "ref": null,
+      "note": "💡 Предложение · Лидер «Родника». Бывший фельдшер, ~50 лет. Держит общину на договорах и честном слове; не прощает предательства. Верит версии «Лихорадка» — сама видела первых больных.",
+      "status": "active",
+      "lifecycle": ""
+    },
+    {
+      "id": "c_savva",
+      "kind": "character",
+      "name": "Савва «Хромой»",
+      "ref": null,
+      "note": "💡 Предложение · Глава каравана «Колесо». Помнит каждый долг. Говорит, что прошлое не продаётся, — но за хорошую цену расскажет любую версию Падения.",
+      "status": "active",
+      "lifecycle": ""
+    },
+    {
+      "id": "c_borzov",
+      "kind": "character",
+      "name": "Глеб Борзов («Борзый»)",
+      "ref": null,
+      "note": "💡 Предложение · Главарь «Ржавых». Бывший охранник склада. Верит версии «Нарочно» и считает, что раз власть сама всех предала, правил больше нет.",
+      "status": "active",
+      "lifecycle": ""
+    },
+    {
+      "id": "c_marta",
+      "kind": "character",
+      "name": "Марта «Счетовод»",
+      "ref": null,
+      "note": "💡 Предложение · Ведёт «Перевозчиков». Холодная и вежливая, считает людей как груз. Никогда не врёт о цене.",
+      "status": "active",
+      "lifecycle": ""
+    },
+    {
+      "id": "c_rovnov",
+      "kind": "character",
+      "name": "Майор Игнат Ровнов",
+      "ref": null,
+      "note": "💡 Предложение · Командир «Гарнизона». Порядок любой ценой. Что-то знает про «Объект-9» и молчит.",
+      "status": "active",
+      "lifecycle": ""
+    },
+    {
+      "id": "v_fever",
+      "kind": "concept",
+      "name": "Версия «Лихорадка»",
+      "ref": null,
+      "note": "💡 Предложение · Болезнь пришла с юга через больницы: сначала жар, потом безумие. Врачи заболели первыми. Против: болезнь не объясняет, почему мёртвые встают.",
+      "status": "active",
+      "lifecycle": ""
+    },
+    {
+      "id": "v_object9",
+      "kind": "concept",
+      "name": "Версия «Опыт» (Объект-9)",
+      "ref": null,
+      "note": "💡 Предложение · Утечка из закрытой военной лаборатории «Объект-9». Против: Гарнизон всё отрицает, а лабораторию никто не видел.",
+      "status": "active",
+      "lifecycle": ""
+    },
+    {
+      "id": "v_water",
+      "kind": "concept",
+      "name": "Версия «Вода»",
+      "ref": null,
+      "note": "💡 Предложение · Заразу разнёс городской водопровод: в старых газетах «не пейте воду из-под крана». Против: заболели и те, кто пил только из колодцев.",
+      "status": "active",
+      "lifecycle": ""
+    },
+    {
+      "id": "v_sky",
+      "kind": "concept",
+      "name": "Версия «Небо»",
+      "ref": null,
+      "note": "💡 Предложение · Перед Падением ночью была вспышка в небе, а потом серая пыль. Её помнят старики и рисуют дети. Против: никаких следов падения нет.",
+      "status": "active",
+      "lifecycle": ""
+    },
+    {
+      "id": "v_onpurpose",
+      "kind": "concept",
+      "name": "Версия «Нарочно»",
+      "ref": null,
+      "note": "💡 Предложение · Власть сама выпустила заразу, чтобы сократить население, а себе построила бункеры. Любимая версия «Ржавых» и «Перевозчиков» — оправдывает всё. Против: бункеры власти тоже вымерли.",
       "status": "active",
       "lifecycle": ""
     },
@@ -8115,46 +8572,185 @@
       "comment": "",
       "conditions": [],
       "effects": []
-    }
-  ],
-  "proposals": [
-    {
-      "id": "q_0",
-      "title": "❓ Длина сезона",
-      "text": "Сейчас 30 игровых дней на сезон (💡). Подходит?",
-      "status": "idea",
-      "priority": "high",
-      "source": "world-data",
-      "createdAt": "",
-      "relatedEntities": [],
-      "relatedSystems": [],
-      "relatedNodes": []
     },
     {
-      "id": "q_1",
-      "title": "❓ Версии Падения",
-      "text": "Какие версии катастрофы ходят среди людей? Нужно 3–5 правдоподобных и противоречащих друг другу.",
-      "status": "idea",
-      "priority": "high",
+      "id": "rel_17",
+      "type": "rt_состоит_в",
+      "from": "c_vetrova",
+      "to": "f_community",
+      "status": "confirmed",
       "source": "world-data",
-      "createdAt": "",
-      "relatedEntities": [],
-      "relatedSystems": [],
-      "relatedNodes": []
+      "comment": "лидер",
+      "conditions": [],
+      "effects": []
     },
     {
-      "id": "q_2",
-      "title": "❓ Имена фракций",
-      "text": "У фракций пока только архетипы — нужны названия и лидеры.",
-      "status": "idea",
-      "priority": "high",
+      "id": "rel_18",
+      "type": "rt_состоит_в",
+      "from": "c_savva",
+      "to": "f_traders",
+      "status": "confirmed",
       "source": "world-data",
-      "createdAt": "",
-      "relatedEntities": [],
-      "relatedSystems": [],
-      "relatedNodes": []
+      "comment": "лидер",
+      "conditions": [],
+      "effects": []
+    },
+    {
+      "id": "rel_19",
+      "type": "rt_состоит_в",
+      "from": "c_borzov",
+      "to": "f_raiders",
+      "status": "confirmed",
+      "source": "world-data",
+      "comment": "лидер",
+      "conditions": [],
+      "effects": []
+    },
+    {
+      "id": "rel_20",
+      "type": "rt_состоит_в",
+      "from": "c_marta",
+      "to": "f_slavers",
+      "status": "confirmed",
+      "source": "world-data",
+      "comment": "лидер",
+      "conditions": [],
+      "effects": []
+    },
+    {
+      "id": "rel_21",
+      "type": "rt_состоит_в",
+      "from": "c_rovnov",
+      "to": "f_remnant",
+      "status": "confirmed",
+      "source": "world-data",
+      "comment": "командир",
+      "conditions": [],
+      "effects": []
+    },
+    {
+      "id": "rel_22",
+      "type": "rt_друг_с",
+      "from": "f_slavers",
+      "to": "f_raiders",
+      "status": "proposed",
+      "source": "world-data",
+      "comment": "покупают у «Ржавых» пленных",
+      "conditions": [],
+      "effects": []
+    },
+    {
+      "id": "rel_23",
+      "type": "rt_враг_с",
+      "from": "f_remnant",
+      "to": "f_raiders",
+      "status": "proposed",
+      "source": "world-data",
+      "comment": "«Гарнизон» гоняет «Ржавых» с трассы, но до конца не добивает",
+      "conditions": [],
+      "effects": []
+    },
+    {
+      "id": "rel_24",
+      "type": "rt_поддерживает",
+      "from": "c_vetrova",
+      "to": "v_fever",
+      "status": "confirmed",
+      "source": "world-data",
+      "comment": "",
+      "conditions": [],
+      "effects": []
+    },
+    {
+      "id": "rel_25",
+      "type": "rt_поддерживает",
+      "from": "c_borzov",
+      "to": "v_onpurpose",
+      "status": "confirmed",
+      "source": "world-data",
+      "comment": "",
+      "conditions": [],
+      "effects": []
+    },
+    {
+      "id": "rel_26",
+      "type": "rt_поддерживает",
+      "from": "f_slavers",
+      "to": "v_onpurpose",
+      "status": "proposed",
+      "source": "world-data",
+      "comment": "",
+      "conditions": [],
+      "effects": []
+    },
+    {
+      "id": "rel_27",
+      "type": "rt_враг_с",
+      "from": "c_rovnov",
+      "to": "v_object9",
+      "status": "proposed",
+      "source": "world-data",
+      "comment": "отрицает и не любит разговоров",
+      "conditions": [],
+      "effects": []
+    },
+    {
+      "id": "rel_28",
+      "type": "rt_является",
+      "from": "v_fever",
+      "to": "k_catastrophe",
+      "status": "confirmed",
+      "source": "world-data",
+      "comment": "версия",
+      "conditions": [],
+      "effects": []
+    },
+    {
+      "id": "rel_29",
+      "type": "rt_является",
+      "from": "v_object9",
+      "to": "k_catastrophe",
+      "status": "confirmed",
+      "source": "world-data",
+      "comment": "версия",
+      "conditions": [],
+      "effects": []
+    },
+    {
+      "id": "rel_30",
+      "type": "rt_является",
+      "from": "v_water",
+      "to": "k_catastrophe",
+      "status": "confirmed",
+      "source": "world-data",
+      "comment": "версия",
+      "conditions": [],
+      "effects": []
+    },
+    {
+      "id": "rel_31",
+      "type": "rt_является",
+      "from": "v_sky",
+      "to": "k_catastrophe",
+      "status": "confirmed",
+      "source": "world-data",
+      "comment": "версия",
+      "conditions": [],
+      "effects": []
+    },
+    {
+      "id": "rel_32",
+      "type": "rt_является",
+      "from": "v_onpurpose",
+      "to": "k_catastrophe",
+      "status": "confirmed",
+      "source": "world-data",
+      "comment": "версия",
+      "conditions": [],
+      "effects": []
     }
   ],
+  "proposals": [],
   "worldEvents": [],
   "decisions": [
     {
@@ -8239,6 +8835,39 @@
       "title": "Бесконечная песочница",
       "text": "Финала нет. Единственный конец — гибель всей группы.",
       "status": "defined",
+      "source": "decision",
+      "relatedSystems": [],
+      "relatedEntities": [],
+      "comment": "",
+      "createdAt": ""
+    },
+    {
+      "id": "dec_8",
+      "title": "Сезон = 30 игровых дней",
+      "text": "💡 Придумано: год = 120 дней. Предварительно, проверить на балансе.",
+      "status": "tentative",
+      "source": "decision",
+      "relatedSystems": [],
+      "relatedEntities": [],
+      "comment": "",
+      "createdAt": ""
+    },
+    {
+      "id": "dec_9",
+      "title": "Пять версий Падения",
+      "text": "💡 Придумано: «Лихорадка», «Опыт» (Объект-9), «Вода», «Небо», «Нарочно». Каждая чем-то опровергается, правды в игре нет.",
+      "status": "tentative",
+      "source": "decision",
+      "relatedSystems": [],
+      "relatedEntities": [],
+      "comment": "",
+      "createdAt": ""
+    },
+    {
+      "id": "dec_10",
+      "title": "Имена фракций и лидеры",
+      "text": "💡 Придумано: Община «Родник» (Анна Ветрова), Караван «Колесо» (Савва «Хромой»), Банда «Ржавые» (Глеб «Борзый»), «Перевозчики» (Марта «Счетовод»), «Гарнизон» (майор Игнат Ровнов).",
+      "status": "tentative",
       "source": "decision",
       "relatedSystems": [],
       "relatedEntities": [],

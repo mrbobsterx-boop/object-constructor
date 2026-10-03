@@ -43,6 +43,14 @@
       "max": 100
     },
     {
+      "id": "group_tension",
+      "name": "Напряжение в группе",
+      "type": "counter",
+      "start": 10,
+      "min": 0,
+      "max": 100
+    },
+    {
       "id": "world_danger",
       "name": "Общая опасность",
       "type": "counter",
@@ -53,6 +61,22 @@
     {
       "id": "rep_community",
       "name": "Отношение общины",
+      "type": "counter",
+      "start": 0,
+      "min": -100,
+      "max": 100
+    },
+    {
+      "id": "rep_raiders",
+      "name": "Отношение рейдеров",
+      "type": "counter",
+      "start": -30,
+      "min": -100,
+      "max": 100
+    },
+    {
+      "id": "rep_remnant",
+      "name": "Отношение «остатков порядка»",
       "type": "counter",
       "start": 0,
       "min": -100,
@@ -343,8 +367,8 @@
     {
       "ref": "story.clue_note",
       "title": "Записи старого мира",
-      "text": "⭐ Решение автора\nВ брошенном доме — дневник, газета или служебная записка времён Падения. Ещё одна версия того, что случилось.",
-      "type": "event",
+      "text": "⭐ Решение автора\nВ брошенном доме — дневник, газета или служебная записка времён Падения. О чём она?",
+      "type": "choice",
       "category": "story",
       "eventSource": "location",
       "refs": [
@@ -375,8 +399,26 @@
       "ending": "",
       "choices": [
         {
-          "label": "Сравнить с тем, что уже знаем",
-          "target_ref": "story.clue_contradiction",
+          "label": "Больничная карта с жалобами на жар",
+          "target_ref": "story.version_fever",
+          "requires": [],
+          "effects": []
+        },
+        {
+          "label": "Записка с грифом «Объект-9»",
+          "target_ref": "story.version_object9",
+          "requires": [],
+          "effects": []
+        },
+        {
+          "label": "Газета: «Не пейте воду из-под крана»",
+          "target_ref": "story.version_water",
+          "requires": [],
+          "effects": []
+        },
+        {
+          "label": "Детский рисунок: вспышка в небе",
+          "target_ref": "story.version_sky",
           "requires": [],
           "effects": []
         }
@@ -411,7 +453,7 @@
       "choices": [
         {
           "label": "Выслушать (отдать еду за рассказ)",
-          "target_ref": "story.clue_contradiction",
+          "target_ref": "story.version_sky",
           "requires": [],
           "effects": [
             {
@@ -429,6 +471,227 @@
         {
           "label": "Позвать в группу",
           "target_ref": "group.newcomer_arrives",
+          "requires": [],
+          "effects": []
+        }
+      ]
+    },
+    {
+      "ref": "story.version_fever",
+      "title": "Версия «Лихорадка»",
+      "text": "💡 Предложение\nБолезнь пришла с юга через больницы. Анна Ветрова из «Родника» верит в это: сама видела первых больных. Но почему тогда мёртвые встают?",
+      "type": "event",
+      "category": "story",
+      "eventSource": "location",
+      "refs": [
+        "v_fever",
+        "c_vetrova"
+      ],
+      "trigger": {
+        "kind": "conditions",
+        "all": []
+      },
+      "effects": [
+        {
+          "var": "rep_community",
+          "op": "add",
+          "value": 3
+        }
+      ],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "ending": "",
+      "choices": [
+        {
+          "label": "Сравнить с другими версиями",
+          "target_ref": "story.clue_contradiction",
+          "requires": [],
+          "effects": []
+        }
+      ]
+    },
+    {
+      "ref": "story.version_object9",
+      "title": "Версия «Опыт»",
+      "text": "💡 Предложение\nУтечка из закрытой лаборатории «Объект-9». «Гарнизон» всё отрицает — и очень не любит, когда об этом спрашивают.",
+      "type": "choice",
+      "category": "story",
+      "eventSource": "location",
+      "refs": [
+        "v_object9",
+        "c_rovnov"
+      ],
+      "trigger": {
+        "kind": "conditions",
+        "all": []
+      },
+      "effects": [],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "ending": "",
+      "choices": [
+        {
+          "label": "Спросить майора Ровнова",
+          "target_ref": "story.clue_contradiction",
+          "requires": [],
+          "effects": [
+            {
+              "var": "rep_remnant",
+              "op": "subtract",
+              "value": 10
+            },
+            {
+              "var": "truth_clues",
+              "op": "add",
+              "value": 1
+            }
+          ]
+        },
+        {
+          "label": "Сжечь записку и молчать",
+          "target_ref": "story.clue_contradiction",
+          "requires": [],
+          "effects": [
+            {
+              "var": "rep_remnant",
+              "op": "add",
+              "value": 5
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "ref": "story.version_water",
+      "title": "Версия «Вода»",
+      "text": "💡 Предложение\nЗаразу разнёс городской водопровод. Но заболели и те, кто пил только из колодцев. После этой газеты группа косо смотрит на свой резервуар.",
+      "type": "event",
+      "category": "story",
+      "eventSource": "location",
+      "refs": [
+        "v_water"
+      ],
+      "trigger": {
+        "kind": "conditions",
+        "all": []
+      },
+      "effects": [
+        {
+          "var": "group_tension",
+          "op": "add",
+          "value": 5
+        }
+      ],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "ending": "",
+      "choices": [
+        {
+          "label": "Сравнить с другими версиями",
+          "target_ref": "story.clue_contradiction",
+          "requires": [],
+          "effects": []
+        }
+      ]
+    },
+    {
+      "ref": "story.version_sky",
+      "title": "Версия «Небо»",
+      "text": "💡 Предложение\nПеред Падением ночью была вспышка в небе, потом серая пыль. Это помнят старики и рисуют дети. Следов падения никто не нашёл.",
+      "type": "event",
+      "category": "story",
+      "eventSource": "npc",
+      "refs": [
+        "v_sky"
+      ],
+      "trigger": {
+        "kind": "conditions",
+        "all": []
+      },
+      "effects": [],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "ending": "",
+      "choices": [
+        {
+          "label": "Сравнить с другими версиями",
+          "target_ref": "story.clue_contradiction",
+          "requires": [],
+          "effects": []
+        }
+      ]
+    },
+    {
+      "ref": "story.version_onpurpose",
+      "title": "Версия «Нарочно»",
+      "text": "💡 Предложение\n«Власть сама выпустила заразу, а себе построила бункеры». Так говорят «Ржавые» и «Перевозчики» — и этим оправдывают всё. Но бункеры власти тоже вымерли.",
+      "type": "choice",
+      "category": "story",
+      "eventSource": "faction",
+      "refs": [
+        "v_onpurpose",
+        "c_borzov",
+        "f_slavers"
+      ],
+      "trigger": {
+        "kind": "conditions",
+        "all": []
+      },
+      "effects": [],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "ending": "",
+      "choices": [
+        {
+          "label": "Спорить",
+          "target_ref": "story.clue_contradiction",
+          "requires": [],
+          "effects": [
+            {
+              "var": "rep_raiders",
+              "op": "subtract",
+              "value": 5
+            }
+          ]
+        },
+        {
+          "label": "Промолчать",
+          "target_ref": "story.clue_contradiction",
           "requires": [],
           "effects": []
         }
@@ -472,6 +735,46 @@
       },
       "ending": "",
       "choices": []
+    },
+    {
+      "ref": "story.raider_talk",
+      "title": "Разговор у костра «Ржавых»",
+      "text": "💡 Предложение\nБорзый, подвыпив, объясняет, почему правил больше нет.",
+      "type": "event",
+      "category": "story",
+      "eventSource": "faction",
+      "refs": [
+        "c_borzov"
+      ],
+      "trigger": {
+        "kind": "conditions",
+        "all": [
+          {
+            "var": "rep_raiders",
+            "op": ">=",
+            "value": 0
+          }
+        ]
+      },
+      "effects": [],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "ending": "",
+      "choices": [
+        {
+          "label": "Слушать",
+          "target_ref": "story.version_onpurpose",
+          "requires": [],
+          "effects": []
+        }
+      ]
     },
     {
       "ref": "story.born_after",
@@ -551,6 +854,11 @@
       "name": "Чужой бункер"
     },
     {
+      "ref": "f_slavers",
+      "kind": "faction",
+      "name": "«Перевозчики»"
+    },
+    {
       "ref": "g_loners",
       "kind": "group",
       "name": "Одиночки и мародёры"
@@ -559,6 +867,46 @@
       "ref": "g_player",
       "kind": "group",
       "name": "Группа игрока"
+    },
+    {
+      "ref": "c_vetrova",
+      "kind": "character",
+      "name": "Анна Ветрова"
+    },
+    {
+      "ref": "c_borzov",
+      "kind": "character",
+      "name": "Глеб Борзов («Борзый»)"
+    },
+    {
+      "ref": "c_rovnov",
+      "kind": "character",
+      "name": "Майор Игнат Ровнов"
+    },
+    {
+      "ref": "v_fever",
+      "kind": "concept",
+      "name": "Версия «Лихорадка»"
+    },
+    {
+      "ref": "v_object9",
+      "kind": "concept",
+      "name": "Версия «Опыт» (Объект-9)"
+    },
+    {
+      "ref": "v_water",
+      "kind": "concept",
+      "name": "Версия «Вода»"
+    },
+    {
+      "ref": "v_sky",
+      "kind": "concept",
+      "name": "Версия «Небо»"
+    },
+    {
+      "ref": "v_onpurpose",
+      "kind": "concept",
+      "name": "Версия «Нарочно»"
     },
     {
       "ref": "k_catastrophe",

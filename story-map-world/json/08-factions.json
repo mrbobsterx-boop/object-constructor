@@ -1105,27 +1105,27 @@
     {
       "ref": "f_community",
       "kind": "faction",
-      "name": "Община"
+      "name": "Община «Родник»"
     },
     {
       "ref": "f_traders",
       "kind": "faction",
-      "name": "Торговцы / караван"
+      "name": "Караван «Колесо»"
     },
     {
       "ref": "f_raiders",
       "kind": "faction",
-      "name": "Рейдеры / банда"
+      "name": "Банда «Ржавые»"
     },
     {
       "ref": "f_slavers",
       "kind": "faction",
-      "name": "Работорговцы"
+      "name": "«Перевозчики»"
     },
     {
       "ref": "f_remnant",
       "kind": "faction",
-      "name": "Остатки порядка"
+      "name": "«Гарнизон»"
     }
   ]
 }

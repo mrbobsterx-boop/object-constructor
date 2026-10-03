@@ -96,7 +96,7 @@ const story={
   relations:RELATIONS.map((r,i)=>({id:'rel_'+i,type:'rt_'+r.type,from:r.from,to:r.to,status:r.status||'confirmed',source:'world-data',comment:r.comment||'',conditions:[],effects:[]})),
   proposals:OPEN_QUESTIONS.map((q,i)=>({id:'q_'+i,title:'❓ '+q.title,text:q.text,status:'idea',priority:'high',source:'world-data',createdAt:'',relatedEntities:[],relatedSystems:[],relatedNodes:[]})),
   worldEvents:[],
-  decisions:DECISIONS.map((d,i)=>({id:'dec_'+i,title:d.title,text:d.text,status:'defined',source:'decision',relatedSystems:[],relatedEntities:[],comment:'',createdAt:''}))
+  decisions:DECISIONS.map((d,i)=>({id:'dec_'+i,title:d.title,text:d.text,status:d.status||'defined',source:'decision',relatedSystems:[],relatedEntities:[],comment:'',createdAt:''}))
 };
 fs.writeFileSync(path.join(ROOT,'story.json'),JSON.stringify(story,null,2)+'\n');
 
@@ -158,8 +158,8 @@ ENTITIES.forEach(e=>V.push(`| \`${e.ref}\` | ${e.kind} | ${e.name} | ${SRC_MARK[
 V.push('','## Связи','');
 RELATIONS.forEach(r=>V.push(`- ${entName(r.from)} — *${r.type}* → ${entName(r.to)}${r.status==='proposed'?' (💡 предложение)':''}${r.comment?' — '+r.comment:''}`));
 V.push('','## ⭐ Решения автора','');
-DECISIONS.forEach((d,i)=>V.push(`${i+1}. **${d.title}.** ${d.text}`));
-V.push('','## ❓ Открытые вопросы','');
+DECISIONS.forEach((d,i)=>V.push(`${i+1}. **${d.title}.**${d.status==='tentative'?' *(предварительно)*':''} ${d.text}`));
+if(OPEN_QUESTIONS.length) V.push('','## ❓ Открытые вопросы','');
 OPEN_QUESTIONS.forEach((q,i)=>V.push(`${i+1}. **${q.title}.** ${q.text}`));
 fs.writeFileSync(path.join(ROOT,'md','00-variables-entities.md'),V.join('\n')+'\n');
 
