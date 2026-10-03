@@ -9,3 +9,5 @@
    ============================================================ */
 recomputeAndRender();
 tryRestoreProjectFolder();
+wireGithubButtons();
+if(ghIsConnected()) onGithubConnected();
