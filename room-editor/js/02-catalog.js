@@ -15,9 +15,10 @@ let existingRoomsList=[]; // {id,name}[] — для выпадашки "Откр
    Порядок поиска: основная → статичное состояние → первый кадр анимации (idle, иначе первая).
    Файл проверяется на «декодируемость»: пустой/битый PNG даёт заглушку, а не битую иконку браузера. */
 async function readSpriteFile(spritesDir,rel){
-  if(!spritesDir||!rel) return null;
+  if(!rel||(!spritesDir&&!ghIsConnected())) return null;
+  const clean=String(rel).replace(/^assets\/sprites\//,'').replace(/^\//,'');
+  if(ghIsConnected()) return readProjectFileBlob('assets/sprites/'+clean);
   try{
-    const clean=String(rel).replace(/^assets\/sprites\//,'').replace(/^\//,'');
     const parts=clean.split('/'); const fileName=parts.pop();
     const subDir=parts.length? await getSubdir(spritesDir,parts.join('/'),false) : spritesDir;
     return await (await subDir.getFileHandle(fileName)).getFile();
@@ -71,9 +72,13 @@ const MISSING_IMG_URL='data:image/svg+xml;utf8,'+encodeURIComponent('<svg xmlns=
 // Общие загрузчики картинок с диска (раньше в Room Editor не были определены — генератор комнат не мог подгрузить фон)
 async function loadImageDataUrl(spritesDir, relPath){
   const clean=String(relPath||'').replace(/^assets\/sprites\//,'').replace(/^\//,'');
-  const parts=clean.split('/'); const fileName=parts.pop();
-  const subDir=parts.length? await getSubdir(spritesDir,parts.join('/'),false) : spritesDir;
-  const file=await (await subDir.getFileHandle(fileName)).getFile();
+  let file;
+  if(ghIsConnected()){ file=await readProjectFileBlob('assets/sprites/'+clean); if(!file) throw new Error('файл не найден на GitHub'); }
+  else{
+    const parts=clean.split('/'); const fileName=parts.pop();
+    const subDir=parts.length? await getSubdir(spritesDir,parts.join('/'),false) : spritesDir;
+    file=await (await subDir.getFileHandle(fileName)).getFile();
+  }
   return new Promise((res,rej)=>{ const r=new FileReader(); r.onload=()=>res(r.result); r.onerror=()=>rej(r.error||new Error('не удалось прочитать файл')); r.readAsDataURL(file); });
 }
 // Битая картинка → исключение (а не вечное ожидание, из-за которого комната переставала открываться)
@@ -86,12 +91,9 @@ function getImageDims(dataUrl){ return new Promise((res,rej)=>{ const im=new Ima
 let projectCategories=[]; // [{id,name}]
 async function loadProjectCategories(){
   projectCategories=[];
-  if(!projectDirHandle) return;
-  try{
-    const dir=await getSubdir(projectDirHandle,'data',false);
-    const data=JSON.parse(await (await (await dir.getFileHandle('categories.json')).getFile()).text());
-    (data.categories||[]).forEach(c=>{ if(c&&c.id&&!projectCategories.some(x=>x.id===String(c.id))) projectCategories.push({id:String(c.id),name:String(c.name||c.id)}); });
-  }catch(e){ /* файла ещё нет — возьмём категории из самих объектов */ }
+  if(!projectDirHandle&&!ghIsConnected()) return;
+  const data=(await readSingleJsonFromProject('data/categories.json')).data;
+  (data&&data.categories||[]).forEach(c=>{ if(c&&c.id&&!projectCategories.some(x=>x.id===String(c.id))) projectCategories.push({id:String(c.id),name:String(c.name||c.id)}); });
 }
 function categoryLabel(id){
   const c=projectCategories.find(x=>x.id===id); if(c) return c.name;
@@ -109,27 +111,39 @@ function rebuildLibCategoryOptions(){
 }
 
 async function scanProjectFolderCatalog(){
-  if(!projectDirHandle)return;
+  if(!projectDirHandle&&!ghIsConnected())return;
   // ROOM-3: НЕ отзываем старые blob:-URL здесь — экземпляры уже размещённых в комнате объектов и
   // снимки истории (undo/redo) хранят ту же самую строку URL (inst.image, 06-instances-sets.js), а не
   // ссылку на запись каталога. Отзыв URL при каждом «🔄 Обновить библиотеку» ломал их картинки до
   // переоткрытия комнаты. Небольшая утечка старых object URL за сессию — приемлемая цена против
   // битых спрайтов уже расставленных объектов.
   const result=[];
-  try{
-    const objectsDir=await getSubdir(projectDirHandle,'data/objects',false);
-    let spritesDir=null;
-    try{ spritesDir=await getSubdir(projectDirHandle,'assets/sprites',false); }catch(e){}
-    for await (const [name,handle] of objectsDir.entries()){
-      if(handle.kind!=='file' || !name.endsWith('.json'))continue;
+  if(ghIsConnected()){
+    const objs=await listJsonDir('data/objects');
+    for(const f of objs.items){
+      if(f.broken||!f.data) continue;
       try{
-        const file=await handle.getFile();
-        const obj=JSON.parse(await file.text());
-        const thumb=await loadCatalogThumb(spritesDir,obj); // основная картинка → состояние → кадр анимации; иначе заглушка
+        const obj=f.data;
+        const thumb=await loadCatalogThumb(null,obj); // readSpriteFile сам берёт файлы с GitHub, spritesDir не нужен
         result.push({ id:obj.id, category:obj.category, name:obj.name||obj.id, image:thumb.image, imageIssue:thumb.imageIssue, json:obj });
-      }catch(e){ console.warn('Пропущен повреждённый объект:',name,e); }
+      }catch(e){ console.warn('Пропущен повреждённый объект:',f.name,e); }
     }
-  }catch(e){ /* data/objects ещё не существует */ }
+  }else{
+    try{
+      const objectsDir=await getSubdir(projectDirHandle,'data/objects',false);
+      let spritesDir=null;
+      try{ spritesDir=await getSubdir(projectDirHandle,'assets/sprites',false); }catch(e){}
+      for await (const [name,handle] of objectsDir.entries()){
+        if(handle.kind!=='file' || !name.endsWith('.json'))continue;
+        try{
+          const file=await handle.getFile();
+          const obj=JSON.parse(await file.text());
+          const thumb=await loadCatalogThumb(spritesDir,obj); // основная картинка → состояние → кадр анимации; иначе заглушка
+          result.push({ id:obj.id, category:obj.category, name:obj.name||obj.id, image:thumb.image, imageIssue:thumb.imageIssue, json:obj });
+        }catch(e){ console.warn('Пропущен повреждённый объект:',name,e); }
+      }
+    }catch(e){ /* data/objects ещё не существует */ }
+  }
   projectCatalog=result;
   await loadProjectCategories();   // список категорий — из data/categories.json (его пишет ОС) + категории самих объектов
   rebuildLibCategoryOptions();
@@ -137,30 +151,23 @@ async function scanProjectFolderCatalog(){
 }
 let blockBevelPx=4; // срез внешних углов блоков, px (1 px = 1 см) — общий для проекта, читается из data/project_settings.json (block_bevel_px); материал может переопределить (block.bevel_px)
 async function loadProjectSettings(){
-  if(!projectDirHandle)return;
-  try{
-    const dir=await getSubdir(projectDirHandle,'data',false);
-    const fileHandle=await dir.getFileHandle('project_settings.json');
-    const file=await fileHandle.getFile();
-    const data=JSON.parse(await file.text());
+  if(!projectDirHandle&&!ghIsConnected())return;
+  const data=(await readSingleJsonFromProject('data/project_settings.json')).data;
+  if(data){
     if(typeof data.walk_line_bottom_m==='number') walkLineBottomM=data.walk_line_bottom_m;
     if(typeof data.block_bevel_px==='number') blockBevelPx=Math.max(0,Math.min(10,data.block_bevel_px));
-  }catch(e){ /* файла ещё нет — используем дефолт 0.9 */ }
+  }
   document.getElementById('walkLineBottomM').value=walkLineBottomM;
   const bevelInput=document.getElementById('blockBevelInput'); if(bevelInput) bevelInput.value=blockBevelPx;
   renderZoneGridOverlay();
 }
 async function saveProjectSettings(){
-  if(!projectDirHandle){ alert('Сначала подключи папку проекта.'); return; }
+  if(!projectDirHandle&&!ghIsConnected()){ alert('Сначала подключи папку проекта или GitHub.'); return; }
   walkLineBottomM=+document.getElementById('walkLineBottomM').value||0.9;
   const bevelInput=document.getElementById('blockBevelInput');
   if(bevelInput){ const v=parseFloat(bevelInput.value); blockBevelPx=Number.isFinite(v)?Math.max(0,Math.min(10,v)):4; bevelInput.value=blockBevelPx; }
   // читаем текущий файл, чтобы не потерять чужие ключи настроек
-  let settings={};
-  try{
-    const dir=await getSubdir(projectDirHandle,'data',false);
-    settings=JSON.parse(await (await (await dir.getFileHandle('project_settings.json')).getFile()).text())||{};
-  }catch(e){ settings={}; }
+  const settings=(await readSingleJsonFromProject('data/project_settings.json')).data||{};
   settings.walk_line_bottom_m=walkLineBottomM;
   settings.block_bevel_px=blockBevelPx;
   await writeFileToProject('data/project_settings.json', new TextEncoder().encode(JSON.stringify(settings,null,2)));
@@ -170,7 +177,14 @@ async function saveProjectSettings(){
 document.getElementById('btnSaveProjectSettings').onclick=saveProjectSettings;
 
 async function scanExistingRooms(){
-  if(!projectDirHandle){ existingRoomIds=[]; existingRoomsList=[]; return; }
+  if(!projectDirHandle&&!ghIsConnected()){ existingRoomIds=[]; existingRoomsList=[]; return; }
+  if(ghIsConnected()){
+    const r=await listJsonDir('data/rooms');
+    existingRoomIds=r.items.map(f=>f.name.replace(/\.json$/,''));
+    existingRoomsList=r.items.map(f=>({id:f.name.replace(/\.json$/,''), name:(f.data&&f.data.name)||f.name.replace(/\.json$/,'')}));
+    renderDoorRoomOptions(); populateOpenRoomSelect();
+    return;
+  }
   const result=[]; const listResult=[];
   try{
     const roomsDir=await getSubdir(projectDirHandle,'data/rooms',false);

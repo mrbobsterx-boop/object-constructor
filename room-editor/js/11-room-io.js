@@ -40,7 +40,7 @@ document.getElementById('btnExportJSON').onclick=()=>{
   document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(url),1000);
 };
 document.getElementById('btnSaveRoom').onclick=async ()=>{
-  if(!projectDirHandle){ alert('Сначала подключи папку проекта.'); return; }
+  if(!projectDirHandle&&!ghIsConnected()){ alert('Сначала подключи папку проекта или GitHub.'); return; }
   const base=sanitizeSlug(room.id||document.getElementById('roomId').value)||'room';
 
   // Перед сохранением проверяем ВСЕ объекты. Ошибка не блокирует редактирование,
@@ -68,7 +68,7 @@ document.getElementById('btnSaveRoom').onclick=async ()=>{
     }
     await writeFileToProject('data/rooms/'+base+'.json', new TextEncoder().encode(JSON.stringify(collectRoomJSON(),null,2)));
     await scanExistingRooms(); await scanExistingSets();
-    document.getElementById('folderStatus').textContent='Папка: '+projectDirHandle.name+' ✓ · сохранено '+new Date().toLocaleTimeString();
+    document.getElementById('folderStatus').textContent=(projectDirHandle?'Папка: '+projectDirHandle.name+' ✓':'')+(ghIsConnected()?' · GitHub ✓':'')+' · сохранено '+new Date().toLocaleTimeString();
   }catch(e){ console.error(e); alert('Не удалось сохранить: '+e.message); }
 };
 document.getElementById('btnDuplicateRoom').onclick=()=>{
@@ -93,15 +93,20 @@ async function loadRoomFromJSON(data){
   setRoomSizeInputs(room.width,room.height);
   document.getElementById('playerWalkZ').value=room.playerWalkZ;
   const layerDefs = data.backgroundLayers || (data.background ? [data.background] : []); // старый формат — один фон
-  if(layerDefs.length && projectDirHandle){
+  if(layerDefs.length && (projectDirHandle||ghIsConnected())){
     try{
-      const spritesDir=await getSubdir(projectDirHandle,'assets/sprites',false);
+      let spritesDir=null;
+      if(!ghIsConnected()) spritesDir=await getSubdir(projectDirHandle,'assets/sprites',false);
       for(const ld of layerDefs){
         if(!ld || !ld.image) continue;
         try{
-          const parts=ld.image.split('/'); const fileName=parts.pop();
-          const subDir=parts.length? await getSubdir(spritesDir,parts.join('/'),false):spritesDir;
-          const imgFile=await (await subDir.getFileHandle(fileName)).getFile();
+          let imgFile;
+          if(ghIsConnected()){ imgFile=await readProjectFileBlob('assets/sprites/'+ld.image); if(!imgFile) throw new Error('файл не найден на GitHub'); }
+          else{
+            const parts=ld.image.split('/'); const fileName=parts.pop();
+            const subDir=parts.length? await getSubdir(spritesDir,parts.join('/'),false):spritesDir;
+            imgFile=await (await subDir.getFileHandle(fileName)).getFile();
+          }
           const dataUrl=await new Promise((res,rej)=>{ const r=new FileReader(); r.onload=()=>res(r.result); r.onerror=()=>rej(r.error); r.readAsDataURL(imgFile); });
           const dims=await getImageDims(dataUrl); // битый файл → исключение → слой пропускается, комната всё равно открывается
           room.backgroundLayers.push({ dataUrl, path:fileName, nativeWidth:dims.w, nativeHeight:dims.h, opacity:(ld.opacity!==undefined?ld.opacity:1), parallax:(ld.parallax!==undefined?ld.parallax:1),
@@ -143,14 +148,13 @@ async function loadRoomFromJSON(data){
   if(sizeUpdated) document.getElementById('folderStatus').textContent=`Размеры обновлены по ОС у экземпляров: ${sizeUpdated} — сохрани комнату, чтобы записать новые размеры.`;
 }
 document.getElementById('btnOpenRoom').onclick=async ()=>{
-  if(!projectDirHandle){ document.getElementById('fileOpenRoom').click(); return; }
+  if(!projectDirHandle&&!ghIsConnected()){ document.getElementById('fileOpenRoom').click(); return; }
   const id=document.getElementById('openRoomSelect').value;
   if(!id){ alert('Выбери комнату из списка слева.'); return; }
   try{
-    const roomsDir=await getSubdir(projectDirHandle,'data/rooms',false);
-    const fileHandle=await roomsDir.getFileHandle(id+'.json');
-    const file=await fileHandle.getFile();
-    await loadRoomFromJSON(JSON.parse(await file.text()));
+    const r=await readSingleJsonFromProject('data/rooms/'+id+'.json');
+    if(!r.data) throw new Error('файл не найден');
+    await loadRoomFromJSON(r.data);
   }catch(e){ alert('Не удалось открыть комнату: '+e.message); }
 };
 document.getElementById('fileOpenRoom').onchange=async e=>{
@@ -178,16 +182,17 @@ document.getElementById('btnNewRoom').onclick=()=>{
    у остальных — центр. Комнаты старого формата (schema_version < 4) не трогаются — открой и пересохрани их.
    ============================================================ */
 async function syncAllRoomSizes(){
-  if(!projectDirHandle){ alert('Сначала подключи папку проекта.'); return; }
+  if(!projectDirHandle&&!ghIsConnected()){ alert('Сначала подключи папку проекта или GitHub.'); return; }
   const btn=document.getElementById('btnSyncSizes'), status=document.getElementById('folderStatus');
   if(btn){ btn.disabled=true; btn.textContent='Проверяю…'; }
   try{
-    const dir=await getSubdir(projectDirHandle,'data/rooms',false);
+    const roomFiles=await listJsonDir('data/rooms');
     const plan=[]; let skippedLegacy=0, total=0;
-    for await(const [name,h] of dir.entries()){
-      if(h.kind!=='file'||!name.endsWith('.json')) continue;
+    for(const f of roomFiles.items){
+      const name=f.name;
       try{
-        const data=JSON.parse(await (await h.getFile()).text());
+        if(f.broken||!f.data) continue;
+        const data=f.data;
         if(!Array.isArray(data.instances)||!data.instances.length) continue;
         if(!(data.schema_version>=4)){ skippedLegacy++; continue; }
         let changed=0;

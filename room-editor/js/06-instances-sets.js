@@ -47,15 +47,13 @@ function collectSetJSON(){
   };
 }
 async function saveCurrentSelectionAsSet(){
-  if(!projectDirHandle){ alert('Сначала подключи папку проекта.'); return; }
+  if(!projectDirHandle&&!ghIsConnected()){ alert('Сначала подключи папку проекта или GitHub.'); return; }
   if(!document.getElementById('setId').value.trim()){ alert('Впиши название сета.'); return; }
   const base=sanitizeSlug(document.getElementById('setId').value)||'set';
   const nameCheck=document.getElementById('setName').value.trim();
   try{
-    const dir=await getSubdir(projectDirHandle,'data/sets',false);
-    const fileHandle=await dir.getFileHandle(base+'.json');
-    const file=await fileHandle.getFile();
-    const existing=JSON.parse(await file.text());
+    const existing=(await readSingleJsonFromProject('data/sets/'+base+'.json')).data;
+    if(!existing) throw new Error('нет файла');
     if(existing.name && existing.name!==nameCheck){
       const proceed=confirm(`Внимание: сет с id "${base}" уже есть и называется «${existing.name}», а у тебя сейчас «${nameCheck||'без названия'}».\n\nПродолжить и перезаписать?`);
       if(!proceed) return;
@@ -74,16 +72,9 @@ async function saveCurrentSelectionAsSet(){
 let existingSets=[]; // {id,name,objectCount}[]
 async function scanExistingSets(){
   existingSets=[];
-  if(!projectDirHandle){ renderSetsList(); return; }
-  try{
-    const dir=await getSubdir(projectDirHandle,'data/sets',false);
-    for await (const [name,handle] of dir.entries()){
-      if(handle.kind!=='file' || !name.endsWith('.json'))continue;
-      try{ const file=await handle.getFile(); const data=JSON.parse(await file.text());
-        existingSets.push({id:data.id, name:data.name||data.id, objectCount:(data.objects||[]).length}); }
-      catch(e){}
-    }
-  }catch(e){}
+  if(!projectDirHandle&&!ghIsConnected()){ renderSetsList(); return; }
+  const r=await listJsonDir('data/sets');
+  r.items.forEach(f=>{ if(f.data) existingSets.push({id:f.data.id, name:f.data.name||f.data.id, objectCount:(f.data.objects||[]).length}); });
   renderSetsList();
 }
 function renderSetsList(){

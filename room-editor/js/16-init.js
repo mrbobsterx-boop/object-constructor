@@ -14,4 +14,6 @@ renderBgLayerList();
 renderRoom();
 renderPropertiesPanel();
 tryRestoreProjectFolder();
+wireGithubButtons();
+if(ghIsConnected()) onGithubConnected();
 pushHistory();
