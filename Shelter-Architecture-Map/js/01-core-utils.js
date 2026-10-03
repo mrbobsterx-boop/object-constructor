@@ -49,7 +49,11 @@ async function fileExistsAtResPath(resPath){
     return true;
   }catch(e){ return false; }
 }
+// GitHub в приоритете при чтении data/rooms, data/buildings (тот же репозиторий данных) — иначе папка.
+// project.godot/*.tscn ниже НЕ переведены на GitHub: это отдельная локальная папка игрового проекта
+// Godot, её в репозитории данных нет и не будет.
 async function listJsonDir(path){
+  if(ghIsConnected()) return listJsonDirGithub(path);
   const out={items:[],missing:false};
   try{
     const dir=await getSubdir(projectDirHandle,path,false);
@@ -62,6 +66,32 @@ async function listJsonDir(path){
   return out;
 }
 async function listFilesRecursive(path,re){
+  if(ghIsConnected()) return listFilesRecursiveGithub(path,re);
+  const out={files:[],missing:false};
+  let root; try{ root=await getSubdir(projectDirHandle,path,false); }catch(e){ out.missing=true; return out; }
+  async function walk(dir,prefix){
+    for await(const [name,h] of dir.entries()){
+      if(name.startsWith('.')) continue;
+      if(h.kind==='directory') await walk(h,prefix+name+'/');
+      else if(re.test(name)) out.files.push(prefix+name);
+    }
+  }
+  try{ await walk(root,''); }catch(e){}
+  return out;
+}
+async function readSingleJsonFromProject(relPath){
+  if(ghIsConnected()) return readJsonFromGithub(relPath);
+  try{
+    const parts=relPath.split('/'); const fileName=parts.pop();
+    const dir=parts.length?await getSubdir(projectDirHandle,parts.join('/'),false):projectDirHandle;
+    return await readJsonFile(dir,fileName);
+  }catch(e){ return {data:null,broken:false,missing:true}; }
+}
+// Вариант listFilesRecursive, который ВСЕГДА читает локальную папку, даже если подключён GitHub —
+// для scenesRoot (папка сцен Godot-проекта): это отдельная локальная игра, а не репозиторий данных,
+// в GitHub её может не быть вовсе. project.godot/fileExistsAtResPath (выше) по той же причине тоже
+// всегда локальные.
+async function listFilesRecursiveLocalOnly(path,re){
   const out={files:[],missing:false};
   let root; try{ root=await getSubdir(projectDirHandle,path,false); }catch(e){ out.missing=true; return out; }
   async function walk(dir,prefix){
@@ -90,12 +120,16 @@ function parseAutoloads(text){
   return map;
 }
 async function writeFileToProject(relPath,bytes){
-  if(!projectDirHandle) return false;
-  const parts=relPath.split('/'); const fileName=parts.pop();
-  const dir=parts.length?await getSubdir(projectDirHandle,parts.join('/'),true):projectDirHandle;
-  const fh=await dir.getFileHandle(fileName,{create:true});
-  const w=await fh.createWritable(); await w.write(bytes); await w.close();
-  return true;
+  let ok=false;
+  if(projectDirHandle){
+    const parts=relPath.split('/'); const fileName=parts.pop();
+    const dir=parts.length?await getSubdir(projectDirHandle,parts.join('/'),true):projectDirHandle;
+    const fh=await dir.getFileHandle(fileName,{create:true});
+    const w=await fh.createWritable(); await w.write(bytes); await w.close();
+    ok=true;
+  }
+  if(ghIsConnected()){ await writeFileToGithub(relPath,bytes,'Shelter Architecture Map: '+relPath); ok=true; }
+  return ok;
 }
 function setFolderStatus(t){ const el=document.getElementById('folderStatus'); if(el) el.textContent=t; }
 function updateFolderStatus(needs){

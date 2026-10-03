@@ -22,7 +22,7 @@ function loadStore(){
 }
 function saveStore(){ try{ localStorage.setItem(STORE_KEY,JSON.stringify(store)); }catch(e){ console.warn(e); } }
 async function saveStoreToProject(){
-  if(!projectDirHandle){ alert('Сначала подключи папку проекта.'); return; }
+  if(!projectDirHandle&&!ghIsConnected()){ alert('Сначала подключи папку проекта или GitHub.'); return; }
   try{
     const data={schema_version:2,saved_at:new Date().toISOString(),status:store.status,steps:store.steps,notes:store.notes,custom:store.custom,settings:store.settings};
     await writeFileToProject('data/scene_plan.json',new TextEncoder().encode(JSON.stringify(data,null,2)));
@@ -30,10 +30,9 @@ async function saveStoreToProject(){
   }catch(e){ console.error(e); alert('Не удалось записать: '+e.message); }
 }
 async function loadStoreFromProject(){
-  if(!projectDirHandle){ alert('Сначала подключи папку проекта.'); return; }
+  if(!projectDirHandle&&!ghIsConnected()){ alert('Сначала подключи папку проекта или GitHub.'); return; }
   try{
-    const dir=await getSubdir(projectDirHandle,'data',false);
-    const r=await readJsonFile(dir,'scene_plan.json');
+    const r=await readSingleJsonFromProject('data/scene_plan.json');
     if(!r.data){ alert('Файл data/scene_plan.json не найден или повреждён.'); return; }
     if(!confirm('Заменить текущие отметки в браузере отметками из data/scene_plan.json?')) return;
     const d=r.data;
@@ -49,6 +48,8 @@ async function loadStoreFromProject(){
 
 /* ---------- сверка с проектом ---------- */
 let PROJECT={scanned:false,at:null,autoloads:new Map(),pathsOk:new Map(),tscnById:new Map(),tscnExtra:[],roomsMissing:false,buildingsMissing:false,godotMissing:false};
+// Вызывается shared/js/github-sync.js после успешного подключения GitHub.
+async function onGithubConnected(){ await scanProject(); }
 let SCENES=[], SCENE_BY_KEY=new Map();
 
 function roomToScene(f){
@@ -82,7 +83,7 @@ function buildingToScene(f){
 }
 
 async function scanProject(){
-  if(!projectDirHandle) return;
+  if(!projectDirHandle&&!ghIsConnected()) return;
   const el=document.getElementById('scanStatus'); if(el) el.textContent='Сверка с проектом…';
   const P={scanned:true,at:new Date(),autoloads:new Map(),pathsOk:new Map(),tscnById:new Map(),tscnExtra:[],roomsMissing:false,buildingsMissing:false,godotMissing:false};
 
@@ -94,7 +95,7 @@ async function scanProject(){
   await Promise.all(authored.map(async it=>{ P.pathsOk.set(it.key, await fileExistsAtResPath(it.path)); }));
 
   const scenesRoot=(store.settings.scenesRoot||'scenes').replace(/^\/+|\/+$/g,'');
-  const tscn=await listFilesRecursive(scenesRoot,/\.tscn$/i);
+  const tscn=await listFilesRecursiveLocalOnly(scenesRoot,/\.tscn$/i);
   const knownIds=new Set();
   const roomsRaw=await listJsonDir('data/rooms'); P.roomsMissing=roomsRaw.missing;
   const buildingsRaw=await listJsonDir('data/buildings'); P.buildingsMissing=buildingsRaw.missing;
