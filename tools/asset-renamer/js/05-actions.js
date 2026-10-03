@@ -5,6 +5,16 @@
 let moveLog=[];
 
 const AR_GITHUB_SOURCE_PATH='assets/sprites', AR_GITHUB_DEST_PATH='assets/refs';
+// assets/refs/ растёт сотнями файлов в одну плоскую папку — GitHub обрезает список на странице
+// после 1000. Раскладываем по категории ОС (как и assets/sprites/<категория>/…), категорию берём
+// из каталога Object Plan по id = раздел_объект; когда объекта ещё нет в каталоге (новый, не
+// заведённый тип) — файл остаётся в плоском корне assets/refs/, как и раньше.
+function categoryForPending(p){
+  const idGuess=[slug(p.razdel),slug(p.obj)].filter(Boolean).join('_');
+  if(!idGuess) return null;
+  const item=(typeof PLAN_ITEMS!=='undefined'?PLAN_ITEMS:[]).find(i=>i.id===idGuess);
+  return item?item.c:null;
+}
 async function scanSource(){
   if(!sourceDirHandle&&!sourceIsGithub()) return;
   let names;
@@ -43,18 +53,29 @@ async function confirmMove(){
   if(!srcOk||!destOk){ alert('Подключи и источник, и назначение (папку или GitHub).'); return; }
   const fam=findFamily(activeFamilyKey);
   if(!fam) return;
-  const existing=new Set();
-  if(destIsGithub()){
-    try{ const r=await listFilesRecursiveGithub(AR_GITHUB_DEST_PATH,SPRITE_EXT); r.files.forEach(f=>{ if(f.indexOf('/')===-1) existing.add(f.toLowerCase()); }); }
-    catch(e){ alert('Не удалось прочитать GitHub-назначение: '+e.message); return; }
-  }else{
-    try{ for await(const [name,h] of destDirHandle.entries()){ if(h.kind==='file') existing.add(name.toLowerCase()); } }
-    catch(e){ alert('Не удалось прочитать папку назначения: '+e.message); return; }
+  // Коллизии имён теперь проверяются отдельно в каждой подпапке-категории (destPath ниже), а не
+  // одним плоским списком на весь assets/refs/ — набор для каждой нужной подпапки подгружаем
+  // по требованию и кэшируем на время этого вызова.
+  const existingByDir=new Map();
+  async function existingSetFor(destDir){
+    if(existingByDir.has(destDir)) return existingByDir.get(destDir);
+    const set=new Set();
+    if(destIsGithub()){
+      try{ const r=await listFilesRecursiveGithub(destDir,SPRITE_EXT); r.files.forEach(f=>{ if(f.indexOf('/')===-1) set.add(f.toLowerCase()); }); }
+      catch(e){ alert('Не удалось прочитать GitHub-назначение: '+e.message); throw e; }
+    }else{
+      try{ const dirHandle=await getSubdir(destDirHandle,destDir.replace(/^assets\/refs\/?/,''),true); for await(const [name,h] of dirHandle.entries()){ if(h.kind==='file') set.add(name.toLowerCase()); } }
+      catch(e){ alert('Не удалось прочитать папку назначения: '+e.message); throw e; }
+    }
+    existingByDir.set(destDir,set);
+    return set;
   }
   const results=[];
   for(const file of fam.files){
     const p=pending.get(file.fileName);
     if(!p||!p.states.size) continue;
+    const category=categoryForPending(p);
+    const destDir=category?(AR_GITHUB_DEST_PATH+'/'+category):AR_GITHUB_DEST_PATH;
     try{
       let blob;
       if(sourceIsGithub()){
@@ -65,6 +86,7 @@ async function confirmMove(){
         const srcHandle=await sourceDirHandle.getFileHandle(file.fileName);
         blob=await srcHandle.getFile();
       }
+      const existing=await existingSetFor(destDir);
       // Один снимок может быть отмечен сразу несколькими состояниями (айдл + иконка, и т.п.) —
       // тогда из него получается несколько итоговых файлов, все — копии одних и тех же байтов.
       for(const wantedName of computeFinalNames(p,file.ext)){
@@ -77,12 +99,13 @@ async function confirmMove(){
         }
         existing.add(finalName.toLowerCase());
         if(destIsGithub()){
-          await writeFileToGithub(AR_GITHUB_DEST_PATH+'/'+finalName,new Uint8Array(await blob.arrayBuffer()),'Asset Renamer: '+AR_GITHUB_DEST_PATH+'/'+finalName);
+          await writeFileToGithub(destDir+'/'+finalName,new Uint8Array(await blob.arrayBuffer()),'Asset Renamer: '+destDir+'/'+finalName);
         }else{
-          const destHandle=await destDirHandle.getFileHandle(finalName,{create:true});
+          const dirHandle=await getSubdir(destDirHandle,category||'',true);
+          const destHandle=await dirHandle.getFileHandle(finalName,{create:true});
           const w=await destHandle.createWritable(); await w.write(blob); await w.close();
         }
-        results.push({from:file.fileName,to:finalName,ok:true});
+        results.push({from:file.fileName,to:destDir+'/'+finalName,ok:true});
       }
       if(sourceIsGithub()) await deleteFileFromGithub(AR_GITHUB_SOURCE_PATH+'/'+file.fileName,'Asset Renamer: remove '+AR_GITHUB_SOURCE_PATH+'/'+file.fileName);
       else await sourceDirHandle.removeEntry(file.fileName);

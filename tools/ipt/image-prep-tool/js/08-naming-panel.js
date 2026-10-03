@@ -58,13 +58,20 @@ function computeLayerName(){
   }
   return item.id;
 }
+// Категория ОС выбранного в панели объекта — пишется вместе с именем, чтобы при сохранении
+// положить файл в assets/refs/<категория>/… (см. 09-save.js), а не в плоский корень assets/refs/.
+function computeLayerCategory(){
+  const item=pickState.itemId?planItemById(pickState.itemId):null;
+  return item?item.c:null;
+}
 // Применяет текущий выбор панели как имя АКТИВНОГО слоя — вызывается из обработчиков самих
 // пикеров (пользователь явно меняет раздел/объект/вариацию, желая переименовать то, что сейчас
 // открыто), поэтому всегда перезаписывает, даже если имя уже было.
 function applyPickToActiveLayerIfAny(){
   const name=computeLayerName();
   if(!name) return;
-  if(activeLayer()) setActiveLayerName(name,'plan');
+  const l=activeLayer();
+  if(l){ setActiveLayerName(name,'plan'); l.category=computeLayerCategory(); }
 }
 // IPT-1: раньше это вызывалось при КАЖДОМ переключении активного слоя (в т.ч. простым кликом по уже
 // названному слою в списке) и тихо переименовывало его в то, что сейчас выбрано в пикере — даже если
@@ -85,7 +92,7 @@ function nameLayerFromPicker(layer){
   if(!layer) return false;
   const name=computeLayerName();
   if(!name) return false;
-  layer.name=name; layer.nameSource='plan';
+  layer.name=name; layer.nameSource='plan'; layer.category=computeLayerCategory();
   if(typeof renderLayers==='function') renderLayers();
   return true;
 }

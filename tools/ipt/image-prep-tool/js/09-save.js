@@ -5,7 +5,10 @@
    добавляется номер). Без подключённой папки — обычное скачивание файла браузером.
    ============================================================ */
 
-async function saveBlob(blob,base){
+async function saveBlob(blob,base,category){
+  // Категория объекта (ОС: item/furniture/tool/…) кладёт файл в assets/refs/<категория>/ —
+  // без неё (лист без слоёв, свободный текст в baseName) идёт в плоский корень assets/refs/.
+  const destDir=category?('assets/refs/'+category):'assets/refs';
   if(projectDirHandle||ghIsConnected()){
     let name='';
     if(projectDirHandle){
@@ -13,17 +16,17 @@ async function saveBlob(blob,base){
         const p=await projectDirHandle.queryPermission({mode:'readwrite'});
         if(p!=='granted') await regrantFolder();
       }
-      const dir=await getSubdir(projectDirHandle,'assets/refs',true);
+      const dir=await getSubdir(projectDirHandle,destDir,true);
       name=await nextAvailableName(dir,base);
       const fh=await dir.getFileHandle(name,{create:true});
       const w=await fh.createWritable(); await w.write(blob); await w.close();
     }
     if(ghIsConnected()){
-      const ghName=name||await nextAvailableNameGithub('assets/refs',base);
-      await writeFileToGithub('assets/refs/'+ghName,new Uint8Array(await blob.arrayBuffer()),'Image Prep Tool: assets/refs/'+ghName);
+      const ghName=name||await nextAvailableNameGithub(destDir,base);
+      await writeFileToGithub(destDir+'/'+ghName,new Uint8Array(await blob.arrayBuffer()),'Image Prep Tool: '+destDir+'/'+ghName);
       name=name||ghName;
     }
-    return name;
+    return destDir+'/'+name;
   }
   downloadCanvasPng(blob, base+'.png');
   return base+'.png (скачан)';
@@ -57,7 +60,7 @@ async function saveAll(){
         setActiveTarget(layer.id,{skipNameSync:true});
         if(autoTrim){ pushHistory(); trimCanvas(0); }
         const blob=await new Promise(res=>canvas.toBlob(res,'image/png'));
-        await saveBlob(blob, layer.name||layer.id);
+        await saveBlob(blob, layer.name||layer.id, layer.category);
         savedCount++;
         const idx=layers.findIndex(l=>l.id===layer.id); if(idx>=0) layers.splice(idx,1);
         removeTarget(layer.id);
