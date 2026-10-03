@@ -12,8 +12,11 @@
   <h1>Project Registry</h1>
   <button id="btnConnect" class="primary">📁 Подключить папку проекта</button>
   <button id="btnRegrant" style="display:none">Разрешить доступ</button>
+  <button id="btnConnectGithub" title="Читать файлы проекта напрямую через GitHub (personal access token), вместо или вместе с папкой">🐙 Подключить GitHub</button>
+  <button id="btnGithubDisconnect" style="display:none" title="Удалить токен из этого браузера">Отключить GitHub</button>
   <button id="btnScan">🔄 Сканировать проект</button>
   <span id="folderStatus" class="status">Папка не подключена</span>
+  <span id="githubStatus" class="status">GitHub не подключён</span>
   <div class="spacer"></div>
   <span id="scanStatus" class="status"></span>
 </header>
@@ -42,6 +45,7 @@
 </div>
 
 <!-- Порядок менять нельзя: скрипты делят одну глобальную область, номер = порядок загрузки, INIT — последний -->
+<script src="../shared/js/github-sync.js"></script>
 <script src="js/01-core-utils.js"></script>
 <script src="js/02-scan.js"></script>
 <script src="js/03-relations.js"></script>

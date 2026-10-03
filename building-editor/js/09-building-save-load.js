@@ -15,16 +15,9 @@ document.getElementById('buildingName').addEventListener('input', e=>{
 let existingBuildingsList=[]; // {id,name}[]
 async function scanExistingBuildings(){
   existingBuildingsList=[];
-  if(!projectDirHandle){ populateOpenBuildingSelect(); return; }
-  try{
-    const dir=await getSubdir(projectDirHandle,'data/buildings',false);
-    for await (const [name,handle] of dir.entries()){
-      if(handle.kind!=='file' || !name.endsWith('.json'))continue;
-      const bId=name.replace(/\.json$/,'');
-      try{ const file=await handle.getFile(); const data=JSON.parse(await file.text()); existingBuildingsList.push({id:bId, name:data.name||bId}); }
-      catch(e){ existingBuildingsList.push({id:bId, name:bId}); }
-    }
-  }catch(e){}
+  if(!projectDirHandle&&!ghIsConnected()){ populateOpenBuildingSelect(); return; }
+  const r=await listJsonDir('data/buildings');
+  r.items.forEach(f=>{ const bId=f.name.replace(/\.json$/,''); existingBuildingsList.push({id:bId, name:(f.data&&f.data.name)||bId}); });
   populateOpenBuildingSelect();
 }
 function populateOpenBuildingSelect(){
@@ -76,9 +69,9 @@ async function loadBuildingFromJSON(data){
   }
 
   buildingBackgrounds=[]; const bgFailed=[];
-  if(projectDirHandle && Array.isArray(data.backgroundLayers) && data.backgroundLayers.length){
+  if((projectDirHandle||ghIsConnected()) && Array.isArray(data.backgroundLayers) && data.backgroundLayers.length){
     try{
-      const spritesDir=await getSubdir(projectDirHandle,'assets/sprites',false);
+      const spritesDir=ghIsConnected()?null:await getSubdir(projectDirHandle,'assets/sprites',false);
       for(const l of data.backgroundLayers){
         try{
           const dataUrl=await loadImageDataUrl(spritesDir,l.image);
@@ -95,14 +88,13 @@ async function loadBuildingFromJSON(data){
   document.getElementById('folderStatus').textContent='Открыто «'+(data.name||data.id)+'».'+(bgFailed.length?' ⚠ Не загрузились фоны: '+bgFailed.join(', '):'');
 }
 document.getElementById('btnOpenBuilding').onclick=async ()=>{
-  if(!projectDirHandle){ alert('Сначала подключи папку проекта.'); return; }
+  if(!projectDirHandle&&!ghIsConnected()){ alert('Сначала подключи папку проекта или GitHub.'); return; }
   const bId=document.getElementById('openBuildingSelect').value;
   if(!bId){ alert('Выбери здание из списка слева.'); return; }
   try{
-    const dir=await getSubdir(projectDirHandle,'data/buildings',false);
-    const file=await (await dir.getFileHandle(bId+'.json')).getFile();
-    const data=JSON.parse(await file.text());
-    await loadBuildingFromJSON(data);
+    const r=await readSingleJsonFromProject('data/buildings/'+bId+'.json');
+    if(!r.data) throw new Error('файл не найден');
+    await loadBuildingFromJSON(r.data);
   }catch(e){ console.error(e); alert('Не удалось открыть здание: '+e.message); }
 };
 
@@ -149,7 +141,7 @@ function collectBuildingJSON(){
   };
 }
 document.getElementById('btnSaveBuilding').onclick=async ()=>{
-  if(!projectDirHandle){ alert('Сначала подключи папку проекта.'); return; }
+  if(!projectDirHandle&&!ghIsConnected()){ alert('Сначала подключи папку проекта или GitHub.'); return; }
   if(!placedRooms.length){ alert('Сначала размести хотя бы одну комнату.'); return; }
   if(buildingMode==='BUILDING'){
     const invalid=placedRooms.map(p=>({p,issues:getBuildingPlacementIssues(p)})).filter(x=>x.issues.length);
@@ -163,18 +155,15 @@ document.getElementById('btnSaveBuilding').onclick=async ()=>{
   const base=sanitizeSlug(document.getElementById('buildingId').value)||'building';
   const nameCheck=document.getElementById('buildingName').value.trim();
   try{
-    const dir=await getSubdir(projectDirHandle,'data/buildings',false);
-    const fileHandle=await dir.getFileHandle(base+'.json');
-    const file=await fileHandle.getFile();
-    const existing=JSON.parse(await file.text());
-    if(existing.name && existing.name!==nameCheck){
+    const existing=(await readSingleJsonFromProject('data/buildings/'+base+'.json')).data;
+    if(existing && existing.name && existing.name!==nameCheck){
       const proceed=confirm(`Внимание: здание с id "${base}" уже есть и называется «${existing.name}», а у тебя сейчас «${nameCheck||'без названия'}».\n\nЭто разные здания со случайно совпавшим id? Если продолжишь — файл того, старого здания будет ПЕРЕЗАПИСАН.\n\nПродолжить и перезаписать?`);
       if(!proceed) return;
     }
   }catch(e){ /* файла ещё нет — всё в порядке */ }
   try{
     await writeFileToProject('data/buildings/'+base+'.json', new TextEncoder().encode(JSON.stringify(collectBuildingJSON(),null,2)));
-    document.getElementById('folderStatus').textContent='Папка: '+projectDirHandle.name+' ✓ · сохранено '+new Date().toLocaleTimeString();
+    document.getElementById('folderStatus').textContent=(projectDirHandle?'Папка: '+projectDirHandle.name+' ✓':'')+(ghIsConnected()?' · GitHub ✓':'')+' · сохранено '+new Date().toLocaleTimeString();
     await scanExistingBuildings();
   }catch(e){ console.error(e); alert('Не удалось сохранить: '+e.message); }
 };

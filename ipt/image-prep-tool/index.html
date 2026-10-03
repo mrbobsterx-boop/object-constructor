@@ -23,6 +23,9 @@
     <span class="status" id="folderStatus">Папка не подключена</span>
     <button id="btnConnectFolder">📁 Подключить папку</button>
     <button id="btnRegrant" style="display:none">Разрешить доступ</button>
+    <button id="btnConnectGithub" title="Читать data/object_plan.json и писать в assets/refs напрямую через GitHub (personal access token), вместо или вместе с папкой">🐙 Подключить GitHub</button>
+    <button id="btnGithubDisconnect" style="display:none" title="Удалить токен из этого браузера">Отключить GitHub</button>
+    <span class="status" id="githubStatus">GitHub не подключён</span>
   </header>
 
   <div class="side-left">
@@ -165,6 +168,7 @@
 <script src="../../object-plan/js/05-data-world.js"></script>
 
 <!-- Порядок ниже менять нельзя: скрипты делят одну глобальную область, номер = порядок загрузки, INIT — последний -->
+<script src="../../shared/js/github-sync.js"></script>
 <script src="js/01-core-utils.js"></script>
 <script src="js/02-plan-bridge.js"></script>
 <script src="js/03-queue.js"></script>

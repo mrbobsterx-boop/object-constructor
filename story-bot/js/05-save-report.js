@@ -3,7 +3,7 @@
    ============================================================ */
 
 async function saveReport(){
-  if(!projectDirHandle){ return; }
+  if(!projectDirHandle&&!ghIsConnected()){ return; }
   const report={
     schema_version:1,
     saved_at:new Date().toISOString(),

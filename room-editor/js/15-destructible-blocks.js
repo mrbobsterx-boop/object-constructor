@@ -242,7 +242,7 @@ function refreshBlockPalette(){
   const sel=document.getElementById('blockTypeSelect'); if(!sel) return;
   const all=document.getElementById('blockShowAllTypes').checked;
   const items=blockTypeItems(all), prev=blockPaintType;
-  if(!projectDirHandle) sel.innerHTML='<option value="">— подключи папку проекта —</option>';
+  if(!projectDirHandle&&!ghIsConnected()) sel.innerHTML='<option value="">— подключи папку проекта или GitHub —</option>';
   else if(!items.length) sel.innerHTML='<option value="">— нет объектов категории «Блок / материал» —</option>';
   else sel.innerHTML=items.map(c=>`<option value="${esc(c.id)}">${esc(c.name||c.id)}${c.category==='block'?'':' ('+esc(categoryLabel(c.category))+')'}</option>`).join('');
   sel.value=items.some(c=>c.id===prev)?prev:(items[0]?items[0].id:'');
@@ -254,7 +254,7 @@ function renderBlockPalette(){
   const box=document.getElementById('blockPalette'); if(!box) return;
   const all=document.getElementById('blockShowAllTypes').checked;
   const items=blockTypeItems(all);
-  if(!projectDirHandle){ box.innerHTML='<div class="status">Подключи папку проекта — здесь появятся типы блоков.</div>'; return; }
+  if(!projectDirHandle&&!ghIsConnected()){ box.innerHTML='<div class="status">Подключи папку проекта или GitHub — здесь появятся типы блоков.</div>'; return; }
   if(!items.length){ box.innerHTML='<div class="status">Нет объектов категории «Блок / материал». Создай их в Object Constructor.</div>'; return; }
   box.innerHTML='';
   items.forEach(c=>{

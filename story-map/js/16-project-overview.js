@@ -25,7 +25,7 @@ function computeProjectStats(){
     infoCount:problems.filter(p=>p.level==='info').length,
     schemaVersion:lastLoadedSchemaVersion||STORY_SCHEMA_VERSION,
     savedAt:lastLoadedSavedAt||'',
-    connected:!!projectDirHandle
+    connected:!!projectDirHandle||ghIsConnected()
   };
 }
 const PROPOSAL_STATUS_LABELS={idea:'идея',accepted:'принята',rejected:'отклонена'};

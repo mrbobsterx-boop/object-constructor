@@ -11,23 +11,20 @@ async function scanRoomCatalog(){
   roomCatalog=[];
   roomVisualCache={};
   objectIndexCache=null; // индекс объектов перечитается при следующем превью
-  if(!projectDirHandle){ renderRoomCatalogList(); return; }
-  try{
-    const dir=await getSubdir(projectDirHandle,'data/rooms',false);
-    for await (const [name,handle] of dir.entries()){
-      if(handle.kind!=='file' || !name.endsWith('.json'))continue;
-      try{
-        const file=await handle.getFile();
-        const data=roomFromJSON(JSON.parse(await file.text())); // метры → px (старые файлы пересчитываются)
-        const doors=(data.instances||[]).filter(i=>i.door).map(i=>({x:i.x,y:i.y}));
-        const stairConnections=Array.isArray(data.stairConnections)
-          ? data.stairConnections.map(x=>typeof x==='string'?x:(x&&x.position)).filter(Boolean)
-          : [];
-        const hasBlocks=!!(data.world&&Array.isArray(data.world.blocks)&&data.world.blocks.length); // в комнате есть разрушаемые блоки (сетка 1 м)
-        roomCatalog.push({ id:data.id, name:data.name||data.id, type:data.type||'', width:data.width, height:data.height, doors, compositionRole:data.compositionRole||'CENTER_CENTER', stairConnections, hasBlocks });
-      }catch(e){ console.warn('Битая комната:',name,e); }
-    }
-  }catch(e){}
+  if(!projectDirHandle&&!ghIsConnected()){ renderRoomCatalogList(); return; }
+  const files=await listJsonDir('data/rooms');
+  for(const f of files.items){
+    if(f.broken||!f.data) continue;
+    try{
+      const data=roomFromJSON(f.data); // метры → px (старые файлы пересчитываются)
+      const doors=(data.instances||[]).filter(i=>i.door).map(i=>({x:i.x,y:i.y}));
+      const stairConnections=Array.isArray(data.stairConnections)
+        ? data.stairConnections.map(x=>typeof x==='string'?x:(x&&x.position)).filter(Boolean)
+        : [];
+      const hasBlocks=!!(data.world&&Array.isArray(data.world.blocks)&&data.world.blocks.length); // в комнате есть разрушаемые блоки (сетка 1 м)
+      roomCatalog.push({ id:data.id, name:data.name||data.id, type:data.type||'', width:data.width, height:data.height, doors, compositionRole:data.compositionRole||'CENTER_CENTER', stairConnections, hasBlocks });
+    }catch(e){ console.warn('Битая комната:',f.name,e); }
+  }
   renderRoomCatalogList();
   populateSlotTypeSelect();
 }

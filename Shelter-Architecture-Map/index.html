@@ -12,11 +12,14 @@
   <h1>Shelter Architecture Map</h1>
   <button id="btnConnect" class="primary">📁 Подключить папку проекта</button>
   <button id="btnRegrant" style="display:none">Разрешить доступ</button>
+  <button id="btnConnectGithub" title="Читать/писать data/rooms, data/buildings и data/scene_plan.json напрямую через GitHub (personal access token). project.godot и сцены *.tscn остаются локальными — читаются только из подключённой папки.">🐙 Подключить GitHub</button>
+  <button id="btnGithubDisconnect" style="display:none" title="Удалить токен из этого браузера">Отключить GitHub</button>
   <button id="btnScan">🔄 Сверить с проектом</button>
   <button id="btnSaveProject" title="Записать отметки в data/scene_plan.json">💾 Прогресс в проект</button>
   <button id="btnLoadProject" title="Загрузить отметки из data/scene_plan.json">📂 Из проекта</button>
   <button id="btnExport" title="Скачать чертёж в Markdown">⬇ Чертёж .md</button>
   <span id="folderStatus" class="status">Папка не подключена — отметки хранятся в браузере</span>
+  <span id="githubStatus" class="status">GitHub не подключён</span>
   <div class="spacer"></div>
   <span id="scanStatus" class="status"></span>
 </header>
@@ -40,6 +43,7 @@
 </div>
 
 <!-- Порядок менять нельзя: скрипты делят одну глобальную область, номер = порядок загрузки, INIT — последний -->
+<script src="../shared/js/github-sync.js"></script>
 <script src="js/01-core-utils.js"></script>
 <script src="js/02-vocab.js"></script>
 <script src="js/03-data-systems-foundation.js"></script>

@@ -9,16 +9,12 @@
 let roomRecipes={}; // roomType -> [{group,min,max}]
 async function loadRoomRecipes(){
   roomRecipes={};
-  if(!projectDirHandle)return;
-  try{
-    const dir=await getSubdir(projectDirHandle,'data',false);
-    const fileHandle=await dir.getFileHandle('room_recipes.json');
-    const file=await fileHandle.getFile();
-    roomRecipes=JSON.parse(await file.text())||{};
-  }catch(e){ /* файла ещё нет */ }
+  if(!projectDirHandle&&!ghIsConnected())return;
+  const r=await readSingleJsonFromProject('data/room_recipes.json');
+  roomRecipes=r.data||{};
 }
 async function saveRoomRecipesToDisk(){
-  if(!projectDirHandle){ alert('Сначала подключи папку проекта.'); return; }
+  if(!projectDirHandle&&!ghIsConnected()){ alert('Сначала подключи папку проекта или GitHub.'); return; }
   await writeFileToProject('data/room_recipes.json', new TextEncoder().encode(JSON.stringify(roomRecipes,null,2)));
 }
 function populateRecipeTypeSelect(){

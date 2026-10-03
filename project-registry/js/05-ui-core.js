@@ -52,7 +52,7 @@ function entityShell(title,badges,body){
   return `<div class="toolbar"><button data-act="back">← Назад</button><div><h2>${title}</h2></div><div class="row">${badges||''}</div></div>${body}`;
 }
 function emptyState(){
-  return `<div class="empty"><h2>Project Registry</h2><p>Подключи папку проекта — реестр прочитает data/ и assets/ и покажет все объекты, комнаты, здания,
+  return `<div class="empty"><h2>Project Registry</h2><p>Подключи папку проекта или GitHub — реестр прочитает data/ и assets/ и покажет все объекты, комнаты, здания,
     связи между ними и найденные проблемы. Реестр только читает: он ничего не меняет в проекте.</p></div>`;
 }
 

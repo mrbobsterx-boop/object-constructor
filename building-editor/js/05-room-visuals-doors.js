@@ -21,9 +21,13 @@ let roomVisualCache={}; // roomId -> {backgroundLayers:[...], instances:[...]} |
 async function loadImageDataUrl(spritesDir, relPath){
   // путь — от assets/sprites; префикс «assets/sprites/» (так пишутся фоны здания) допустим
   const clean=String(relPath||'').replace(/^assets\/sprites\//,'').replace(/^\//,'');
-  const parts=clean.split('/'); const fileName=parts.pop();
-  const subDir=parts.length? await getSubdir(spritesDir,parts.join('/'),false) : spritesDir;
-  const file=await (await subDir.getFileHandle(fileName)).getFile();
+  let file;
+  if(ghIsConnected()){ file=await readProjectFileBlob('assets/sprites/'+clean); if(!file) throw new Error('файл не найден на GitHub'); }
+  else{
+    const parts=clean.split('/'); const fileName=parts.pop();
+    const subDir=parts.length? await getSubdir(spritesDir,parts.join('/'),false) : spritesDir;
+    file=await (await subDir.getFileHandle(fileName)).getFile();
+  }
   return new Promise((res,rej)=>{ const r=new FileReader(); r.onload=()=>res(r.result); r.onerror=()=>rej(r.error||new Error('не удалось прочитать файл')); r.readAsDataURL(file); });
 }
 function getImageDims(dataUrl){
@@ -70,16 +74,12 @@ let objectIndexCache=null;
 async function getObjectIndex(){
   if(objectIndexCache) return objectIndexCache;
   const byId=new Map();
-  try{
-    const dir=await getSubdir(projectDirHandle,'data/objects',false);
-    for await(const [name,h] of dir.entries()){
-      if(h.kind!=='file'||!name.endsWith('.json'))continue;
-      try{
-        const obj=JSON.parse(await (await h.getFile()).text()), base=name.replace(/\.json$/,'');
-        byId.set(obj.id||base,obj); if(!byId.has(base)) byId.set(base,obj);
-      }catch(e){}
-    }
-  }catch(e){}
+  const files=await listJsonDir('data/objects');
+  for(const f of files.items){
+    if(f.broken||!f.data) continue;
+    const obj=f.data, base=f.name.replace(/\.json$/,'');
+    byId.set(obj.id||base,obj); if(!byId.has(base)) byId.set(base,obj);
+  }
   objectIndexCache={byId};
   return objectIndexCache;
 }
@@ -87,10 +87,10 @@ async function loadRoomVisual(roomId){
   if(roomVisualCache[roomId]!==undefined)return;
   roomVisualCache[roomId]='loading';
   try{
-    const roomsDir=await getSubdir(projectDirHandle,'data/rooms',false);
-    const file=await (await roomsDir.getFileHandle(roomId+'.json')).getFile();
-    const data=roomFromJSON(JSON.parse(await file.text())); // метры → px
-    const spritesDir=await getSubdir(projectDirHandle,'assets/sprites',false);
+    const roomJson=(await readSingleJsonFromProject('data/rooms/'+roomId+'.json')).data;
+    if(!roomJson) throw new Error('комната не найдена');
+    const data=roomFromJSON(roomJson); // метры → px
+    const spritesDir=ghIsConnected()?null:await getSubdir(projectDirHandle,'assets/sprites',false);
     const issues=[]; // что не удалось показать — выводится значком ⚠ на комнате
     const backgroundLayers=[];
     for(const l of (data.backgroundLayers||[])){

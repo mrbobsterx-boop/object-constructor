@@ -94,15 +94,69 @@ async function getSubdir(root,pathStr,create){
   for(const p of pathStr.split('/').filter(Boolean)) dir=await dir.getDirectoryHandle(p,{create:!!create});
   return dir;
 }
+// Пишет во ВСЕ подключённые места сразу (и в папку, и в GitHub) — не either/or.
 async function writeFileToProject(relPath,bytes){
-  if(!projectDirHandle)return false;
-  const parts=relPath.split('/'); const fileName=parts.pop();
-  const dir=parts.length ? await getSubdir(projectDirHandle,parts.join('/'),true) : projectDirHandle;
-  const fileHandle=await dir.getFileHandle(fileName,{create:true});
-  const writable=await fileHandle.createWritable();
-  await writable.write(bytes);
-  await writable.close();
-  return true;
+  let ok=false;
+  if(projectDirHandle){
+    const parts=relPath.split('/'); const fileName=parts.pop();
+    const dir=parts.length ? await getSubdir(projectDirHandle,parts.join('/'),true) : projectDirHandle;
+    const fileHandle=await dir.getFileHandle(fileName,{create:true});
+    const writable=await fileHandle.createWritable();
+    await writable.write(bytes);
+    await writable.close();
+    ok=true;
+  }
+  if(ghIsConnected()){ await writeFileToGithub(relPath,bytes,'Room Editor: '+relPath); ok=true; }
+  return ok;
+}
+// GitHub в приоритете при чтении, если подключён — иначе папка проекта. Независимо от режима сохранения
+// (см. writeFileToProject выше). См. shared/js/github-sync.js.
+async function listJsonDir(path){
+  if(ghIsConnected()) return listJsonDirGithub(path);
+  const out={items:[],missing:false};
+  try{
+    const dir=await getSubdir(projectDirHandle,path,false);
+    for await(const [name,h] of dir.entries()){
+      if(h.kind!=='file'||!/\.json$/i.test(name)) continue;
+      try{ const f=await h.getFile(); out.items.push({name,data:JSON.parse(await f.text()),broken:false}); }
+      catch(e){ out.items.push({name,data:null,broken:true}); }
+    }
+  }catch(e){ out.missing=true; }
+  return out;
+}
+async function listFilesRecursive(path,re){
+  if(ghIsConnected()) return listFilesRecursiveGithub(path,re);
+  const out={files:[],missing:false};
+  let root; try{ root=await getSubdir(projectDirHandle,path,false); }catch(e){ out.missing=true; return out; }
+  async function walk(dir,prefix){
+    for await(const [name,h] of dir.entries()){
+      if(name.startsWith('.')) continue;
+      if(h.kind==='directory') await walk(h,prefix+name+'/');
+      else if(re.test(name)) out.files.push(prefix+name);
+    }
+  }
+  try{ await walk(root,''); }catch(e){}
+  return out;
+}
+async function readSingleJsonFromProject(relPath){
+  if(ghIsConnected()) return readJsonFromGithub(relPath);
+  try{
+    const parts=relPath.split('/'); const fileName=parts.pop();
+    const dir=parts.length?await getSubdir(projectDirHandle,parts.join('/'),false):projectDirHandle;
+    const f=await (await dir.getFileHandle(fileName)).getFile();
+    return {data:JSON.parse(await f.text()),broken:false};
+  }catch(e){ return {data:null,broken:false,missing:true}; }
+}
+// Один файл (обычно картинка) по пути от корня проекта, как Blob — GitHub или папка.
+async function readProjectFileBlob(relPath){
+  if(ghIsConnected()){
+    try{ const r=await ghReadFileRaw(relPath); return r?new Blob([r.bytes]):null; }catch(e){ return null; }
+  }
+  try{
+    const parts=relPath.split('/'); const fileName=parts.pop();
+    const dir=parts.length?await getSubdir(projectDirHandle,parts.join('/'),false):projectDirHandle;
+    return await (await dir.getFileHandle(fileName)).getFile();
+  }catch(e){ return null; }
 }
 function updateFolderStatus(needsRegrant){
   const el=document.getElementById('folderStatus');
@@ -139,3 +193,5 @@ async function regrantProjectFolder(){
 }
 document.getElementById('btnConnectFolder').onclick=connectProjectFolder;
 document.getElementById('btnRegrantFolder').onclick=regrantProjectFolder;
+// Вызывается shared/js/github-sync.js после успешного подключения GitHub.
+async function onGithubConnected(){ await loadProjectSettings(); await loadRoomRecipes(); await scanProjectFolderCatalog(); await scanExistingRooms(); await scanExistingSets(); }

@@ -14,3 +14,5 @@ tabSingleBtn.onclick=()=>{ tabSingleBtn.classList.add('active'); tabBatchBtn.cla
 tabBatchBtn.onclick=()=>{ tabBatchBtn.classList.add('active'); tabSingleBtn.classList.remove('active'); viewBatch.style.display=''; viewSingle.style.display='none'; };
 
 tryRestoreProjectFolder();
+wireGithubButtons();
+if(ghIsConnected()) onGithubConnected();

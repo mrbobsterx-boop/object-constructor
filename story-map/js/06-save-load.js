@@ -32,7 +32,7 @@ let lastLoadedSchemaVersion=null, lastLoadedSavedAt=''; // для панели �
 const STORY_BACKUP_SLOTS=5;
 function backupSlotPath(i){ return `data/story.backup.${String(i).padStart(2,'0')}.json`; }
 async function rotateStoryBackups(snapshotObj){
-  if(!projectDirHandle) return;
+  if(!projectDirHandle&&!ghIsConnected()) return;
   for(let i=STORY_BACKUP_SLOTS;i>1;i--){
     const prev=await readJsonFromProject(backupSlotPath(i-1));
     if(prev) await writeFileToProject(backupSlotPath(i),JSON.stringify(prev,null,2));
@@ -40,7 +40,7 @@ async function rotateStoryBackups(snapshotObj){
   await writeFileToProject(backupSlotPath(1),JSON.stringify(snapshotObj,null,2));
 }
 async function backupCurrentStateBeforeImport(){
-  if(!projectDirHandle) return;
+  if(!projectDirHandle&&!ghIsConnected()) return;
   try{ await rotateStoryBackups(collectStoryJSON()); }catch(e){ console.warn('Не удалось сделать бэкап перед импортом:',e); }
 }
 
@@ -48,16 +48,26 @@ async function backupCurrentStateBeforeImport(){
 // (обычный первый запуск) и «файл есть, но повреждён» выглядят для вызывающего кода одинаково: null.
 // Различие важно только для data/story.json — там «повреждён» должен вести к восстановлению из бэкапа,
 // а не к молчаливому пустому графу (см. readStoryJsonWithRecovery/loadStoryFromProject ниже).
-async function readStoryFileRaw(relPath){
-  const parts=relPath.split('/'); const fileName=parts.pop();
-  const dir=parts.length?await getSubdir(projectDirHandle,parts.join('/'),false):projectDirHandle;
-  const f=await (await dir.getFileHandle(fileName)).getFile();
-  return f.text();
-}
 async function readStoryJsonWithRecovery(relPath){
+  if(ghIsConnected()){
+    const r=await readJsonFromGithub(relPath);
+    if(r.missing) return {data:null,corrupted:false,recoveredFrom:''};
+    if(!r.broken) return {data:r.data,corrupted:false,recoveredFrom:''};
+    const slots=Array.from({length:STORY_BACKUP_SLOTS},(_,i)=>backupSlotPath(i+1)).concat(['data/story.backup.json']);
+    for(const slot of slots){
+      const d=await readJsonFromProject(slot);
+      if(d&&Array.isArray(d.nodes)) return {data:d,corrupted:true,recoveredFrom:slot};
+    }
+    return {data:null,corrupted:true,recoveredFrom:''};
+  }
   if(!projectDirHandle) return {data:null,corrupted:false,recoveredFrom:''};
   let text;
-  try{ text=await readStoryFileRaw(relPath); }
+  try{
+    const parts=relPath.split('/'); const fileName=parts.pop();
+    const dir=parts.length?await getSubdir(projectDirHandle,parts.join('/'),false):projectDirHandle;
+    const f=await (await dir.getFileHandle(fileName)).getFile();
+    text=await f.text();
+  }
   catch(e){ return {data:null,corrupted:false,recoveredFrom:''}; } // файла нет вовсе — не ошибка, обычный первый запуск
   try{ return {data:JSON.parse(text),corrupted:false,recoveredFrom:''}; }
   catch(parseErr){
@@ -105,7 +115,7 @@ function coerceStringList(v){
   return [];
 }
 async function saveStoryToProject(){
-  if(!projectDirHandle){ alert('Сначала подключи папку проекта.'); return; }
+  if(!projectDirHandle&&!ghIsConnected()){ alert('Сначала подключи папку проекта или GitHub.'); return; }
   try{
     // Перед перезаписью — снимок ТЕКУЩЕГО содержимого файла (как он есть на диске прямо сейчас, ДО
     // этого сохранения) в роллинг-бэкап (§23, STORY_BACKUP_SLOTS выше) — на первом сохранении файла

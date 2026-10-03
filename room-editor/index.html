@@ -72,6 +72,9 @@
   <button id="btnConnectFolder">📁 Подключить папку проекта</button>
   <span id="folderStatus" class="status">Папка не подключена</span>
   <button id="btnRegrantFolder" style="display:none">Разрешить доступ</button>
+  <button id="btnConnectGithub" title="Читать/писать файлы проекта напрямую через GitHub (personal access token), вместо или вместе с папкой">🐙 Подключить GitHub</button>
+  <button id="btnGithubDisconnect" style="display:none" title="Удалить токен из этого браузера">Отключить GitHub</button>
+  <span id="githubStatus" class="status">GitHub не подключён</span>
   <button id="btnSaveRoom" class="primary">💾 Сохранить комнату</button>
   <button id="btnOpenGen">🎲 Сгенерировать похожую</button>
   <button id="btnOpenRecipes">📋 Рецепты комнат</button>
@@ -259,6 +262,7 @@
     <div class="status" id="recipeStatus" style="margin-top:8px"></div>
   </div>
 </div>
+<script src="../shared/js/github-sync.js"></script>
 <script src="js/01-core-utils.js"></script>
 <script src="js/02-catalog.js"></script>
 <script src="js/03-room-geometry.js"></script>

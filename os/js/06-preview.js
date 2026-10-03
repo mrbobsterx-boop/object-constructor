@@ -199,48 +199,43 @@ function syncPreview(){
 }
 
 async function loadImageFromPreviewPath(relPath){
-  if(!projectDirHandle||!relPath)return null;
+  if((!projectDirHandle&&!ghIsConnected())||!relPath)return null;
   try{
-    const spritesDir=await getSubdir(projectDirHandle,'assets/sprites',false);
-    const clean=String(relPath).replace(/^assets\/sprites\//,'').replace(/^\//,'');
-    const parts=clean.split('/'); const fileName=parts.pop();
-    const subDir=parts.length?await getSubdir(spritesDir,parts.join('/'),false):spritesDir;
-    const fh=await subDir.getFileHandle(fileName); const file=await fh.getFile();
+    const file=await readProjectFileBlob('assets/sprites/'+String(relPath).replace(/^assets\/sprites\//,'').replace(/^\//,''));
+    if(!file) throw new Error('файл не найден');
     const url=URL.createObjectURL(file);
     const img=await new Promise((res,rej)=>{const im=new Image();im.onload=()=>res(im);im.onerror=rej;im.src=url;});
     return {img,url};
   }catch(e){ return null; }
 }
 async function scanPreviewBackgrounds(){
-  if(!projectDirHandle){
+  if(!projectDirHandle&&!ghIsConnected()){
     previewBackgroundCatalog=[];
     const sel=document.getElementById('previewBackgroundSelect');
-    sel.innerHTML='<option value="">Без фона — подключи папку проекта</option>';
+    sel.innerHTML='<option value="">Без фона — подключи папку проекта или GitHub</option>';
     sel.value=''; previewSelectedRoomId=''; previewWorldW=PREVIEW_DEFAULT_W; previewWorldH=PREVIEW_DEFAULT_H;
     fitPreviewToViewport(); drawWorldPreview(); return;
   }
   const found=[];
-  try{
-    const roomsDir=await getSubdir(projectDirHandle,'data/rooms',false);
-    for await(const [name,handle] of roomsDir.entries()){
-      if(handle.kind!=='file'||!name.endsWith('.json'))continue;
-      try{
-        const data=roomFromJSON(JSON.parse(await (await handle.getFile()).text())); // метры → px (старые комнаты пересчитываются)
-        const layers=data.backgroundLayers;
-        const room={roomId:data.id||name.replace(/\.json$/,''),roomName:data.name||data.id||name,width:data.width||PREVIEW_DEFAULT_W,height:data.height||PREVIEW_DEFAULT_H,layers:[]};
-        for(const ld of layers){
-          if(!ld||!ld.image)continue;
-          const loaded=await loadImageFromPreviewPath(ld.image);
-          if(!loaded)continue;
-          room.layers.push({img:loaded.img,url:loaded.url,nativeWidth:loaded.img.naturalWidth,nativeHeight:loaded.img.naturalHeight,
-            opacity:ld.opacity!==undefined?ld.opacity:1,parallax:ld.parallax!==undefined?ld.parallax:1,
-            x:ld.x!==undefined?ld.x:room.width/2,y:ld.y!==undefined?ld.y:room.height/2,scale:bgScaleFromJSON(ld,loaded.img.naturalWidth),
-            rotation:ld.rotation||0,flipH:!!ld.flipH,flipV:!!ld.flipV});
-        }
-        if(room.layers.length)found.push(room);
-      }catch(e){}
-    }
-  }catch(e){}
+  const roomFiles=await listJsonDir('data/rooms');
+  for(const f of roomFiles.items){
+    if(f.broken||!f.data) continue;
+    try{
+      const data=roomFromJSON(f.data); // метры → px (старые комнаты пересчитываются)
+      const layers=data.backgroundLayers;
+      const room={roomId:data.id||f.name.replace(/\.json$/,''),roomName:data.name||data.id||f.name,width:data.width||PREVIEW_DEFAULT_W,height:data.height||PREVIEW_DEFAULT_H,layers:[]};
+      for(const ld of layers){
+        if(!ld||!ld.image)continue;
+        const loaded=await loadImageFromPreviewPath(ld.image);
+        if(!loaded)continue;
+        room.layers.push({img:loaded.img,url:loaded.url,nativeWidth:loaded.img.naturalWidth,nativeHeight:loaded.img.naturalHeight,
+          opacity:ld.opacity!==undefined?ld.opacity:1,parallax:ld.parallax!==undefined?ld.parallax:1,
+          x:ld.x!==undefined?ld.x:room.width/2,y:ld.y!==undefined?ld.y:room.height/2,scale:bgScaleFromJSON(ld,loaded.img.naturalWidth),
+          rotation:ld.rotation||0,flipH:!!ld.flipH,flipV:!!ld.flipV});
+      }
+      if(room.layers.length)found.push(room);
+    }catch(e){}
+  }
   previewBackgroundCatalog.forEach(r=>(r.layers||[]).forEach(l=>{if(l.url)URL.revokeObjectURL(l.url);}));
   previewBackgroundCatalog=found;
   const sel=document.getElementById('previewBackgroundSelect'), current=previewSelectedRoomId;

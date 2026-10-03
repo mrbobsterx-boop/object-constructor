@@ -37,6 +37,24 @@ async function listTopLevelFiles(dirHandle){
 function setSourceStatus(t){ document.getElementById('sourceStatus').textContent=t; }
 function setDestStatus(t){ document.getElementById('destStatus').textContent=t; }
 
+// ============================================================
+// Источник и назначение — ОДНО общее GitHub-подключение (один репозиторий), но каждая сторона
+// независимо переключается между локальной папкой и GitHub (обычно источник — assets/sprites/,
+// назначение — assets/refs/, в одном и том же репозитории). Переключатели — чекбоксы в шапке,
+// активны только когда GitHub вообще подключён (см. wireGithubButtons в shared/js/github-sync.js).
+const AR_LS_SOURCE='asset_renamer_source_gh', AR_LS_DEST='asset_renamer_dest_gh';
+function sourceIsGithub(){ return ghIsConnected() && localStorage.getItem(AR_LS_SOURCE)==='1'; }
+function destIsGithub(){ return ghIsConnected() && localStorage.getItem(AR_LS_DEST)==='1'; }
+function updateGithubModeUI(){
+  const cbSrc=document.getElementById('chkSourceGithub'), cbDest=document.getElementById('chkDestGithub');
+  if(cbSrc){ cbSrc.disabled=!ghIsConnected(); if(!ghIsConnected()){ cbSrc.checked=false; localStorage.removeItem(AR_LS_SOURCE); } }
+  if(cbDest){ cbDest.disabled=!ghIsConnected(); if(!ghIsConnected()){ cbDest.checked=false; localStorage.removeItem(AR_LS_DEST); } }
+  if(cbSrc) cbSrc.checked=sourceIsGithub();
+  if(cbDest) cbDest.checked=destIsGithub();
+}
+// Вызывается shared/js/github-sync.js после успешного подключения GitHub.
+async function onGithubConnected(){ updateGithubModeUI(); }
+
 async function connectSourceFolder(){
   if(!('showDirectoryPicker' in window)){ alert('Эта функция работает только в Chrome/Edge.'); return; }
   try{

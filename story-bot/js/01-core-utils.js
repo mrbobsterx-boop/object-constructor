@@ -31,15 +31,22 @@ async function getSubdir(root,path,create){
   for(const p of String(path).split('/').filter(Boolean)) dir=await dir.getDirectoryHandle(p,{create:!!create});
   return dir;
 }
+// Пишет во ВСЕ подключённые места сразу (и в папку, и в GitHub) — не either/or.
 async function writeFileToProject(relPath,text){
-  if(!projectDirHandle) return false;
-  const parts=relPath.split('/'); const fileName=parts.pop();
-  const dir=parts.length?await getSubdir(projectDirHandle,parts.join('/'),true):projectDirHandle;
-  const fh=await dir.getFileHandle(fileName,{create:true});
-  const w=await fh.createWritable(); await w.write(text); await w.close();
-  return true;
+  let ok=false;
+  if(projectDirHandle){
+    const parts=relPath.split('/'); const fileName=parts.pop();
+    const dir=parts.length?await getSubdir(projectDirHandle,parts.join('/'),true):projectDirHandle;
+    const fh=await dir.getFileHandle(fileName,{create:true});
+    const w=await fh.createWritable(); await w.write(text); await w.close();
+    ok=true;
+  }
+  if(ghIsConnected()){ await writeFileToGithub(relPath,text,'Story Bot: '+relPath); ok=true; }
+  return ok;
 }
+// GitHub в приоритете при чтении, если подключён — иначе папка проекта.
 async function readJsonFromProject(relPath){
+  if(ghIsConnected()) return (await readJsonFromGithub(relPath)).data;
   if(!projectDirHandle) return null;
   try{
     const parts=relPath.split('/'); const fileName=parts.pop();
@@ -85,3 +92,5 @@ async function regrantProjectFolder(){
     if(p==='granted') await loadStory();
   }catch(e){ console.warn(e); }
 }
+// Вызывается shared/js/github-sync.js после успешного подключения GitHub.
+async function onGithubConnected(){ await loadStory(); }

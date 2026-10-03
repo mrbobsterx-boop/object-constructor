@@ -85,21 +85,16 @@ function saveVisualName(kind,name){
 let projectVisualNames={animation:new Set(), image:new Set()};
 async function scanProjectVisualNames(){
   projectVisualNames={animation:new Set(), image:new Set()};
-  if(!projectDirHandle)return;
-  try{
-    const dir=await getSubdir(projectDirHandle,'data/objects',false);
-    for await (const [name,handle] of dir.entries()){
-      if(handle.kind!=='file' || !name.endsWith('.json'))continue;
-      try{
-        const data=JSON.parse(await (await handle.getFile()).text());
-        const v=data.visuals;
-        if(v){
-          (v.animations||[]).forEach(a=>{ if(a.name && a.name!=='idle') projectVisualNames.animation.add(a.name); });
-          (v.images||[]).forEach(s=>{ if(s.name && s.name!=='idle') projectVisualNames.image.add(s.name); });
-        }
-      }catch(e){}
+  if(!projectDirHandle&&!ghIsConnected())return;
+  const r=await listJsonDir('data/objects');
+  r.items.forEach(f=>{
+    if(f.broken||!f.data) return;
+    const v=f.data.visuals;
+    if(v){
+      (v.animations||[]).forEach(a=>{ if(a.name && a.name!=='idle') projectVisualNames.animation.add(a.name); });
+      (v.images||[]).forEach(s=>{ if(s.name && s.name!=='idle') projectVisualNames.image.add(s.name); });
     }
-  }catch(e){}
+  });
 }
 window.scanProjectVisualNames=scanProjectVisualNames;
 

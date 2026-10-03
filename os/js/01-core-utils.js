@@ -163,27 +163,27 @@ function catalogThumbHtml(e,size,extraStyle){
   return `<span class="thumb-empty" title="${esc(why)}" style="width:${s}px;height:${s}px">${iss?'⚠':''}</span>`;
 }
 function renderCatalogSidebar(){
-  const list = projectDirHandle ? projectCatalog : loadCatalog();
+  const list = (projectDirHandle||ghIsConnected()) ? projectCatalog : loadCatalog();
   const el=document.getElementById('catalogList');
-  if(!list.length){ el.textContent = projectDirHandle ? 'В подключённой папке пока нет сохранённых объектов.' : 'Пока пусто.'; return; }
+  if(!list.length){ el.textContent = (projectDirHandle||ghIsConnected()) ? 'В подключённой папке пока нет сохранённых объектов.' : 'Пока пусто.'; return; }
   el.innerHTML = list.slice().reverse().slice(0,30).map(e=>`<div style="display:flex;align-items:center;gap:6px;margin-bottom:4px" title="${esc((e.id||'')+' · '+((typeof CAT_LABELS!=='undefined'&&CAT_LABELS[e.category])||e.category||''))}">${catalogThumbHtml(e,18,'background:#0d1116;border-radius:3px')}<span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(e.name||e.id)}</span></div>`).join('') + (list.length>30?`<div class="muted">…и ещё ${list.length-30}</div>`:'');
   renderObjectCatalogList(list);
 }
 function renderObjectCatalogList(list){
-  list = list || (projectDirHandle ? projectCatalog : loadCatalog());
+  list = list || ((projectDirHandle||ghIsConnected()) ? projectCatalog : loadCatalog());
   const dl=document.getElementById('objectCatalogList'); if(!dl)return;
   dl.innerHTML=list.map(e=>`<option value="${esc(e.id)}">${esc(e.name||e.id)} (${esc(e.category||'')})</option>`).join('');
   renderVariantGroupList(list);
 }
 function renderVariantGroupList(list){
-  list = list || (projectDirHandle ? projectCatalog : loadCatalog());
+  list = list || ((projectDirHandle||ghIsConnected()) ? projectCatalog : loadCatalog());
   const dl=document.getElementById('variantGroupList'); if(!dl)return;
   const groups=[...new Set(list.map(e=>e.json&&e.json.behavior&&e.json.behavior.variant_group).filter(Boolean))];
   dl.innerHTML=groups.map(g=>`<option value="${esc(g)}">`).join('');
   renderResourceTypeList(list);
 }
 function renderResourceTypeList(list){
-  list = list || (projectDirHandle ? projectCatalog : loadCatalog());
+  list = list || ((projectDirHandle||ghIsConnected()) ? projectCatalog : loadCatalog());
   const dl=document.getElementById('resourceTypeList'); if(!dl)return;
   const types=[...new Set(list.map(e=>e.json&&e.json.behavior&&e.json.behavior.resource&&e.json.behavior.resource.type).filter(Boolean))];
   dl.innerHTML=types.map(t=>`<option value="${esc(t)}">`).join('');

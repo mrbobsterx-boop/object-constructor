@@ -8,3 +8,5 @@ document.getElementById('btnRegrant').onclick=regrantProjectFolder;
 document.getElementById('btnScan').onclick=scanProject;
 render();
 tryRestoreProjectFolder();
+wireGithubButtons();
+if(ghIsConnected()) scanProject();

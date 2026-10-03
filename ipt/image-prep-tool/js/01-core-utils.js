@@ -29,17 +29,47 @@ async function readJsonFile(dir,name){
   try{ const f=await (await dir.getFileHandle(name)).getFile(); return {data:JSON.parse(await f.text()),broken:false}; }
   catch(e){ return {data:null,broken:true}; }
 }
+// Пишет во ВСЕ подключённые места сразу (и в папку, и в GitHub) — не either/or.
 async function writeFileToProject(relPath,bytes){
-  if(!projectDirHandle) return false;
-  const parts=relPath.split('/'); const fileName=parts.pop();
-  const dir=parts.length?await getSubdir(projectDirHandle,parts.join('/'),true):projectDirHandle;
-  const fh=await dir.getFileHandle(fileName,{create:true});
-  const w=await fh.createWritable(); await w.write(bytes); await w.close();
-  return true;
+  let ok=false;
+  if(projectDirHandle){
+    const parts=relPath.split('/'); const fileName=parts.pop();
+    const dir=parts.length?await getSubdir(projectDirHandle,parts.join('/'),true):projectDirHandle;
+    const fh=await dir.getFileHandle(fileName,{create:true});
+    const w=await fh.createWritable(); await w.write(bytes); await w.close();
+    ok=true;
+  }
+  if(ghIsConnected()){ await writeFileToGithub(relPath,bytes,'Image Prep Tool: '+relPath); ok=true; }
+  return ok;
+}
+async function readSingleJsonFromProject(relPath){
+  if(ghIsConnected()) return readJsonFromGithub(relPath);
+  try{
+    const parts=relPath.split('/'); const fileName=parts.pop();
+    const dir=parts.length?await getSubdir(projectDirHandle,parts.join('/'),false):projectDirHandle;
+    return await readJsonFile(dir,fileName);
+  }catch(e){ return {data:null,broken:false,missing:true}; }
 }
 async function nextAvailableName(dir,base){
   const existing=new Set();
   for await(const [name,h] of dir.entries()){ if(h.kind==='file') existing.add(name.toLowerCase()); }
+  const plain=base+'.png';
+  if(!existing.has(plain.toLowerCase())) return plain;
+  let n=2;
+  while(existing.has(`${base}_${n}.png`.toLowerCase())) n++;
+  return `${base}_${n}.png`;
+}
+// То же самое, но для коллизий имён в assets/refs/ на GitHub (без реального dir-хендла) — список путей
+// берём из закэшированного дерева репозитория (ghFetchTree, shared/js/github-sync.js).
+async function nextAvailableNameGithub(destDir,base){
+  const tree=await ghFetchTree();
+  const prefix=destDir.replace(/\/$/,'')+'/';
+  const existing=new Set();
+  tree.forEach(t=>{
+    if(t.type!=='blob'||!t.path.startsWith(prefix)) return;
+    const rest=t.path.slice(prefix.length);
+    if(rest.indexOf('/')===-1) existing.add(rest.toLowerCase());
+  });
   const plain=base+'.png';
   if(!existing.has(plain.toLowerCase())) return plain;
   let n=2;
@@ -74,6 +104,8 @@ async function regrantFolder(){
   if(!projectDirHandle) return;
   try{ const p=await projectDirHandle.requestPermission({mode:'readwrite'}); updateFolderStatus(p!=='granted'); if(p==='granted') await loadPlanCustomFromProject(); }catch(e){ console.warn(e); }
 }
+// Вызывается shared/js/github-sync.js после успешного подключения GitHub.
+async function onGithubConnected(){ await loadPlanCustomFromProject(); }
 function downloadCanvasPng(blob,name){
   const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=name;
   document.body.appendChild(a); a.click(); setTimeout(()=>{ URL.revokeObjectURL(a.href); a.remove(); },400);

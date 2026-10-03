@@ -10,22 +10,30 @@ function newBuildingBgPlacement(nativeW){
   return {x:span/2, scale:span/Math.max(1,nativeW)};
 }
 async function scanBuildingBackgrounds(){
-  if(!projectDirHandle)return;
-  const out=[];
-  async function walk(dir,prefix){
-    for await(const [name,h] of dir.entries()){
-      if(h.kind==='directory') await walk(h,prefix+name+'/');
-      else if(/\.(png|jpg|jpeg|webp)$/i.test(name)) out.push({path:prefix+name,handle:h});
+  if(!projectDirHandle&&!ghIsConnected())return;
+  let out;
+  if(ghIsConnected()){
+    const r=await listFilesRecursive('assets/sprites/rooms',/\.(png|jpe?g|webp)$/i);
+    out=r.files.map(rel=>({path:'assets/sprites/rooms/'+rel,handle:null}));
+    if(!out.length){ document.getElementById('buildingBgSelect').innerHTML='<option value="">— папка фонов не найдена —</option>'; buildingBackgroundCatalog=out; return; }
+  }else{
+    out=[];
+    async function walk(dir,prefix){
+      for await(const [name,h] of dir.entries()){
+        if(h.kind==='directory') await walk(h,prefix+name+'/');
+        else if(/\.(png|jpg|jpeg|webp)$/i.test(name)) out.push({path:prefix+name,handle:h});
+      }
     }
+    try{ const dir=await getSubdir(projectDirHandle,'assets/sprites/rooms',false); await walk(dir,'assets/sprites/rooms/'); }catch(e){ document.getElementById('buildingBgSelect').innerHTML='<option value="">— папка фонов не найдена —</option>'; return; }
   }
-  try{ const dir=await getSubdir(projectDirHandle,'assets/sprites/rooms',false); await walk(dir,'assets/sprites/rooms/'); }catch(e){ document.getElementById('buildingBgSelect').innerHTML='<option value="">— папка фонов не найдена —</option>'; return; }
   buildingBackgroundCatalog=out;
   document.getElementById('buildingBgSelect').innerHTML=out.length?out.map((x,i)=>`<option value="${i}">${esc(x.path)}</option>`).join(''):'<option value="">— фоны не найдены —</option>';
 }
 async function addBuildingBackground(){
   const idx=Number(document.getElementById('buildingBgSelect').value); const item=buildingBackgroundCatalog[idx]; if(!item)return;
   try{
-    const file=await item.handle.getFile(); const dataUrl=await new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(r.result);r.onerror=rej;r.readAsDataURL(file);});
+    const file=item.handle?await item.handle.getFile():await readProjectFileBlob(item.path); if(!file) throw new Error('файл не найден');
+    const dataUrl=await new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(r.result);r.onerror=rej;r.readAsDataURL(file);});
     const dims=await getImageDims(dataUrl);
     const b={id:'bg_'+Date.now()+Math.random().toString(36).slice(2),path:item.path,dataUrl,w:dims.w,h:dims.h,...(()=>{const pl=newBuildingBgPlacement(dims.w); return {x:pl.x,scale:pl.scale};})(),y:6*PIXELS_PER_METER,opacity:1,rotation:0,flipH:false,flipV:false,z:0};
     buildingBackgrounds.push(b); selectedBuildingBgId=b.id; renderBuildingBackgrounds();
@@ -74,7 +82,8 @@ function startResizeBuildingBackground(e,b,handle){
 async function addBuildingBackground(){
   const idx=Number(document.getElementById('buildingBgSelect').value); const item=buildingBackgroundCatalog[idx]; if(!item)return;
   try{
-    const file=await item.handle.getFile(); const dataUrl=await new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(r.result);r.onerror=rej;r.readAsDataURL(file);});
+    const file=item.handle?await item.handle.getFile():await readProjectFileBlob(item.path); if(!file) throw new Error('файл не найден');
+    const dataUrl=await new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(r.result);r.onerror=rej;r.readAsDataURL(file);});
     const dims=await getImageDims(dataUrl);
     const b={id:'bg_'+Date.now()+Math.random().toString(36).slice(2),path:item.path,dataUrl,w:dims.w,h:dims.h,...(()=>{const pl=newBuildingBgPlacement(dims.w); return {x:pl.x,scale:pl.scale};})(),y:6*PIXELS_PER_METER,opacity:1,rotation:0,flipH:false,flipV:false,z:0};
     buildingBackgrounds.push(b); selectedBuildingBgId=b.id; renderBuildingBackgrounds(); renderBuildingCanvas();
@@ -84,7 +93,7 @@ function addBuildingBackgroundFromData(dataUrl,fileName){
   return getImageDims(dataUrl).catch(()=>null).then(async dims=>{
     if(!dims){ alert('Не удалось прочитать картинку: файл повреждён или это не изображение.'); return; }
     let path='assets/sprites/rooms/building_backgrounds/'+fileName;
-    if(projectDirHandle){
+    if(projectDirHandle||ghIsConnected()){
       try{
         const base=fileName.replace(/[^a-zA-Z0-9._-]+/g,'_');
         path='assets/sprites/rooms/building_backgrounds/'+base;

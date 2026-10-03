@@ -13,9 +13,14 @@
   <button id="btnConnectSource" class="primary">📂 Папка-источник</button>
   <button id="btnRegrantSource" style="display:none">Разрешить доступ (источник)</button>
   <span id="sourceStatus" class="status">Источник не подключён</span>
+  <label style="display:flex;align-items:center;gap:4px;font-size:12px"><input type="checkbox" id="chkSourceGithub" disabled> источник — GitHub</label>
   <button id="btnConnectDest">💾 Папка назначения</button>
   <button id="btnRegrantDest" style="display:none">Разрешить доступ (назначение)</button>
   <span id="destStatus" class="status">Назначение не подключено</span>
+  <label style="display:flex;align-items:center;gap:4px;font-size:12px"><input type="checkbox" id="chkDestGithub" disabled> назначение — GitHub</label>
+  <button id="btnConnectGithub" title="Подключить репозиторий GitHub (personal access token) — затем выбери галочками, какая сторона (источник/назначение) через него работает">🐙 Подключить GitHub</button>
+  <button id="btnGithubDisconnect" style="display:none" title="Удалить токен из этого браузера">Отключить GitHub</button>
+  <span id="githubStatus" class="status">GitHub не подключён</span>
   <div class="spacer"></div>
   <span class="hint">Ctrl+Z/Ctrl+Shift+Z — отменить/вернуть · Enter — подтвердить</span>
 </header>
@@ -40,6 +45,7 @@
 </div>
 
 <!-- Порядок менять нельзя: скрипты делят одну глобальную область, номер = порядок загрузки, INIT — последний -->
+<script src="../shared/js/github-sync.js"></script>
 <script src="js/01-core-utils.js"></script>
 <script src="js/02-grouping.js"></script>
 <script src="js/03-state.js"></script>

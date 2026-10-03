@@ -69,7 +69,7 @@ async function loadObjectPlanStatus(){ objectPlanStatusData=await readJsonFromPr
 // ПОСЛЕ того как Story Map открыт, можно было бы только переподключением папки. Кнопка "🔄 Object
 // Plan" перечитывает тот же файл на месте, без потери текущего несохранённого состояния сюжета/мира.
 async function refreshObjectPlanData(){
-  if(!projectDirHandle){ alert('Сначала подключи папку проекта.'); return; }
+  if(!projectDirHandle&&!ghIsConnected()){ alert('Сначала подключи папку проекта или GitHub.'); return; }
   await loadObjectPlanStatus();
   renderAll();
   setFolderStatus('Object Plan обновлён · '+new Date().toLocaleTimeString());

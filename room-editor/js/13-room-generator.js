@@ -72,14 +72,14 @@ function buildFrequencyModel(rooms){
   return {byGroup, roomCount:rooms.length};
 }
 async function loadRandomGeneratedBackground(selectedRooms,targetW,targetH){
-  if(!projectDirHandle || !selectedRooms || !selectedRooms.length) return null;
+  if((!projectDirHandle&&!ghIsConnected()) || !selectedRooms || !selectedRooms.length) return null;
   const candidates=selectedRooms.filter(r=>Array.isArray(r.backgroundLayers)&&r.backgroundLayers.length);
   if(!candidates.length) return null;
   const source=candidates[Math.floor(Math.random()*candidates.length)];
   const sourceW=Number(source.width)||targetW, sourceH=Number(source.height)||targetH;
   const layers=[];
-  let spritesDir;
-  try{ spritesDir=await getSubdir(projectDirHandle,'assets/sprites',false); }catch(e){ return null; }
+  let spritesDir=null;
+  if(!ghIsConnected()){ try{ spritesDir=await getSubdir(projectDirHandle,'assets/sprites',false); }catch(e){ return null; } }
   for(const ld of source.backgroundLayers){
     if(!ld||!ld.image) continue;
     try{

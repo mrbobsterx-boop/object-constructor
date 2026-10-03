@@ -13,3 +13,5 @@ loadStore();
 buildModel();
 render();
 tryRestoreProjectFolder();
+wireGithubButtons();
+if(ghIsConnected()) onGithubConnected();

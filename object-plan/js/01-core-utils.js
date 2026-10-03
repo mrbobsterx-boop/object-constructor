@@ -41,7 +41,10 @@ async function readJsonFile(dir,name){
   try{ const f=await (await dir.getFileHandle(name)).getFile(); return {data:JSON.parse(await f.text()),broken:false}; }
   catch(e){ return {data:null,broken:true}; }
 }
+// GitHub в приоритете, если подключён (работаем через GitHub, а не через папку) — иначе как раньше,
+// папка проекта. Оба источника независимы, см. shared/js/github-sync.js.
 async function listJsonDir(path){
+  if(ghIsConnected()) return listJsonDirGithub(path);
   const out={items:[],missing:false};
   try{
     const dir=await getSubdir(projectDirHandle,path,false);
@@ -54,6 +57,7 @@ async function listJsonDir(path){
   return out;
 }
 async function listFilesRecursive(path,re){
+  if(ghIsConnected()) return listFilesRecursiveGithub(path,re);
   const out={files:[],missing:false};
   let root; try{ root=await getSubdir(projectDirHandle,path,false); }catch(e){ out.missing=true; return out; }
   async function walk(dir,prefix){
@@ -66,13 +70,44 @@ async function listFilesRecursive(path,re){
   try{ await walk(root,''); }catch(e){}
   return out;
 }
+// Пишет во ВСЕ подключённые места сразу (и в папку, и в GitHub) — не either/or.
 async function writeFileToProject(relPath,bytes){
-  if(!projectDirHandle) return false;
-  const parts=relPath.split('/'); const fileName=parts.pop();
-  const dir=parts.length?await getSubdir(projectDirHandle,parts.join('/'),true):projectDirHandle;
-  const fh=await dir.getFileHandle(fileName,{create:true});
-  const w=await fh.createWritable(); await w.write(bytes); await w.close();
-  return true;
+  let ok=false;
+  if(projectDirHandle){
+    const parts=relPath.split('/'); const fileName=parts.pop();
+    const dir=parts.length?await getSubdir(projectDirHandle,parts.join('/'),true):projectDirHandle;
+    const fh=await dir.getFileHandle(fileName,{create:true});
+    const w=await fh.createWritable(); await w.write(bytes); await w.close();
+    ok=true;
+  }
+  if(ghIsConnected()){ await writeFileToGithub(relPath,bytes,'Object Plan: '+relPath); ok=true; }
+  return ok;
+}
+// Разовое чтение одного файла (вне listJsonDir) — тоже GitHub-приоритетно.
+async function readSingleJsonFromProject(relPath){
+  if(ghIsConnected()) return readJsonFromGithub(relPath);
+  try{
+    const parts=relPath.split('/'); const fileName=parts.pop();
+    const dir=parts.length?await getSubdir(projectDirHandle,parts.join('/'),false):projectDirHandle;
+    return await readJsonFile(dir,fileName);
+  }catch(e){ return {data:null,broken:false,missing:true}; }
+}
+// Превью assets/refs/ через GitHub: при сотнях файлов жадно скачивать все байты на каждом скане —
+// слишком медленно (один HTTP-запрос на файл). listFilesRecursive уже даёт полный список путей одним
+// запросом (Git Trees API) — сами байты подгружаем ЛЕНИВО, только когда карточка объекта реально
+// показывает конкретную вариацию (см. refStateThumbs в 07-store.js), и кэшируем результат.
+const ghThumbCache=new Map(); // relPath -> object URL
+const ghThumbPending=new Set();
+function resolveGithubThumbUrl(relPath,onReady){
+  if(ghThumbCache.has(relPath)) return ghThumbCache.get(relPath);
+  if(!ghThumbPending.has(relPath)){
+    ghThumbPending.add(relPath);
+    readBinaryObjectUrlFromGithub('assets/refs/'+relPath).then(url=>{
+      ghThumbPending.delete(relPath);
+      if(url){ ghThumbCache.set(relPath,url); if(typeof onReady==='function') onReady(); }
+    }).catch(()=>{ ghThumbPending.delete(relPath); });
+  }
+  return null;
 }
 function setFolderStatus(t){ const el=document.getElementById('folderStatus'); if(el) el.textContent=t; }
 function updateFolderStatus(needs){
