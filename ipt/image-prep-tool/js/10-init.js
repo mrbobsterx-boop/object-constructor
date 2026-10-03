@@ -83,3 +83,5 @@ window.addEventListener('keydown',e=>{
 });
 
 tryRestoreFolder();
+wireGithubButtons();
+if(ghIsConnected()) onGithubConnected();

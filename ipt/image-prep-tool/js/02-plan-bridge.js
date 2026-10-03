@@ -65,10 +65,9 @@ function applyVariationOverrides(){
 
 /* ---------- чтение/запись data/object_plan.json (общий с Object Plan файл) ---------- */
 async function loadPlanCustomFromProject(){
-  if(!projectDirHandle) return;
+  if(!projectDirHandle&&!ghIsConnected()) return;
   try{
-    const dir=await getSubdir(projectDirHandle,'data',false);
-    const r=await readJsonFile(dir,'object_plan.json');
+    const r=await readSingleJsonFromProject('data/object_plan.json');
     if(r.data){
       planCustomItems=Array.isArray(r.data.custom)?r.data.custom:[];
       planCustomGroups=Array.isArray(r.data.customGroups)?r.data.customGroups:[];
@@ -103,10 +102,9 @@ function mergeVariationOverrides(diskObj,memObj){
   return out;
 }
 async function savePlanCustomToProject(){
-  if(!projectDirHandle) return false;
+  if(!projectDirHandle&&!ghIsConnected()) return false;
   try{
-    const dir=await getSubdir(projectDirHandle,'data',false);
-    const r=await readJsonFile(dir,'object_plan.json');
+    const r=await readSingleJsonFromProject('data/object_plan.json');
     const base=r.data||{schema_version:1,status:{},steps:{},notes:{}};
     const data=Object.assign({},base,{
       schema_version:1,saved_at:new Date().toISOString(),

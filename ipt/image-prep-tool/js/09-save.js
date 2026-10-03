@@ -6,15 +6,23 @@
    ============================================================ */
 
 async function saveBlob(blob,base){
-  if(projectDirHandle){
-    if(projectDirHandle.queryPermission){
-      const p=await projectDirHandle.queryPermission({mode:'readwrite'});
-      if(p!=='granted') await regrantFolder();
+  if(projectDirHandle||ghIsConnected()){
+    let name='';
+    if(projectDirHandle){
+      if(projectDirHandle.queryPermission){
+        const p=await projectDirHandle.queryPermission({mode:'readwrite'});
+        if(p!=='granted') await regrantFolder();
+      }
+      const dir=await getSubdir(projectDirHandle,'assets/refs',true);
+      name=await nextAvailableName(dir,base);
+      const fh=await dir.getFileHandle(name,{create:true});
+      const w=await fh.createWritable(); await w.write(blob); await w.close();
     }
-    const dir=await getSubdir(projectDirHandle,'assets/refs',true);
-    const name=await nextAvailableName(dir,base);
-    const fh=await dir.getFileHandle(name,{create:true});
-    const w=await fh.createWritable(); await w.write(blob); await w.close();
+    if(ghIsConnected()){
+      const ghName=name||await nextAvailableNameGithub('assets/refs',base);
+      await writeFileToGithub('assets/refs/'+ghName,new Uint8Array(await blob.arrayBuffer()),'Image Prep Tool: assets/refs/'+ghName);
+      name=name||ghName;
+    }
     return name;
   }
   downloadCanvasPng(blob, base+'.png');
