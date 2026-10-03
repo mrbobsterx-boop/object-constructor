@@ -1,0 +1,529 @@
+{
+  "idea_id": "world_exploration",
+  "title": "Исследование, лут и переходы",
+  "variables": [
+    {
+      "id": "day",
+      "name": "День игры",
+      "type": "counter",
+      "start": 1,
+      "min": 0,
+      "max": 999
+    },
+    {
+      "id": "shelter_food_days",
+      "name": "Еда, дней на группу",
+      "type": "counter",
+      "start": 10,
+      "min": 0,
+      "max": 60
+    },
+    {
+      "id": "noise_level",
+      "name": "Шумность игрока",
+      "type": "counter",
+      "start": 0,
+      "min": 0,
+      "max": 100
+    },
+    {
+      "id": "has_vehicle",
+      "name": "Есть машина",
+      "type": "flag",
+      "start": 0,
+      "min": 0,
+      "max": 1
+    }
+  ],
+  "nodes": [
+    {
+      "ref": "exploration.first_exit",
+      "title": "Первый выход наружу",
+      "text": "💡 Предложение\nОкрестности бункера: тишина, следы на земле, указатель вдали.",
+      "type": "choice",
+      "category": "exploration",
+      "eventSource": "player",
+      "refs": [
+        "loc_outskirts"
+      ],
+      "trigger": {
+        "kind": "conditions",
+        "all": []
+      },
+      "effects": [
+        {
+          "var": "noise_level",
+          "op": "add",
+          "value": 5
+        }
+      ],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "ending": "",
+      "choices": [
+        {
+          "label": "К дороге",
+          "target_ref": "exploration.signpost",
+          "requires": [],
+          "effects": []
+        },
+        {
+          "label": "Идти по следам",
+          "target_ref": "exploration.traces",
+          "requires": [],
+          "effects": []
+        },
+        {
+          "label": "Обыскать ближний дом",
+          "target_ref": "exploration.house_states",
+          "requires": [],
+          "effects": []
+        }
+      ]
+    },
+    {
+      "ref": "exploration.signpost",
+      "title": "Указатель на развилке",
+      "text": "✅ Из GDD · GDD §4.2\nНовое направление: город или промзона.",
+      "type": "choice",
+      "category": "exploration",
+      "eventSource": "location",
+      "refs": [
+        "loc_highway"
+      ],
+      "trigger": {
+        "kind": "conditions",
+        "all": []
+      },
+      "effects": [],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "ending": "",
+      "choices": [
+        {
+          "label": "В город",
+          "target_ref": "exploration.house_states",
+          "requires": [],
+          "effects": []
+        },
+        {
+          "label": "В промзону",
+          "target_ref": "water.found_source",
+          "requires": [],
+          "effects": []
+        },
+        {
+          "label": "Машина у обочины",
+          "target_ref": "exploration.vehicle_found",
+          "requires": [],
+          "effects": []
+        }
+      ]
+    },
+    {
+      "ref": "exploration.house_states",
+      "title": "Дом: в каком он состоянии",
+      "text": "✅ Из GDD · GDD §18\nОбычный, ограбленный, покинутый в спешке, частично разрушенный, недавно покинутый, занятый выжившими.",
+      "type": "choice",
+      "category": "exploration",
+      "eventSource": "location",
+      "refs": [
+        "loc_city"
+      ],
+      "trigger": {
+        "kind": "conditions",
+        "all": []
+      },
+      "effects": [],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "ending": "",
+      "choices": [
+        {
+          "label": "Недавно покинут",
+          "target_ref": "exploration.recently_left",
+          "requires": [],
+          "effects": []
+        },
+        {
+          "label": "Заперт",
+          "target_ref": "exploration.locked_door",
+          "requires": [],
+          "effects": []
+        },
+        {
+          "label": "Уже ограблен",
+          "target_ref": "loot.someone_else_looted",
+          "requires": [],
+          "effects": []
+        },
+        {
+          "label": "Тайник",
+          "target_ref": "food.stash_found",
+          "requires": [],
+          "effects": []
+        },
+        {
+          "label": "Тело внутри",
+          "target_ref": "death.stranger_body_found",
+          "requires": [],
+          "effects": []
+        }
+      ]
+    },
+    {
+      "ref": "exploration.recently_left",
+      "title": "Еда ещё тёплая",
+      "text": "✅ Из GDD · GDD §18\nМесто «недавно покинуто». Кто-то рядом. Друг или враг?",
+      "type": "choice",
+      "category": "exploration",
+      "eventSource": "location",
+      "refs": [],
+      "trigger": {
+        "kind": "conditions",
+        "all": []
+      },
+      "effects": [],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "ending": "",
+      "choices": [
+        {
+          "label": "Подождать хозяев",
+          "target_ref": "group.newcomer_arrives",
+          "requires": [],
+          "effects": []
+        },
+        {
+          "label": "Уйти тихо",
+          "target_ref": "exploration.ok",
+          "requires": [],
+          "effects": []
+        },
+        {
+          "label": "Забрать всё",
+          "target_ref": "combat.ambush_on_road",
+          "requires": [],
+          "effects": [
+            {
+              "var": "shelter_food_days",
+              "op": "add",
+              "value": 3
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "ref": "exploration.ok",
+      "title": "Вернулись домой",
+      "text": "💡 Предложение\nВылазка закончилась без происшествий.",
+      "type": "event",
+      "category": "exploration",
+      "eventSource": "player",
+      "refs": [],
+      "trigger": {
+        "kind": "conditions",
+        "all": []
+      },
+      "effects": [],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "ending": "",
+      "choices": []
+    },
+    {
+      "ref": "exploration.traces",
+      "title": "Следы чужого присутствия",
+      "text": "✅ Из GDD · GDD §22\nУгрозы и люди оставляют следы — и сами идут по следам игрока.",
+      "type": "event",
+      "category": "exploration",
+      "eventSource": "world",
+      "refs": [],
+      "trigger": {
+        "kind": "conditions",
+        "all": []
+      },
+      "effects": [],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "ending": "",
+      "choices": [
+        {
+          "label": "Следы ведут к лагерю",
+          "target_ref": "factions.first_contact",
+          "requires": [],
+          "effects": []
+        },
+        {
+          "label": "Следы зомби",
+          "target_ref": "combat.zombies_drawn_by_noise",
+          "requires": [],
+          "effects": []
+        }
+      ]
+    },
+    {
+      "ref": "exploration.locked_door",
+      "title": "Запертая дверь",
+      "text": "✅ Из GDD · GDD §13, §31 break_door\nВзломать (шумно) или искать ключ (долго).",
+      "type": "choice",
+      "category": "exploration",
+      "eventSource": "player",
+      "refs": [],
+      "trigger": {
+        "kind": "conditions",
+        "all": []
+      },
+      "effects": [],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "ending": "",
+      "choices": [
+        {
+          "label": "Взломать",
+          "target_ref": "exploration.ok",
+          "requires": [],
+          "effects": [
+            {
+              "var": "noise_level",
+              "op": "add",
+              "value": 20
+            }
+          ]
+        },
+        {
+          "label": "Искать ключ",
+          "target_ref": "exploration.ok",
+          "requires": [],
+          "effects": []
+        }
+      ]
+    },
+    {
+      "ref": "exploration.other_bunker",
+      "title": "Найден другой бункер",
+      "text": "✅ Из GDD · GDD §3.4, §41\nБольше, лучше оборудован, с выжившими или заброшен.",
+      "type": "choice",
+      "category": "exploration",
+      "eventSource": "location",
+      "refs": [
+        "loc_other_bunker"
+      ],
+      "trigger": {
+        "kind": "conditions",
+        "all": [
+          {
+            "var": "day",
+            "op": ">=",
+            "value": 10
+          }
+        ]
+      },
+      "effects": [],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "ending": "",
+      "choices": [
+        {
+          "label": "Там живёт группа",
+          "target_ref": "factions.first_contact",
+          "requires": [],
+          "effects": []
+        },
+        {
+          "label": "Пустой — занять?",
+          "target_ref": "story.move_shelter",
+          "requires": [],
+          "effects": []
+        }
+      ]
+    },
+    {
+      "ref": "exploration.vehicle_found",
+      "title": "Найдена машина",
+      "text": "✅ Из GDD · GDD §8, §21\nТранспорт: свой энергоконтур/топливо, своё хранилище.",
+      "type": "event",
+      "category": "exploration",
+      "eventSource": "location",
+      "refs": [],
+      "trigger": {
+        "kind": "conditions",
+        "all": []
+      },
+      "effects": [
+        {
+          "var": "has_vehicle",
+          "op": "set",
+          "value": 1
+        }
+      ],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "ending": "",
+      "choices": []
+    },
+    {
+      "ref": "exploration.familiar_place_changed",
+      "title": "Знакомое место изменилось",
+      "text": "✅ Из GDD · GDD §1.2\nЗнакомый дом заняли, сожгли или разграбили. Мир не ждёт игрока.",
+      "type": "background",
+      "category": "exploration",
+      "eventSource": "world",
+      "refs": [],
+      "trigger": {
+        "kind": "scheduled",
+        "afterHours": 240,
+        "sinceNode": "",
+        "repeat": true
+      },
+      "effects": [],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "ending": "",
+      "choices": []
+    },
+    {
+      "ref": "loot.someone_else_looted",
+      "title": "Кто-то успел первым",
+      "text": "💡 Предложение\nМесто, которое игрок не успел обыскать, уже ограблено.",
+      "type": "event",
+      "category": "loot",
+      "eventSource": "npc",
+      "refs": [],
+      "trigger": {
+        "kind": "conditions",
+        "all": []
+      },
+      "effects": [],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "ending": "",
+      "choices": []
+    },
+    {
+      "ref": "exploration.fast_travel_unlocked",
+      "title": "Быстрое перемещение",
+      "text": "❓ Не решено · GDD §4.3\n❓ Правила fast travel не определены. Первое прохождение должно быть физическим.",
+      "type": "event",
+      "category": "exploration",
+      "eventSource": "system",
+      "refs": [],
+      "trigger": {
+        "kind": "conditions",
+        "all": []
+      },
+      "effects": [],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "ending": "",
+      "choices": []
+    }
+  ],
+  "entities": [
+    {
+      "ref": "loc_outskirts",
+      "kind": "location",
+      "name": "Окрестности бункера"
+    },
+    {
+      "ref": "loc_highway",
+      "kind": "location",
+      "name": "Главная трасса и развилки"
+    },
+    {
+      "ref": "loc_city",
+      "kind": "location",
+      "name": "Город"
+    },
+    {
+      "ref": "loc_other_bunker",
+      "kind": "location",
+      "name": "Чужой бункер"
+    }
+  ]
+}

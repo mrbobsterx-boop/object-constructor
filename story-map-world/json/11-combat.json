@@ -1,0 +1,417 @@
+{
+  "idea_id": "world_combat",
+  "title": "Бой, угрозы и шум",
+  "variables": [
+    {
+      "id": "shelter_water",
+      "name": "Вода в убежище, л",
+      "type": "counter",
+      "start": 300,
+      "min": 0,
+      "max": 5000
+    },
+    {
+      "id": "shelter_food_days",
+      "name": "Еда, дней на группу",
+      "type": "counter",
+      "start": 10,
+      "min": 0,
+      "max": 60
+    },
+    {
+      "id": "shelter_condition",
+      "name": "Состояние убежища",
+      "type": "counter",
+      "start": 70,
+      "min": 0,
+      "max": 100
+    },
+    {
+      "id": "shelter_known",
+      "name": "Убежище обнаружено чужими",
+      "type": "flag",
+      "start": 0,
+      "min": 0,
+      "max": 1
+    },
+    {
+      "id": "group_morale",
+      "name": "Мораль группы",
+      "type": "counter",
+      "start": 60,
+      "min": 0,
+      "max": 100
+    },
+    {
+      "id": "noise_level",
+      "name": "Шумность игрока",
+      "type": "counter",
+      "start": 0,
+      "min": 0,
+      "max": 100
+    },
+    {
+      "id": "zombie_pressure",
+      "name": "Активность зомби рядом",
+      "type": "counter",
+      "start": 15,
+      "min": 0,
+      "max": 100
+    },
+    {
+      "id": "rep_community",
+      "name": "Отношение общины",
+      "type": "counter",
+      "start": 0,
+      "min": -100,
+      "max": 100
+    },
+    {
+      "id": "rep_raiders",
+      "name": "Отношение рейдеров",
+      "type": "counter",
+      "start": -30,
+      "min": -100,
+      "max": 100
+    }
+  ],
+  "nodes": [
+    {
+      "ref": "combat.ambush_on_road",
+      "title": "Засада на трассе",
+      "text": "✅ Из GDD · GDD §21–22\nБой, бегство или откуп.",
+      "type": "choice",
+      "category": "combat",
+      "eventSource": "faction",
+      "refs": [
+        "loc_highway",
+        "f_raiders"
+      ],
+      "trigger": {
+        "kind": "conditions",
+        "all": []
+      },
+      "effects": [],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "ending": "",
+      "choices": [
+        {
+          "label": "Драться",
+          "target_ref": "health.injury_on_raid",
+          "requires": [],
+          "effects": [
+            {
+              "var": "noise_level",
+              "op": "add",
+              "value": 20
+            }
+          ]
+        },
+        {
+          "label": "Бежать",
+          "target_ref": "exploration.ok",
+          "requires": [],
+          "effects": [
+            {
+              "var": "shelter_food_days",
+              "op": "subtract",
+              "value": 1
+            }
+          ]
+        },
+        {
+          "label": "Откупиться",
+          "target_ref": "exploration.ok",
+          "requires": [],
+          "effects": [
+            {
+              "var": "shelter_water",
+              "op": "subtract",
+              "value": 50
+            }
+          ]
+        },
+        {
+          "label": "Сдаться",
+          "target_ref": "capture.player_captured",
+          "requires": [],
+          "effects": []
+        }
+      ]
+    },
+    {
+      "ref": "combat.zombies_drawn_by_noise",
+      "title": "Шум привлёк зомби",
+      "text": "✅ Из GDD · GDD §22\nВзлом, выстрел или генератор — и к месту стягиваются зомби.",
+      "type": "event",
+      "category": "combat",
+      "eventSource": "world",
+      "refs": [
+        "t_zombies"
+      ],
+      "trigger": {
+        "kind": "conditions",
+        "all": [
+          {
+            "var": "noise_level",
+            "op": ">=",
+            "value": 40
+          }
+        ]
+      },
+      "effects": [
+        {
+          "var": "zombie_pressure",
+          "op": "add",
+          "value": 20
+        },
+        {
+          "var": "noise_level",
+          "op": "subtract",
+          "value": 20
+        }
+      ],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "ending": "",
+      "choices": [
+        {
+          "label": "Ночью у двери толпа",
+          "target_ref": "combat.night_horde",
+          "requires": [],
+          "effects": []
+        }
+      ]
+    },
+    {
+      "ref": "combat.night_horde",
+      "title": "Толпа у убежища",
+      "text": "💡 Предложение\nНочью у входа собирается толпа.",
+      "type": "choice",
+      "category": "combat",
+      "eventSource": "world",
+      "refs": [],
+      "trigger": {
+        "kind": "conditions",
+        "all": [
+          {
+            "var": "zombie_pressure",
+            "op": ">=",
+            "value": 60
+          }
+        ]
+      },
+      "effects": [],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "ending": "",
+      "choices": [
+        {
+          "label": "Держать оборону",
+          "target_ref": "health.injury_on_raid",
+          "requires": [],
+          "effects": [
+            {
+              "var": "shelter_condition",
+              "op": "subtract",
+              "value": 10
+            },
+            {
+              "var": "zombie_pressure",
+              "op": "subtract",
+              "value": 30
+            }
+          ]
+        },
+        {
+          "label": "Затаиться и ждать",
+          "target_ref": "group.ok",
+          "requires": [],
+          "effects": [
+            {
+              "var": "group_morale",
+              "op": "subtract",
+              "value": 10
+            },
+            {
+              "var": "zombie_pressure",
+              "op": "subtract",
+              "value": 15
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "ref": "combat.raid_on_shelter",
+      "title": "Нападение на убежище",
+      "text": "✅ Из GDD · GDD §21\nПотери, украденные запасы, повреждения.",
+      "type": "choice",
+      "category": "combat",
+      "eventSource": "faction",
+      "refs": [],
+      "trigger": {
+        "kind": "conditions",
+        "all": [
+          {
+            "var": "shelter_known",
+            "op": "==",
+            "value": 1
+          },
+          {
+            "var": "rep_raiders",
+            "op": "<=",
+            "value": -60
+          }
+        ]
+      },
+      "effects": [],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "ending": "",
+      "choices": [
+        {
+          "label": "Отбились",
+          "target_ref": "health.injury_on_raid",
+          "requires": [],
+          "effects": [
+            {
+              "var": "shelter_condition",
+              "op": "subtract",
+              "value": 15
+            },
+            {
+              "var": "rep_raiders",
+              "op": "add",
+              "value": -10
+            }
+          ]
+        },
+        {
+          "label": "Не отбились",
+          "target_ref": "capture.member_captured",
+          "requires": [],
+          "effects": [
+            {
+              "var": "shelter_food_days",
+              "op": "subtract",
+              "value": 5
+            },
+            {
+              "var": "shelter_water",
+              "op": "subtract",
+              "value": 150
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "ref": "combat.watch_fight",
+      "title": "Чужой бой",
+      "text": "✅ Из GDD · GDD §21\nНаблюдать, вмешаться или воспользоваться последствиями.",
+      "type": "choice",
+      "category": "combat",
+      "eventSource": "faction",
+      "refs": [],
+      "trigger": {
+        "kind": "conditions",
+        "all": []
+      },
+      "effects": [],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "ending": "",
+      "choices": [
+        {
+          "label": "Наблюдать",
+          "target_ref": "exploration.ok",
+          "requires": [],
+          "effects": []
+        },
+        {
+          "label": "Помочь слабым",
+          "target_ref": "health.injury_on_raid",
+          "requires": [],
+          "effects": [
+            {
+              "var": "rep_community",
+              "op": "add",
+              "value": 15
+            },
+            {
+              "var": "rep_raiders",
+              "op": "subtract",
+              "value": 15
+            }
+          ]
+        },
+        {
+          "label": "Обобрать павших после",
+          "target_ref": "death.stranger_body_found",
+          "requires": [],
+          "effects": [
+            {
+              "var": "rep_community",
+              "op": "subtract",
+              "value": 5
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "entities": [
+    {
+      "ref": "loc_highway",
+      "kind": "location",
+      "name": "Главная трасса и развилки"
+    },
+    {
+      "ref": "f_raiders",
+      "kind": "faction",
+      "name": "Рейдеры / банда"
+    },
+    {
+      "ref": "t_zombies",
+      "kind": "group",
+      "name": "Зомби"
+    }
+  ]
+}

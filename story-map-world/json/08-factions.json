@@ -1,0 +1,1131 @@
+{
+  "idea_id": "world_factions",
+  "title": "Фракции и торговля",
+  "variables": [
+    {
+      "id": "shelter_water",
+      "name": "Вода в убежище, л",
+      "type": "counter",
+      "start": 300,
+      "min": 0,
+      "max": 5000
+    },
+    {
+      "id": "shelter_food_days",
+      "name": "Еда, дней на группу",
+      "type": "counter",
+      "start": 10,
+      "min": 0,
+      "max": 60
+    },
+    {
+      "id": "shelter_fuel",
+      "name": "Топливо, л",
+      "type": "counter",
+      "start": 20,
+      "min": 0,
+      "max": 200
+    },
+    {
+      "id": "shelter_known",
+      "name": "Убежище обнаружено чужими",
+      "type": "flag",
+      "start": 0,
+      "min": 0,
+      "max": 1
+    },
+    {
+      "id": "group_size",
+      "name": "Людей в группе",
+      "type": "counter",
+      "start": 2,
+      "min": 0,
+      "max": 12
+    },
+    {
+      "id": "group_morale",
+      "name": "Мораль группы",
+      "type": "counter",
+      "start": 60,
+      "min": 0,
+      "max": 100
+    },
+    {
+      "id": "world_danger",
+      "name": "Общая опасность",
+      "type": "counter",
+      "start": 20,
+      "min": 0,
+      "max": 100
+    },
+    {
+      "id": "rep_community",
+      "name": "Отношение общины",
+      "type": "counter",
+      "start": 0,
+      "min": -100,
+      "max": 100
+    },
+    {
+      "id": "rep_traders",
+      "name": "Отношение торговцев",
+      "type": "counter",
+      "start": 10,
+      "min": -100,
+      "max": 100
+    },
+    {
+      "id": "rep_raiders",
+      "name": "Отношение рейдеров",
+      "type": "counter",
+      "start": -30,
+      "min": -100,
+      "max": 100
+    },
+    {
+      "id": "rep_remnant",
+      "name": "Отношение «остатков порядка»",
+      "type": "counter",
+      "start": 0,
+      "min": -100,
+      "max": 100
+    },
+    {
+      "id": "debt_traders",
+      "name": "Долг перед торговцами",
+      "type": "counter",
+      "start": 0,
+      "min": 0,
+      "max": 100
+    }
+  ],
+  "nodes": [
+    {
+      "ref": "factions.patrol_passes",
+      "title": "Патруль у убежища",
+      "text": "✅ Из GDD · GDD §21 патрулировать\nПатруль проходит мимо. Если убежище известно — заходит.",
+      "type": "background",
+      "category": "factions",
+      "eventSource": "faction",
+      "refs": [],
+      "trigger": {
+        "kind": "scheduled",
+        "afterHours": 96,
+        "sinceNode": "",
+        "repeat": true
+      },
+      "effects": [],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "ending": "",
+      "choices": [
+        {
+          "label": "Гости у двери",
+          "target_ref": "factions.visitors_at_door",
+          "requires": [],
+          "effects": []
+        }
+      ]
+    },
+    {
+      "ref": "factions.groups_clash",
+      "title": "Две группы столкнулись",
+      "text": "✅ Из GDD · GDD §21 пример\nВстретились на ресурсах: бой, торговля или договор. Отношения между ними меняются.",
+      "type": "background",
+      "category": "factions",
+      "eventSource": "faction",
+      "refs": [],
+      "trigger": {
+        "kind": "scheduled",
+        "afterHours": 192,
+        "sinceNode": "",
+        "repeat": true
+      },
+      "effects": [],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "ending": "",
+      "choices": [
+        {
+          "label": "Игрок видит бой",
+          "target_ref": "combat.watch_fight",
+          "requires": [],
+          "effects": []
+        }
+      ]
+    },
+    {
+      "ref": "factions.territory_taken",
+      "title": "Территория захвачена",
+      "text": "✅ Из GDD · GDD §21\nЗнакомое место теперь чужое.",
+      "type": "background",
+      "category": "factions",
+      "eventSource": "faction",
+      "refs": [],
+      "trigger": {
+        "kind": "scheduled",
+        "afterHours": 360,
+        "sinceNode": "",
+        "repeat": true
+      },
+      "effects": [
+        {
+          "var": "world_danger",
+          "op": "add",
+          "value": 5
+        }
+      ],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "ending": "",
+      "choices": [
+        {
+          "label": "Это видно на месте",
+          "target_ref": "exploration.familiar_place_changed",
+          "requires": [],
+          "effects": []
+        }
+      ]
+    },
+    {
+      "ref": "factions.camp_abandoned",
+      "title": "Лагерь брошен",
+      "text": "✅ Из GDD · GDD §21\nФракция ушла. Лагерь можно занять или разграбить.",
+      "type": "event",
+      "category": "factions",
+      "eventSource": "faction",
+      "refs": [],
+      "trigger": {
+        "kind": "conditions",
+        "all": []
+      },
+      "effects": [],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "ending": "",
+      "choices": [
+        {
+          "label": "Разграбить",
+          "target_ref": "food.ok",
+          "requires": [],
+          "effects": [
+            {
+              "var": "shelter_fuel",
+              "op": "add",
+              "value": 20
+            }
+          ]
+        },
+        {
+          "label": "Занять",
+          "target_ref": "story.move_shelter",
+          "requires": [],
+          "effects": []
+        }
+      ]
+    },
+    {
+      "ref": "factions.leader_changed",
+      "title": "Сменился лидер",
+      "text": "✅ Из GDD · GDD §21\nПереворот или смерть лидера. Отношение к игроку может перевернуться.",
+      "type": "background",
+      "category": "factions",
+      "eventSource": "faction",
+      "refs": [],
+      "trigger": {
+        "kind": "scheduled",
+        "afterHours": 480,
+        "sinceNode": "",
+        "repeat": true
+      },
+      "effects": [],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "ending": "",
+      "choices": [
+        {
+          "label": "Новый лидер зовёт поддержать его",
+          "target_ref": "factions.internal_coup",
+          "requires": [],
+          "effects": []
+        }
+      ]
+    },
+    {
+      "ref": "factions.split",
+      "title": "Фракция раскололась",
+      "text": "✅ Из GDD · GDD §21\nПоявилась новая группа, часть людей ищет новый дом.",
+      "type": "event",
+      "category": "factions",
+      "eventSource": "faction",
+      "refs": [],
+      "trigger": {
+        "kind": "conditions",
+        "all": []
+      },
+      "effects": [],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "ending": "",
+      "choices": [
+        {
+          "label": "Беженцы просят приюта",
+          "target_ref": "factions.ask_refuge",
+          "requires": [],
+          "effects": []
+        }
+      ]
+    },
+    {
+      "ref": "factions.prisoners_sold",
+      "title": "Работорговцы продали пленных",
+      "text": "✅ Из GDD · GDD §21\nЗнакомый NPC может оказаться в рабстве.",
+      "type": "background",
+      "category": "factions",
+      "eventSource": "faction",
+      "refs": [
+        "f_slavers"
+      ],
+      "trigger": {
+        "kind": "scheduled",
+        "afterHours": 288,
+        "sinceNode": "",
+        "repeat": true
+      },
+      "effects": [],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "ending": "",
+      "choices": [
+        {
+          "label": "Рынок рабов",
+          "target_ref": "capture.slave_market",
+          "requires": [],
+          "effects": []
+        }
+      ]
+    },
+    {
+      "ref": "factions.shortage",
+      "title": "У фракции дефицит",
+      "text": "✅ Из GDD · GDD §21 потребности\nУ фракции кончаются вода или еда — она становится агрессивнее или идёт торговать.",
+      "type": "event",
+      "category": "factions",
+      "eventSource": "resource_shortage",
+      "refs": [],
+      "trigger": {
+        "kind": "conditions",
+        "all": []
+      },
+      "effects": [],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "ending": "",
+      "choices": [
+        {
+          "label": "Идут отнимать",
+          "target_ref": "combat.raid_on_shelter",
+          "requires": [],
+          "effects": []
+        },
+        {
+          "label": "Идут торговать",
+          "target_ref": "trade.caravan_arrives",
+          "requires": [],
+          "effects": []
+        }
+      ]
+    },
+    {
+      "ref": "factions.first_contact",
+      "title": "Первая встреча с фракцией",
+      "text": "✅ Из GDD · GDD §21\nТон отношений на всю дальнейшую игру.",
+      "type": "choice",
+      "category": "factions",
+      "eventSource": "faction",
+      "refs": [
+        "f_community"
+      ],
+      "trigger": {
+        "kind": "conditions",
+        "all": []
+      },
+      "effects": [],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "ending": "",
+      "choices": [
+        {
+          "label": "Мирно, предложить обмен",
+          "target_ref": "trade.caravan_arrives",
+          "requires": [],
+          "effects": [
+            {
+              "var": "rep_community",
+              "op": "add",
+              "value": 10
+            }
+          ]
+        },
+        {
+          "label": "Настороженно, не раскрывать убежище",
+          "target_ref": "exploration.ok",
+          "requires": [],
+          "effects": []
+        },
+        {
+          "label": "Показать силу",
+          "target_ref": "combat.watch_fight",
+          "requires": [],
+          "effects": [
+            {
+              "var": "rep_community",
+              "op": "subtract",
+              "value": 15
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "ref": "factions.visitors_at_door",
+      "title": "Фракция пришла к убежищу",
+      "text": "✅ Из GDD · GDD §21\n«Встречать фракцию, которая сама пришла на территорию игрока».",
+      "type": "choice",
+      "category": "factions",
+      "eventSource": "faction",
+      "refs": [],
+      "trigger": {
+        "kind": "conditions",
+        "all": [
+          {
+            "var": "shelter_known",
+            "op": "==",
+            "value": 1
+          }
+        ]
+      },
+      "effects": [],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "ending": "",
+      "choices": [
+        {
+          "label": "Выслушать",
+          "target_ref": "factions.demand_tribute",
+          "requires": [],
+          "effects": []
+        },
+        {
+          "label": "Не открывать",
+          "target_ref": "combat.raid_on_shelter",
+          "requires": [],
+          "effects": [
+            {
+              "var": "world_danger",
+              "op": "add",
+              "value": 5
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "ref": "factions.demand_tribute",
+      "title": "Требуют дань",
+      "text": "✅ Из GDD · GDD §21 выдвигать требования\nЗаплатить, отказаться, торговаться или драться.",
+      "type": "choice",
+      "category": "factions",
+      "eventSource": "faction",
+      "refs": [
+        "f_raiders"
+      ],
+      "trigger": {
+        "kind": "conditions",
+        "all": []
+      },
+      "effects": [],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "ending": "",
+      "choices": [
+        {
+          "label": "Заплатить",
+          "target_ref": "factions.tribute_paid",
+          "requires": [],
+          "effects": [
+            {
+              "var": "shelter_food_days",
+              "op": "subtract",
+              "value": 4
+            },
+            {
+              "var": "shelter_water",
+              "op": "subtract",
+              "value": 100
+            },
+            {
+              "var": "rep_raiders",
+              "op": "add",
+              "value": 10
+            }
+          ]
+        },
+        {
+          "label": "Отказаться",
+          "target_ref": "combat.raid_on_shelter",
+          "requires": [],
+          "effects": [
+            {
+              "var": "rep_raiders",
+              "op": "subtract",
+              "value": 20
+            }
+          ]
+        },
+        {
+          "label": "Просить защиты у другой фракции",
+          "target_ref": "factions.offer_alliance",
+          "requires": [],
+          "effects": []
+        }
+      ]
+    },
+    {
+      "ref": "factions.tribute_paid",
+      "title": "Дань уплачена",
+      "text": "💡 Предложение\nПока тихо. Через неделю придут снова — и попросят больше.",
+      "type": "event",
+      "category": "factions",
+      "eventSource": "faction",
+      "refs": [],
+      "trigger": {
+        "kind": "conditions",
+        "all": []
+      },
+      "effects": [
+        {
+          "var": "group_morale",
+          "op": "subtract",
+          "value": 10
+        }
+      ],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "ending": "",
+      "choices": []
+    },
+    {
+      "ref": "factions.offer_alliance",
+      "title": "Предложение союза",
+      "text": "✅ Из GDD · GDD §21\nЗащита в обмен на обязательства: часть ресурсов, люди на патрули, подчинение правилам.",
+      "type": "choice",
+      "category": "factions",
+      "eventSource": "faction",
+      "refs": [
+        "f_remnant"
+      ],
+      "trigger": {
+        "kind": "conditions",
+        "all": []
+      },
+      "effects": [],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "ending": "",
+      "choices": [
+        {
+          "label": "Согласиться",
+          "target_ref": "factions.task_given",
+          "requires": [],
+          "effects": [
+            {
+              "var": "rep_remnant",
+              "op": "add",
+              "value": 20
+            },
+            {
+              "var": "world_danger",
+              "op": "subtract",
+              "value": 10
+            }
+          ]
+        },
+        {
+          "label": "Отказаться",
+          "target_ref": "exploration.ok",
+          "requires": [],
+          "effects": []
+        }
+      ]
+    },
+    {
+      "ref": "factions.task_given",
+      "title": "Задание от фракции",
+      "text": "✅ Из GDD · GDD §21\nВыполнить, провалить, выполнить частично или отказаться.",
+      "type": "choice",
+      "category": "factions",
+      "eventSource": "faction",
+      "refs": [],
+      "trigger": {
+        "kind": "conditions",
+        "all": []
+      },
+      "effects": [],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "ending": "",
+      "choices": [
+        {
+          "label": "Выполнить",
+          "target_ref": "exploration.ok",
+          "requires": [],
+          "effects": [
+            {
+              "var": "rep_remnant",
+              "op": "add",
+              "value": 10
+            }
+          ]
+        },
+        {
+          "label": "Сорвать договор",
+          "target_ref": "factions.broken_deal",
+          "requires": [],
+          "effects": []
+        }
+      ]
+    },
+    {
+      "ref": "factions.broken_deal",
+      "title": "Договор нарушен",
+      "text": "✅ Из GDD · GDD §21\nРепутация падает, фракция может начать охоту на игрока.",
+      "type": "event",
+      "category": "factions",
+      "eventSource": "player",
+      "refs": [],
+      "trigger": {
+        "kind": "conditions",
+        "all": []
+      },
+      "effects": [
+        {
+          "var": "rep_remnant",
+          "op": "subtract",
+          "value": 40
+        }
+      ],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "ending": "",
+      "choices": [
+        {
+          "label": "Охота",
+          "target_ref": "combat.ambush_on_road",
+          "requires": [],
+          "effects": []
+        }
+      ]
+    },
+    {
+      "ref": "factions.ask_refuge",
+      "title": "Просят убежища",
+      "text": "✅ Из GDD · GDD §21\nЕщё рты, но и ещё руки.",
+      "type": "choice",
+      "category": "factions",
+      "eventSource": "npc",
+      "refs": [],
+      "trigger": {
+        "kind": "conditions",
+        "all": []
+      },
+      "effects": [],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "ending": "",
+      "choices": [
+        {
+          "label": "Принять",
+          "target_ref": "group.newcomer_arrives",
+          "requires": [],
+          "effects": [
+            {
+              "var": "group_size",
+              "op": "add",
+              "value": 2
+            },
+            {
+              "var": "shelter_food_days",
+              "op": "subtract",
+              "value": 2
+            }
+          ]
+        },
+        {
+          "label": "Отказать",
+          "target_ref": "exploration.ok",
+          "requires": [],
+          "effects": [
+            {
+              "var": "group_morale",
+              "op": "subtract",
+              "value": 5
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "ref": "factions.internal_coup",
+      "title": "Переворот: выбери сторону",
+      "text": "✅ Из GDD · GDD §21\nВнутри фракции борьба за власть, обе стороны просят поддержки.",
+      "type": "choice",
+      "category": "factions",
+      "eventSource": "faction",
+      "refs": [],
+      "trigger": {
+        "kind": "conditions",
+        "all": []
+      },
+      "effects": [],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "ending": "",
+      "choices": [
+        {
+          "label": "Поддержать старого лидера",
+          "target_ref": "exploration.ok",
+          "requires": [],
+          "effects": [
+            {
+              "var": "rep_community",
+              "op": "add",
+              "value": 15
+            }
+          ]
+        },
+        {
+          "label": "Поддержать заговорщиков",
+          "target_ref": "story.become_leader",
+          "requires": [],
+          "effects": []
+        }
+      ]
+    },
+    {
+      "ref": "factions.provoke_war",
+      "title": "Стравить две фракции",
+      "text": "✅ Из GDD · GDD §21\nПока они воюют друг с другом, им не до игрока.",
+      "type": "event",
+      "category": "factions",
+      "eventSource": "player",
+      "refs": [],
+      "trigger": {
+        "kind": "conditions",
+        "all": []
+      },
+      "effects": [
+        {
+          "var": "rep_raiders",
+          "op": "subtract",
+          "value": 10
+        },
+        {
+          "var": "world_danger",
+          "op": "add",
+          "value": 10
+        }
+      ],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "ending": "",
+      "choices": [
+        {
+          "label": "Война",
+          "target_ref": "factions.groups_clash",
+          "requires": [],
+          "effects": []
+        }
+      ]
+    },
+    {
+      "ref": "factions.mediate_peace",
+      "title": "Помирить фракции",
+      "text": "✅ Из GDD · GDD §21\nПосредничество в переговорах.",
+      "type": "event",
+      "category": "factions",
+      "eventSource": "player",
+      "refs": [],
+      "trigger": {
+        "kind": "conditions",
+        "all": []
+      },
+      "effects": [
+        {
+          "var": "rep_community",
+          "op": "add",
+          "value": 10
+        },
+        {
+          "var": "rep_traders",
+          "op": "add",
+          "value": 10
+        },
+        {
+          "var": "world_danger",
+          "op": "subtract",
+          "value": 10
+        }
+      ],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "ending": "",
+      "choices": []
+    },
+    {
+      "ref": "trade.caravan_arrives",
+      "title": "Пришёл караван",
+      "text": "✅ Из GDD · GDD §21\nОбмен ресурсов; цены зависят от дефицита.",
+      "type": "choice",
+      "category": "trade",
+      "eventSource": "faction",
+      "refs": [
+        "f_traders"
+      ],
+      "trigger": {
+        "kind": "scheduled",
+        "afterHours": 144,
+        "sinceNode": "",
+        "repeat": true
+      },
+      "effects": [],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "ending": "",
+      "choices": [
+        {
+          "label": "Купить еду",
+          "target_ref": "food.trade_offer",
+          "requires": [],
+          "effects": []
+        },
+        {
+          "label": "Купить топливо",
+          "target_ref": "exploration.ok",
+          "requires": [],
+          "effects": [
+            {
+              "var": "shelter_water",
+              "op": "subtract",
+              "value": 60
+            },
+            {
+              "var": "shelter_fuel",
+              "op": "add",
+              "value": 30
+            }
+          ]
+        },
+        {
+          "label": "Взять в долг",
+          "target_ref": "trade.debt",
+          "requires": [],
+          "effects": []
+        }
+      ]
+    },
+    {
+      "ref": "trade.debt",
+      "title": "Долг",
+      "text": "✅ Из GDD · GDD §21 становиться должником\nСрок, проценты, последствия неуплаты.",
+      "type": "event",
+      "category": "trade",
+      "eventSource": "faction",
+      "refs": [],
+      "trigger": {
+        "kind": "conditions",
+        "all": []
+      },
+      "effects": [
+        {
+          "var": "debt_traders",
+          "op": "add",
+          "value": 10
+        }
+      ],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "ending": "",
+      "choices": [
+        {
+          "label": "Срок вышел",
+          "target_ref": "trade.debt_due",
+          "requires": [],
+          "effects": []
+        }
+      ]
+    },
+    {
+      "ref": "trade.debt_due",
+      "title": "Пора платить",
+      "text": "💡 Предложение\nТорговцы пришли за долгом.",
+      "type": "choice",
+      "category": "trade",
+      "eventSource": "faction",
+      "refs": [],
+      "trigger": {
+        "kind": "conditions",
+        "all": [
+          {
+            "var": "debt_traders",
+            "op": ">=",
+            "value": 30
+          }
+        ]
+      },
+      "effects": [],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "ending": "",
+      "choices": [
+        {
+          "label": "Отдать",
+          "target_ref": "exploration.ok",
+          "requires": [],
+          "effects": [
+            {
+              "var": "debt_traders",
+              "op": "set",
+              "value": 0
+            },
+            {
+              "var": "shelter_water",
+              "op": "subtract",
+              "value": 150
+            }
+          ]
+        },
+        {
+          "label": "Не платить",
+          "target_ref": "capture.member_captured",
+          "requires": [],
+          "effects": [
+            {
+              "var": "rep_traders",
+              "op": "subtract",
+              "value": 40
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "ref": "trade.route_cut",
+      "title": "Маршрут перерезан бандой",
+      "text": "✅ Из GDD · GDD §21\nКараваны не приходят, товары дорожают или пропадают.",
+      "type": "background",
+      "category": "trade",
+      "eventSource": "faction",
+      "refs": [],
+      "trigger": {
+        "kind": "scheduled",
+        "afterHours": 432,
+        "sinceNode": "",
+        "repeat": true
+      },
+      "effects": [],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "ending": "",
+      "choices": []
+    }
+  ],
+  "entities": [
+    {
+      "ref": "f_community",
+      "kind": "faction",
+      "name": "Община"
+    },
+    {
+      "ref": "f_traders",
+      "kind": "faction",
+      "name": "Торговцы / караван"
+    },
+    {
+      "ref": "f_raiders",
+      "kind": "faction",
+      "name": "Рейдеры / банда"
+    },
+    {
+      "ref": "f_slavers",
+      "kind": "faction",
+      "name": "Работорговцы"
+    },
+    {
+      "ref": "f_remnant",
+      "kind": "faction",
+      "name": "Остатки порядка"
+    }
+  ]
+}

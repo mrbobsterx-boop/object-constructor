@@ -1,0 +1,408 @@
+{
+  "idea_id": "world_story",
+  "title": "Начало и большие решения",
+  "variables": [
+    {
+      "id": "day",
+      "name": "День игры",
+      "type": "counter",
+      "start": 1,
+      "min": 0,
+      "max": 999
+    },
+    {
+      "id": "shelter_food_days",
+      "name": "Еда, дней на группу",
+      "type": "counter",
+      "start": 10,
+      "min": 0,
+      "max": 60
+    },
+    {
+      "id": "shelter_known",
+      "name": "Убежище обнаружено чужими",
+      "type": "flag",
+      "start": 0,
+      "min": 0,
+      "max": 1
+    },
+    {
+      "id": "group_size",
+      "name": "Людей в группе",
+      "type": "counter",
+      "start": 2,
+      "min": 0,
+      "max": 12
+    },
+    {
+      "id": "group_morale",
+      "name": "Мораль группы",
+      "type": "counter",
+      "start": 60,
+      "min": 0,
+      "max": 100
+    },
+    {
+      "id": "world_danger",
+      "name": "Общая опасность",
+      "type": "counter",
+      "start": 20,
+      "min": 0,
+      "max": 100
+    },
+    {
+      "id": "moved_shelter",
+      "name": "Сменил основное убежище",
+      "type": "flag",
+      "start": 0,
+      "min": 0,
+      "max": 1
+    }
+  ],
+  "nodes": [
+    {
+      "ref": "story.game_start",
+      "title": "Первое утро в бункере",
+      "text": "💡 Предложение\nДвое выживших в маленьком подземном убежище. Воды на месяц, еды на десять дней. Снаружи тихо.",
+      "type": "choice",
+      "category": "story",
+      "eventSource": "system",
+      "refs": [
+        "loc_bunker",
+        "g_player"
+      ],
+      "trigger": {
+        "kind": "conditions",
+        "all": []
+      },
+      "effects": [],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "ending": "",
+      "choices": [
+        {
+          "label": "Осмотреть убежище и запасы",
+          "target_ref": "story.inventory_check",
+          "requires": [],
+          "effects": []
+        },
+        {
+          "label": "Выйти наружу",
+          "target_ref": "exploration.first_exit",
+          "requires": [],
+          "effects": []
+        }
+      ]
+    },
+    {
+      "ref": "story.inventory_check",
+      "title": "Ревизия запасов",
+      "text": "✅ Из GDD · GDD §3.1\nРешаем, что хранить, что использовать, что ремонтировать, когда выходить наружу.",
+      "type": "event",
+      "category": "story",
+      "eventSource": "player",
+      "refs": [],
+      "trigger": {
+        "kind": "conditions",
+        "all": []
+      },
+      "effects": [],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "ending": "",
+      "choices": [
+        {
+          "label": "Пора выходить",
+          "target_ref": "exploration.first_exit",
+          "requires": [],
+          "effects": []
+        }
+      ]
+    },
+    {
+      "ref": "story.move_shelter",
+      "title": "Сменить основное убежище?",
+      "text": "✅ Из GDD · GDD §3.4\nНайдено место лучше нынешнего бункера. Переезд — значимое стратегическое решение: перенос запасов, риск в пути, старое убежище останется пустым.",
+      "type": "choice",
+      "category": "story",
+      "eventSource": "player",
+      "refs": [
+        "loc_other_bunker"
+      ],
+      "trigger": {
+        "kind": "conditions",
+        "all": [
+          {
+            "var": "day",
+            "op": ">=",
+            "value": 20
+          }
+        ]
+      },
+      "effects": [],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "ending": "",
+      "choices": [
+        {
+          "label": "Переехать",
+          "target_ref": "story.moved",
+          "requires": [],
+          "effects": [
+            {
+              "var": "moved_shelter",
+              "op": "set",
+              "value": 1
+            },
+            {
+              "var": "shelter_food_days",
+              "op": "subtract",
+              "value": 3
+            },
+            {
+              "var": "group_morale",
+              "op": "add",
+              "value": 10
+            }
+          ]
+        },
+        {
+          "label": "Остаться",
+          "target_ref": "story.stayed",
+          "requires": [],
+          "effects": []
+        }
+      ]
+    },
+    {
+      "ref": "story.moved",
+      "title": "Новый дом",
+      "text": "💡 Предложение\nСтарый бункер пустеет — его может занять кто-то другой.",
+      "type": "event",
+      "category": "story",
+      "eventSource": "player",
+      "refs": [],
+      "trigger": {
+        "kind": "conditions",
+        "all": []
+      },
+      "effects": [],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "ending": "",
+      "choices": [
+        {
+          "label": "Позже: старый бункер занят",
+          "target_ref": "exploration.familiar_place_changed",
+          "requires": [],
+          "effects": []
+        }
+      ]
+    },
+    {
+      "ref": "story.stayed",
+      "title": "Остаёмся",
+      "text": "💡 Предложение\nНайденное место может занять кто-то другой.",
+      "type": "event",
+      "category": "story",
+      "eventSource": "player",
+      "refs": [],
+      "trigger": {
+        "kind": "conditions",
+        "all": []
+      },
+      "effects": [],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "ending": "",
+      "choices": []
+    },
+    {
+      "ref": "story.found_own_faction",
+      "title": "Своя фракция",
+      "text": "✅ Из GDD · GDD §21\nГруппа выросла настолько, что мир начинает воспринимать её как самостоятельную силу.",
+      "type": "event",
+      "category": "story",
+      "eventSource": "player",
+      "refs": [],
+      "trigger": {
+        "kind": "conditions",
+        "all": [
+          {
+            "var": "group_size",
+            "op": ">=",
+            "value": 8
+          },
+          {
+            "var": "group_morale",
+            "op": ">=",
+            "value": 60
+          }
+        ]
+      },
+      "effects": [
+        {
+          "var": "world_danger",
+          "op": "add",
+          "value": 5
+        },
+        {
+          "var": "shelter_known",
+          "op": "set",
+          "value": 1
+        }
+      ],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "ending": "",
+      "choices": []
+    },
+    {
+      "ref": "story.become_leader",
+      "title": "Возглавить чужую группу",
+      "text": "✅ Из GDD · GDD §21\nПосле переворота или смерти лидера игроку предлагают возглавить чужую группу.",
+      "type": "event",
+      "category": "story",
+      "eventSource": "relationship",
+      "refs": [],
+      "trigger": {
+        "kind": "conditions",
+        "all": []
+      },
+      "effects": [],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "ending": "",
+      "choices": []
+    },
+    {
+      "ref": "story.world_history",
+      "title": "Что случилось с миром",
+      "text": "❓ Не решено · GDD §1.3\n❓ Игрок должен «узнать историю мира» (§1.3), но сама история катастрофы нигде не описана.",
+      "type": "event",
+      "category": "story",
+      "eventSource": "location",
+      "refs": [
+        "k_catastrophe"
+      ],
+      "trigger": {
+        "kind": "conditions",
+        "all": []
+      },
+      "effects": [],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "ending": "",
+      "choices": []
+    },
+    {
+      "ref": "death.group_wiped",
+      "title": "Группа погибла",
+      "text": "✅ Из GDD · GDD §27\nСмерть постоянна. Мир продолжает жить без игрока.",
+      "type": "event",
+      "category": "death",
+      "eventSource": "system",
+      "refs": [],
+      "trigger": {
+        "kind": "conditions",
+        "all": [
+          {
+            "var": "group_size",
+            "op": "<=",
+            "value": 0
+          }
+        ]
+      },
+      "effects": [],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "ending": "death",
+      "choices": []
+    }
+  ],
+  "entities": [
+    {
+      "ref": "loc_bunker",
+      "kind": "location",
+      "name": "Бункер игрока"
+    },
+    {
+      "ref": "loc_other_bunker",
+      "kind": "location",
+      "name": "Чужой бункер"
+    },
+    {
+      "ref": "g_player",
+      "kind": "group",
+      "name": "Группа игрока"
+    },
+    {
+      "ref": "k_catastrophe",
+      "kind": "concept",
+      "name": "Катастрофа (что случилось с миром)"
+    }
+  ]
+}

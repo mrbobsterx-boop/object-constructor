@@ -126,7 +126,16 @@ async function loadStoryFromProject(){
       ? `data/story.json повреждён (не читается как JSON) — граф восстановлен из бэкапа «${rec.recoveredFrom}». Пересохрани (Ctrl+S), чтобы зафиксировать восстановленную версию поверх повреждённого файла.`
       : 'data/story.json повреждён (не читается как JSON), и ни один бэкап не читается тоже — граф будет пустым. Проверь файлы в data/ вручную, автоматика здесь бессильна.');
   }
-  const data=rec.data?migrateStoryData(rec.data):null;
+  await applyStoryData(rec.data);
+  // Object Plan's own статус реализации (data/object_plan.json, §21/§22) — read-only best-effort:
+  // тот же connect-flow, что и у story.json, но ошибка/отсутствие файла не должны мешать загрузке
+  // самого сюжета (readJsonFromProject уже сама возвращает null на любую ошибку).
+  if(typeof loadObjectPlanStatus==='function') await loadObjectPlanStatus();
+  renderAll();
+}
+// Общая часть загрузки — из папки проекта (loadStoryFromProject) и по ссылке (loadStoryFromUrl, онлайн-режим).
+async function applyStoryData(raw){
+  const data=raw?migrateStoryData(raw):null;
   lastLoadedSchemaVersion=data?data.schema_version:null;
   lastLoadedSavedAt=data?(data.saved_at||''):'';
   if(data&&Array.isArray(data.nodes)){
@@ -163,9 +172,33 @@ async function loadStoryFromProject(){
   selectedNodeId=null; selectedEntityId=null; selectedRelationId=null; selectedProposalId=null; selectedWorldEventId=null; selectedDecisionId=null;
   resetHistory();
   markClean();
-  // Object Plan's own статус реализации (data/object_plan.json, §21/§22) — read-only best-effort:
-  // тот же connect-flow, что и у story.json, но ошибка/отсутствие файла не должны мешать загрузке
-  // самого сюжета (readJsonFromProject уже сама возвращает null на любую ошибку).
-  if(typeof loadObjectPlanStatus==='function') await loadObjectPlanStatus();
-  renderAll();
+}
+
+// Онлайн-режим (сайт на Vercel): папки проекта нет, данные лежат в репозитории рядом с приложением —
+// по умолчанию story-map-world/story.json, другой файл можно задать ?data=<путь>. Правки в браузере
+// в репозиторий не попадают — для этого «⬇ Скачать JSON».
+const STORY_ONLINE_DEFAULT_URL='../story-map-world/story.json';
+function storyOnlineUrl(){
+  const q=new URLSearchParams(location.search).get('data');
+  if(q) return q;
+  return /^https?:$/.test(location.protocol)?STORY_ONLINE_DEFAULT_URL:'';
+}
+async function loadStoryFromUrl(url){
+  try{
+    const res=await fetch(url,{cache:'no-store'});
+    if(!res.ok) throw new Error('HTTP '+res.status);
+    await applyStoryData(await res.json());
+    // Весь мир целиком в 25% нечитаем — открываем у левого верхнего угла (стартовый раздел) в читаемом масштабе.
+    zoom=0.6; pan={x:40,y:40}; applyWorldTransform();
+    renderAll();
+    setFolderStatus('Онлайн: '+url.split('/').pop()+' · '+nodes.length+' узлов');
+    return true;
+  }catch(e){
+    console.warn('Не удалось загрузить '+url,e);
+    setFolderStatus('Не удалось загрузить '+url+' ('+e.message+')');
+    return false;
+  }
+}
+function downloadStoryJSON(){
+  downloadText('story.json',JSON.stringify(collectStoryJSON(),null,2));
 }

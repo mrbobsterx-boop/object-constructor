@@ -1,0 +1,673 @@
+{
+  "idea_id": "world_water",
+  "title": "Вода",
+  "variables": [
+    {
+      "id": "shelter_water",
+      "name": "Вода в убежище, л",
+      "type": "counter",
+      "start": 300,
+      "min": 0,
+      "max": 5000
+    },
+    {
+      "id": "shelter_fuel",
+      "name": "Топливо, л",
+      "type": "counter",
+      "start": 20,
+      "min": 0,
+      "max": 200
+    },
+    {
+      "id": "shelter_condition",
+      "name": "Состояние убежища",
+      "type": "counter",
+      "start": 70,
+      "min": 0,
+      "max": 100
+    },
+    {
+      "id": "shelter_known",
+      "name": "Убежище обнаружено чужими",
+      "type": "flag",
+      "start": 0,
+      "min": 0,
+      "max": 1
+    },
+    {
+      "id": "group_morale",
+      "name": "Мораль группы",
+      "type": "counter",
+      "start": 60,
+      "min": 0,
+      "max": 100
+    },
+    {
+      "id": "group_tension",
+      "name": "Напряжение в группе",
+      "type": "counter",
+      "start": 10,
+      "min": 0,
+      "max": 100
+    },
+    {
+      "id": "noise_level",
+      "name": "Шумность игрока",
+      "type": "counter",
+      "start": 0,
+      "min": 0,
+      "max": 100
+    },
+    {
+      "id": "world_danger",
+      "name": "Общая опасность",
+      "type": "counter",
+      "start": 20,
+      "min": 0,
+      "max": 100
+    },
+    {
+      "id": "rep_community",
+      "name": "Отношение общины",
+      "type": "counter",
+      "start": 0,
+      "min": -100,
+      "max": 100
+    },
+    {
+      "id": "rep_raiders",
+      "name": "Отношение рейдеров",
+      "type": "counter",
+      "start": -30,
+      "min": -100,
+      "max": 100
+    },
+    {
+      "id": "rep_remnant",
+      "name": "Отношение «остатков порядка»",
+      "type": "counter",
+      "start": 0,
+      "min": -100,
+      "max": 100
+    },
+    {
+      "id": "debt_traders",
+      "name": "Долг перед торговцами",
+      "type": "counter",
+      "start": 0,
+      "min": 0,
+      "max": 100
+    },
+    {
+      "id": "raiders_know_poison",
+      "name": "Рейдеры знают, кто отравил воду",
+      "type": "flag",
+      "start": 0,
+      "min": 0,
+      "max": 1
+    }
+  ],
+  "nodes": [
+    {
+      "ref": "water.rain_fills_tank",
+      "title": "Дождь пополнил резервуар",
+      "text": "✅ Из GDD · GDD §37 время+вода\nДождь → резервуар → запас.",
+      "type": "background",
+      "category": "water",
+      "eventSource": "weather",
+      "refs": [
+        "r_water"
+      ],
+      "trigger": {
+        "kind": "scheduled",
+        "afterHours": 72,
+        "sinceNode": "",
+        "repeat": true
+      },
+      "effects": [
+        {
+          "var": "shelter_water",
+          "op": "add",
+          "value": 80
+        }
+      ],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "ending": "",
+      "choices": []
+    },
+    {
+      "ref": "water.drought",
+      "title": "Засуха",
+      "text": "💡 Предложение\nДолго нет дождя. Запас не пополняется, ищем воду снаружи.",
+      "type": "background",
+      "category": "water",
+      "eventSource": "weather",
+      "refs": [],
+      "trigger": {
+        "kind": "scheduled",
+        "afterHours": 600,
+        "sinceNode": "",
+        "repeat": true
+      },
+      "effects": [],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "ending": "",
+      "choices": [
+        {
+          "label": "Запас тает",
+          "target_ref": "water.shortage_crisis",
+          "requires": [],
+          "effects": []
+        }
+      ]
+    },
+    {
+      "ref": "water.tank_leak",
+      "title": "Резервуар потёк",
+      "text": "✅ Из GDD · GDD §15 износ\nИзнос. Пока не починим — теряем воду каждый день.",
+      "type": "background",
+      "category": "water",
+      "eventSource": "system",
+      "refs": [],
+      "trigger": {
+        "kind": "scheduled",
+        "afterHours": 336,
+        "sinceNode": "",
+        "repeat": true
+      },
+      "effects": [
+        {
+          "var": "shelter_water",
+          "op": "subtract",
+          "value": 60
+        },
+        {
+          "var": "shelter_condition",
+          "op": "subtract",
+          "value": 5
+        }
+      ],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "ending": "",
+      "choices": [
+        {
+          "label": "Чинить",
+          "target_ref": "repair.equipment_breaks",
+          "requires": [],
+          "effects": []
+        }
+      ]
+    },
+    {
+      "ref": "water.contaminated",
+      "title": "Вода загрязнилась",
+      "text": "✅ Из GDD · GDD §7.3\nВода в запасе грязная. Пить её — риск болезни.",
+      "type": "choice",
+      "category": "water",
+      "eventSource": "world",
+      "refs": [],
+      "trigger": {
+        "kind": "conditions",
+        "all": [
+          {
+            "var": "shelter_condition",
+            "op": "<",
+            "value": 40
+          }
+        ]
+      },
+      "effects": [],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "ending": "",
+      "choices": [
+        {
+          "label": "Очистить (тратим топливо на кипячение)",
+          "target_ref": "water.ok",
+          "requires": [],
+          "effects": [
+            {
+              "var": "shelter_fuel",
+              "op": "subtract",
+              "value": 5
+            }
+          ]
+        },
+        {
+          "label": "Пить как есть",
+          "target_ref": "health.illness_spreads",
+          "requires": [],
+          "effects": [
+            {
+              "var": "group_morale",
+              "op": "subtract",
+              "value": 5
+            }
+          ]
+        },
+        {
+          "label": "Слить и искать новую",
+          "target_ref": "water.found_source",
+          "requires": [],
+          "effects": [
+            {
+              "var": "shelter_water",
+              "op": "subtract",
+              "value": 100
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "ref": "water.ok",
+      "title": "Вода снова чистая",
+      "text": "💡 Предложение\nКризис миновал.",
+      "type": "event",
+      "category": "water",
+      "eventSource": "player",
+      "refs": [],
+      "trigger": {
+        "kind": "conditions",
+        "all": []
+      },
+      "effects": [],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "ending": "",
+      "choices": []
+    },
+    {
+      "ref": "water.found_source",
+      "title": "Найден источник воды",
+      "text": "✅ Из GDD · GDD §7.2\nСкважина, водонапорная башня или склад бочек. Но не чей-то ли он?",
+      "type": "choice",
+      "category": "water",
+      "eventSource": "location",
+      "refs": [
+        "loc_water_tower"
+      ],
+      "trigger": {
+        "kind": "conditions",
+        "all": []
+      },
+      "effects": [],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "ending": "",
+      "choices": [
+        {
+          "label": "Брать воду сразу",
+          "target_ref": "water.source_claimed",
+          "requires": [],
+          "effects": [
+            {
+              "var": "shelter_water",
+              "op": "add",
+              "value": 200
+            },
+            {
+              "var": "noise_level",
+              "op": "add",
+              "value": 5
+            }
+          ]
+        },
+        {
+          "label": "Сначала разведать",
+          "target_ref": "exploration.traces",
+          "requires": [],
+          "effects": []
+        }
+      ]
+    },
+    {
+      "ref": "water.source_claimed",
+      "title": "Источник занят фракцией",
+      "text": "✅ Из GDD · GDD §21\nФракция заняла известный источник. Теперь вода за плату или через конфликт.",
+      "type": "choice",
+      "category": "water",
+      "eventSource": "faction",
+      "refs": [
+        "f_remnant"
+      ],
+      "trigger": {
+        "kind": "conditions",
+        "all": []
+      },
+      "effects": [],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "ending": "",
+      "choices": [
+        {
+          "label": "Платить",
+          "target_ref": "trade.debt",
+          "requires": [],
+          "effects": [
+            {
+              "var": "debt_traders",
+              "op": "add",
+              "value": 10
+            }
+          ]
+        },
+        {
+          "label": "Отбить источник",
+          "target_ref": "combat.watch_fight",
+          "requires": [],
+          "effects": [
+            {
+              "var": "rep_remnant",
+              "op": "subtract",
+              "value": 30
+            }
+          ]
+        },
+        {
+          "label": "Искать другой",
+          "target_ref": "water.found_source",
+          "requires": [],
+          "effects": []
+        }
+      ]
+    },
+    {
+      "ref": "water.poisoned_by_enemy",
+      "title": "Кто-то отравил наш резервуар",
+      "text": "✅ Из GDD · GDD §29\nЗапас потерян. Кто виноват — неизвестно.",
+      "type": "event",
+      "category": "water",
+      "eventSource": "faction",
+      "refs": [],
+      "trigger": {
+        "kind": "conditions",
+        "all": [
+          {
+            "var": "shelter_known",
+            "op": "==",
+            "value": 1
+          },
+          {
+            "var": "rep_raiders",
+            "op": "<=",
+            "value": -50
+          }
+        ]
+      },
+      "effects": [
+        {
+          "var": "shelter_water",
+          "op": "set",
+          "value": 0
+        },
+        {
+          "var": "group_morale",
+          "op": "subtract",
+          "value": 15
+        }
+      ],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "ending": "",
+      "choices": [
+        {
+          "label": "Искать виновных",
+          "target_ref": "exploration.traces",
+          "requires": [],
+          "effects": []
+        },
+        {
+          "label": "Срочно искать воду",
+          "target_ref": "water.found_source",
+          "requires": [],
+          "effects": []
+        }
+      ]
+    },
+    {
+      "ref": "water.player_poisons",
+      "title": "Отравить чужой запас?",
+      "text": "✅ Из GDD · GDD §29\nУ игрока есть яд и доступ к резервуару рейдеров. Количество яда зависит от объёма.",
+      "type": "choice",
+      "category": "water",
+      "eventSource": "player",
+      "refs": [
+        "loc_raider_camp"
+      ],
+      "trigger": {
+        "kind": "conditions",
+        "all": []
+      },
+      "effects": [],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "ending": "",
+      "choices": [
+        {
+          "label": "Отравить",
+          "target_ref": "water.poison_outcome",
+          "requires": [],
+          "effects": [
+            {
+              "var": "rep_raiders",
+              "op": "subtract",
+              "value": 20
+            }
+          ]
+        },
+        {
+          "label": "Не делать этого",
+          "target_ref": "water.ok",
+          "requires": [],
+          "effects": []
+        }
+      ]
+    },
+    {
+      "ref": "water.poison_outcome",
+      "title": "Последствия отравления",
+      "text": "💡 Предложение\nУ рейдеров больные и мёртвые. Узнают ли они, кто это сделал?",
+      "type": "choice",
+      "category": "water",
+      "eventSource": "faction",
+      "refs": [],
+      "trigger": {
+        "kind": "conditions",
+        "all": []
+      },
+      "effects": [],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "ending": "",
+      "choices": [
+        {
+          "label": "Узнали — охота на игрока",
+          "target_ref": "combat.raid_on_shelter",
+          "requires": [],
+          "effects": [
+            {
+              "var": "raiders_know_poison",
+              "op": "set",
+              "value": 1
+            },
+            {
+              "var": "rep_raiders",
+              "op": "set",
+              "value": -100
+            }
+          ]
+        },
+        {
+          "label": "Не узнали — рейдеры слабеют",
+          "target_ref": "water.ok",
+          "requires": [],
+          "effects": [
+            {
+              "var": "rep_community",
+              "op": "add",
+              "value": 15
+            },
+            {
+              "var": "world_danger",
+              "op": "subtract",
+              "value": 10
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "ref": "water.shortage_crisis",
+      "title": "Вода кончается",
+      "text": "✅ Из GDD · GDD §7.4\nАвтономные NPC сами уходят искать воду в радиусе 500 м. Мораль падает.",
+      "type": "event",
+      "category": "water",
+      "eventSource": "resource_shortage",
+      "refs": [
+        "r_water"
+      ],
+      "trigger": {
+        "kind": "conditions",
+        "all": [
+          {
+            "var": "shelter_water",
+            "op": "<",
+            "value": 50
+          }
+        ]
+      },
+      "effects": [
+        {
+          "var": "group_morale",
+          "op": "subtract",
+          "value": 10
+        },
+        {
+          "var": "group_tension",
+          "op": "add",
+          "value": 10
+        }
+      ],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "ending": "",
+      "choices": [
+        {
+          "label": "Срочная вылазка за водой",
+          "target_ref": "water.found_source",
+          "requires": [],
+          "effects": []
+        },
+        {
+          "label": "Купить у торговцев",
+          "target_ref": "trade.caravan_arrives",
+          "requires": [],
+          "effects": []
+        }
+      ]
+    }
+  ],
+  "entities": [
+    {
+      "ref": "loc_raider_camp",
+      "kind": "location",
+      "name": "Лагерь рейдеров"
+    },
+    {
+      "ref": "loc_water_tower",
+      "kind": "location",
+      "name": "Водонапорная башня"
+    },
+    {
+      "ref": "f_remnant",
+      "kind": "faction",
+      "name": "Остатки порядка"
+    },
+    {
+      "ref": "r_water",
+      "kind": "resource",
+      "name": "Вода"
+    }
+  ]
+}

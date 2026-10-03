@@ -1,0 +1,353 @@
+{
+  "idea_id": "world_energy",
+  "title": "Энергия",
+  "variables": [
+    {
+      "id": "shelter_energy",
+      "name": "Энергия, кВт·ч",
+      "type": "counter",
+      "start": 200,
+      "min": 0,
+      "max": 1200
+    },
+    {
+      "id": "shelter_food_days",
+      "name": "Еда, дней на группу",
+      "type": "counter",
+      "start": 10,
+      "min": 0,
+      "max": 60
+    },
+    {
+      "id": "shelter_fuel",
+      "name": "Топливо, л",
+      "type": "counter",
+      "start": 20,
+      "min": 0,
+      "max": 200
+    },
+    {
+      "id": "shelter_known",
+      "name": "Убежище обнаружено чужими",
+      "type": "flag",
+      "start": 0,
+      "min": 0,
+      "max": 1
+    },
+    {
+      "id": "group_morale",
+      "name": "Мораль группы",
+      "type": "counter",
+      "start": 60,
+      "min": 0,
+      "max": 100
+    },
+    {
+      "id": "noise_level",
+      "name": "Шумность игрока",
+      "type": "counter",
+      "start": 0,
+      "min": 0,
+      "max": 100
+    }
+  ],
+  "nodes": [
+    {
+      "ref": "energy.panel_dirty",
+      "title": "Панели загрязнились",
+      "text": "✅ Из GDD · GDD §8, §9 panel_cleaning\nПроизводство падает, пока панели не почистят.",
+      "type": "background",
+      "category": "energy",
+      "eventSource": "timer",
+      "refs": [],
+      "trigger": {
+        "kind": "scheduled",
+        "afterHours": 120,
+        "sinceNode": "",
+        "repeat": true
+      },
+      "effects": [
+        {
+          "var": "shelter_energy",
+          "op": "subtract",
+          "value": 20
+        }
+      ],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "ending": "",
+      "choices": []
+    },
+    {
+      "ref": "energy.panel_broken",
+      "title": "Панель сломана",
+      "text": "✅ Из GDD · GDD §8\nВетер, град или нападение. Нужны ремонт и детали.",
+      "type": "event",
+      "category": "energy",
+      "eventSource": "world",
+      "refs": [],
+      "trigger": {
+        "kind": "conditions",
+        "all": []
+      },
+      "effects": [
+        {
+          "var": "shelter_energy",
+          "op": "subtract",
+          "value": 40
+        }
+      ],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "ending": "",
+      "choices": [
+        {
+          "label": "Чинить",
+          "target_ref": "repair.equipment_breaks",
+          "requires": [],
+          "effects": []
+        }
+      ]
+    },
+    {
+      "ref": "energy.battery_low",
+      "title": "Заряд почти кончился",
+      "text": "✅ Из GDD · GDD §8\nСвет, лампы для урожая и холодильник скоро погаснут.",
+      "type": "event",
+      "category": "energy",
+      "eventSource": "resource_shortage",
+      "refs": [
+        "r_energy"
+      ],
+      "trigger": {
+        "kind": "conditions",
+        "all": [
+          {
+            "var": "shelter_energy",
+            "op": "<",
+            "value": 40
+          }
+        ]
+      },
+      "effects": [],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "ending": "",
+      "choices": [
+        {
+          "label": "Экономить: выключить всё лишнее",
+          "target_ref": "energy.ok",
+          "requires": [],
+          "effects": [
+            {
+              "var": "group_morale",
+              "op": "subtract",
+              "value": 5
+            }
+          ]
+        },
+        {
+          "label": "Жечь топливо в генераторе",
+          "target_ref": "energy.ok",
+          "requires": [],
+          "effects": [
+            {
+              "var": "shelter_fuel",
+              "op": "subtract",
+              "value": 10
+            },
+            {
+              "var": "shelter_energy",
+              "op": "add",
+              "value": 60
+            },
+            {
+              "var": "noise_level",
+              "op": "add",
+              "value": 15
+            }
+          ]
+        },
+        {
+          "label": "Ничего не делать",
+          "target_ref": "energy.blackout",
+          "requires": [],
+          "effects": []
+        }
+      ]
+    },
+    {
+      "ref": "energy.ok",
+      "title": "Энергия есть",
+      "text": "💡 Предложение\nКризис отложен.",
+      "type": "event",
+      "category": "energy",
+      "eventSource": "player",
+      "refs": [],
+      "trigger": {
+        "kind": "conditions",
+        "all": []
+      },
+      "effects": [],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "ending": "",
+      "choices": []
+    },
+    {
+      "ref": "energy.blackout",
+      "title": "Полное отключение",
+      "text": "💡 Предложение\nТемно, холодильник отключён, еда портится, ночью страшнее.",
+      "type": "event",
+      "category": "energy",
+      "eventSource": "resource_shortage",
+      "refs": [],
+      "trigger": {
+        "kind": "conditions",
+        "all": [
+          {
+            "var": "shelter_energy",
+            "op": "<=",
+            "value": 0
+          }
+        ]
+      },
+      "effects": [
+        {
+          "var": "group_morale",
+          "op": "subtract",
+          "value": 15
+        },
+        {
+          "var": "shelter_food_days",
+          "op": "subtract",
+          "value": 2
+        }
+      ],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "ending": "",
+      "choices": [
+        {
+          "label": "Во тьме растёт тревога",
+          "target_ref": "light.dark_room_fear",
+          "requires": [],
+          "effects": []
+        }
+      ]
+    },
+    {
+      "ref": "energy.found_generator",
+      "title": "Найден генератор",
+      "text": "✅ Из GDD · GDD §8\nГенератор, ветряк или велогенератор — новый источник энергии.",
+      "type": "event",
+      "category": "energy",
+      "eventSource": "location",
+      "refs": [],
+      "trigger": {
+        "kind": "conditions",
+        "all": []
+      },
+      "effects": [
+        {
+          "var": "shelter_energy",
+          "op": "add",
+          "value": 100
+        }
+      ],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "ending": "",
+      "choices": []
+    },
+    {
+      "ref": "energy.light_attracts",
+      "title": "Свет из убежища заметили",
+      "text": "💡 Предложение\nНочью свет виден снаружи. Убежище перестаёт быть тайной.",
+      "type": "background",
+      "category": "energy",
+      "eventSource": "world",
+      "refs": [],
+      "trigger": {
+        "kind": "scheduled",
+        "afterHours": 144,
+        "sinceNode": "",
+        "repeat": true
+      },
+      "effects": [
+        {
+          "var": "shelter_known",
+          "op": "set",
+          "value": 1
+        }
+      ],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "ending": "",
+      "choices": [
+        {
+          "label": "Патруль проходит мимо",
+          "target_ref": "factions.patrol_passes",
+          "requires": [],
+          "effects": []
+        }
+      ]
+    }
+  ],
+  "entities": [
+    {
+      "ref": "r_energy",
+      "kind": "resource",
+      "name": "Энергия"
+    }
+  ]
+}

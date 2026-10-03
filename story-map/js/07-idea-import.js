@@ -31,7 +31,8 @@ function layoutIdeaEntries(entries){
     const i=queue[qi++];
     (entries[i].choices||[]).forEach(c=>{
       const j=c.target_ref?idxByRef[c.target_ref]:undefined;
-      if(j!==undefined&&depth[j]<depth[i]+1){ depth[j]=depth[i]+1; queue.push(j); }
+      // только первый (кратчайший) путь — иначе цикл A→B→A наращивал бы глубину бесконечно
+      if(j!==undefined&&depth[j]===-1){ depth[j]=depth[i]+1; queue.push(j); }
     });
   }
   const colCount=[];

@@ -1,0 +1,533 @@
+{
+  "idea_id": "world_health",
+  "title": "Здоровье и смерть",
+  "variables": [
+    {
+      "id": "shelter_food_days",
+      "name": "Еда, дней на группу",
+      "type": "counter",
+      "start": 10,
+      "min": 0,
+      "max": 60
+    },
+    {
+      "id": "shelter_meds",
+      "name": "Медикаменты, ед.",
+      "type": "counter",
+      "start": 3,
+      "min": 0,
+      "max": 20
+    },
+    {
+      "id": "group_size",
+      "name": "Людей в группе",
+      "type": "counter",
+      "start": 2,
+      "min": 0,
+      "max": 12
+    },
+    {
+      "id": "group_morale",
+      "name": "Мораль группы",
+      "type": "counter",
+      "start": 60,
+      "min": 0,
+      "max": 100
+    },
+    {
+      "id": "group_tension",
+      "name": "Напряжение в группе",
+      "type": "counter",
+      "start": 10,
+      "min": 0,
+      "max": 100
+    },
+    {
+      "id": "noise_level",
+      "name": "Шумность игрока",
+      "type": "counter",
+      "start": 0,
+      "min": 0,
+      "max": 100
+    }
+  ],
+  "nodes": [
+    {
+      "ref": "health.injury_on_raid",
+      "title": "Травма на вылазке",
+      "text": "✅ Из GDD · GDD §26\nЭффективность падает, нужно лечение.",
+      "type": "choice",
+      "category": "health",
+      "eventSource": "world",
+      "refs": [],
+      "trigger": {
+        "kind": "conditions",
+        "all": []
+      },
+      "effects": [],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "ending": "",
+      "choices": [
+        {
+          "label": "Лечить своими медикаментами",
+          "target_ref": "health.recovered",
+          "requires": [
+            {
+              "var": "shelter_meds",
+              "op": ">=",
+              "value": 1
+            }
+          ],
+          "effects": [
+            {
+              "var": "shelter_meds",
+              "op": "subtract",
+              "value": 1
+            }
+          ]
+        },
+        {
+          "label": "Перевязать как есть",
+          "target_ref": "health.infection",
+          "requires": [],
+          "effects": []
+        }
+      ]
+    },
+    {
+      "ref": "health.recovered",
+      "title": "Поправился",
+      "text": "💡 Предложение\nВремя восстановления прошло.",
+      "type": "event",
+      "category": "health",
+      "eventSource": "system",
+      "refs": [],
+      "trigger": {
+        "kind": "conditions",
+        "all": []
+      },
+      "effects": [],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "ending": "",
+      "choices": []
+    },
+    {
+      "ref": "health.infection",
+      "title": "Рана воспалилась",
+      "text": "✅ Из GDD · GDD §26\nБез антибиотиков — ухудшение вплоть до смерти.",
+      "type": "choice",
+      "category": "health",
+      "eventSource": "system",
+      "refs": [],
+      "trigger": {
+        "kind": "conditions",
+        "all": []
+      },
+      "effects": [],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "ending": "",
+      "choices": [
+        {
+          "label": "Найти лекарства",
+          "target_ref": "health.no_meds",
+          "requires": [],
+          "effects": []
+        },
+        {
+          "label": "Ждать и надеяться",
+          "target_ref": "death.member_died",
+          "requires": [],
+          "effects": [
+            {
+              "var": "group_size",
+              "op": "subtract",
+              "value": 1
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "ref": "health.illness_spreads",
+      "title": "Болезнь в группе",
+      "text": "💡 Предложение\nБолезнь переходит на других. Карантин? Кого лечить первым?",
+      "type": "choice",
+      "category": "health",
+      "eventSource": "system",
+      "refs": [],
+      "trigger": {
+        "kind": "conditions",
+        "all": []
+      },
+      "effects": [],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "ending": "",
+      "choices": [
+        {
+          "label": "Карантин",
+          "target_ref": "health.recovered",
+          "requires": [],
+          "effects": [
+            {
+              "var": "group_tension",
+              "op": "add",
+              "value": 10
+            }
+          ]
+        },
+        {
+          "label": "Лечить всех",
+          "target_ref": "health.no_meds",
+          "requires": [],
+          "effects": [
+            {
+              "var": "shelter_meds",
+              "op": "subtract",
+              "value": 3
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "ref": "health.no_meds",
+      "title": "Лекарства кончились",
+      "text": "✅ Из GDD · GDD §10.3\nИдти за ними, просить или торговать.",
+      "type": "event",
+      "category": "health",
+      "eventSource": "resource_shortage",
+      "refs": [
+        "r_meds"
+      ],
+      "trigger": {
+        "kind": "conditions",
+        "all": [
+          {
+            "var": "shelter_meds",
+            "op": "<=",
+            "value": 0
+          }
+        ]
+      },
+      "effects": [],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "ending": "",
+      "choices": [
+        {
+          "label": "Аптека в городе",
+          "target_ref": "exploration.house_states",
+          "requires": [],
+          "effects": []
+        },
+        {
+          "label": "Попросить у общины",
+          "target_ref": "factions.first_contact",
+          "requires": [],
+          "effects": []
+        },
+        {
+          "label": "Встретить врача",
+          "target_ref": "health.doctor_found",
+          "requires": [],
+          "effects": []
+        }
+      ]
+    },
+    {
+      "ref": "health.doctor_found",
+      "title": "Встречен врач",
+      "text": "✅ Из GDD · GDD §24\nЧеловек с навыком медицины. Присоединится ли он и на каких условиях?",
+      "type": "choice",
+      "category": "health",
+      "eventSource": "npc",
+      "refs": [],
+      "trigger": {
+        "kind": "conditions",
+        "all": []
+      },
+      "effects": [],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "ending": "",
+      "choices": [
+        {
+          "label": "Принять в группу",
+          "target_ref": "group.newcomer_arrives",
+          "requires": [],
+          "effects": [
+            {
+              "var": "group_size",
+              "op": "add",
+              "value": 1
+            }
+          ]
+        },
+        {
+          "label": "Только вылечить раненого",
+          "target_ref": "health.recovered",
+          "requires": [],
+          "effects": [
+            {
+              "var": "shelter_food_days",
+              "op": "subtract",
+              "value": 2
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "ref": "death.member_died",
+      "title": "Член группы погиб",
+      "text": "✅ Из GDD · GDD §27\nОстаются тело и вещи. Близкие реагируют сильно, малознакомые — слабо.",
+      "type": "event",
+      "category": "death",
+      "eventSource": "system",
+      "refs": [],
+      "trigger": {
+        "kind": "conditions",
+        "all": []
+      },
+      "effects": [
+        {
+          "var": "group_morale",
+          "op": "subtract",
+          "value": 20
+        },
+        {
+          "var": "group_tension",
+          "op": "add",
+          "value": 10
+        }
+      ],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "ending": "",
+      "choices": [
+        {
+          "label": "Что делать с телом",
+          "target_ref": "death.body_decision",
+          "requires": [],
+          "effects": []
+        },
+        {
+          "label": "Реакция близкого друга",
+          "target_ref": "death.close_friend_reaction",
+          "requires": [],
+          "effects": []
+        }
+      ]
+    },
+    {
+      "ref": "death.body_decision",
+      "title": "Что делать с телом",
+      "text": "✅ Из GDD · GDD §27\n❓ Эффекты похорон, разложения и сожжения не заданы (§42).",
+      "type": "choice",
+      "category": "death",
+      "eventSource": "player",
+      "refs": [],
+      "trigger": {
+        "kind": "conditions",
+        "all": []
+      },
+      "effects": [],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "ending": "",
+      "choices": [
+        {
+          "label": "Похоронить",
+          "target_ref": "health.recovered",
+          "requires": [],
+          "effects": [
+            {
+              "var": "group_morale",
+              "op": "add",
+              "value": 5
+            }
+          ]
+        },
+        {
+          "label": "Сжечь",
+          "target_ref": "health.recovered",
+          "requires": [],
+          "effects": [
+            {
+              "var": "noise_level",
+              "op": "add",
+              "value": 10
+            }
+          ]
+        },
+        {
+          "label": "Обыскать и оставить",
+          "target_ref": "health.recovered",
+          "requires": [],
+          "effects": [
+            {
+              "var": "group_morale",
+              "op": "subtract",
+              "value": 5
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "ref": "death.close_friend_reaction",
+      "title": "Близкий друг в шоке",
+      "text": "✅ Из GDD · GDD §23, §27\nОтказ работать, уход из группы, злость на игрока.",
+      "type": "choice",
+      "category": "death",
+      "eventSource": "relationship",
+      "refs": [],
+      "trigger": {
+        "kind": "conditions",
+        "all": []
+      },
+      "effects": [],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "ending": "",
+      "choices": [
+        {
+          "label": "Дать время",
+          "target_ref": "health.recovered",
+          "requires": [],
+          "effects": []
+        },
+        {
+          "label": "Он уходит",
+          "target_ref": "group.desertion",
+          "requires": [],
+          "effects": [
+            {
+              "var": "group_size",
+              "op": "subtract",
+              "value": 1
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "ref": "death.stranger_body_found",
+      "title": "Тело незнакомца",
+      "text": "✅ Из GDD · GDD §25, §27\nТело с вещами. Чьё это? Кто его убил?",
+      "type": "choice",
+      "category": "death",
+      "eventSource": "location",
+      "refs": [],
+      "trigger": {
+        "kind": "conditions",
+        "all": []
+      },
+      "effects": [],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "ending": "",
+      "choices": [
+        {
+          "label": "Обыскать",
+          "target_ref": "food.ok",
+          "requires": [],
+          "effects": [
+            {
+              "var": "shelter_meds",
+              "op": "add",
+              "value": 1
+            }
+          ]
+        },
+        {
+          "label": "Искать следы убийцы",
+          "target_ref": "exploration.traces",
+          "requires": [],
+          "effects": []
+        }
+      ]
+    }
+  ],
+  "entities": [
+    {
+      "ref": "r_meds",
+      "kind": "resource",
+      "name": "Медикаменты"
+    }
+  ]
+}

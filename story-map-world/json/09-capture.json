@@ -1,0 +1,561 @@
+{
+  "idea_id": "world_capture",
+  "title": "Плен и рабство",
+  "variables": [
+    {
+      "id": "day",
+      "name": "День игры",
+      "type": "counter",
+      "start": 1,
+      "min": 0,
+      "max": 999
+    },
+    {
+      "id": "shelter_water",
+      "name": "Вода в убежище, л",
+      "type": "counter",
+      "start": 300,
+      "min": 0,
+      "max": 5000
+    },
+    {
+      "id": "shelter_food_days",
+      "name": "Еда, дней на группу",
+      "type": "counter",
+      "start": 10,
+      "min": 0,
+      "max": 60
+    },
+    {
+      "id": "group_size",
+      "name": "Людей в группе",
+      "type": "counter",
+      "start": 2,
+      "min": 0,
+      "max": 12
+    },
+    {
+      "id": "group_morale",
+      "name": "Мораль группы",
+      "type": "counter",
+      "start": 60,
+      "min": 0,
+      "max": 100
+    },
+    {
+      "id": "world_danger",
+      "name": "Общая опасность",
+      "type": "counter",
+      "start": 20,
+      "min": 0,
+      "max": 100
+    },
+    {
+      "id": "rep_community",
+      "name": "Отношение общины",
+      "type": "counter",
+      "start": 0,
+      "min": -100,
+      "max": 100
+    },
+    {
+      "id": "rep_raiders",
+      "name": "Отношение рейдеров",
+      "type": "counter",
+      "start": -30,
+      "min": -100,
+      "max": 100
+    },
+    {
+      "id": "rep_slavers",
+      "name": "Отношение работорговцев",
+      "type": "counter",
+      "start": -10,
+      "min": -100,
+      "max": 100
+    },
+    {
+      "id": "debt_traders",
+      "name": "Долг перед торговцами",
+      "type": "counter",
+      "start": 0,
+      "min": 0,
+      "max": 100
+    },
+    {
+      "id": "player_captured",
+      "name": "Игрок в плену",
+      "type": "flag",
+      "start": 0,
+      "min": 0,
+      "max": 1
+    },
+    {
+      "id": "member_captured",
+      "name": "Член группы в плену",
+      "type": "flag",
+      "start": 0,
+      "min": 0,
+      "max": 1
+    }
+  ],
+  "nodes": [
+    {
+      "ref": "capture.player_captured",
+      "title": "Игрок в плену",
+      "text": "✅ Из GDD · GDD §21\nПлен, рабство, продажа, обмен, выкуп, побег, спасение NPC, принудительная работа, смерть.",
+      "type": "choice",
+      "category": "factions",
+      "eventSource": "faction",
+      "refs": [
+        "k_slavery",
+        "f_slavers"
+      ],
+      "trigger": {
+        "kind": "conditions",
+        "all": []
+      },
+      "effects": [
+        {
+          "var": "player_captured",
+          "op": "set",
+          "value": 1
+        }
+      ],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "ending": "",
+      "choices": [
+        {
+          "label": "Бежать",
+          "target_ref": "exploration.ok",
+          "requires": [],
+          "effects": [
+            {
+              "var": "player_captured",
+              "op": "set",
+              "value": 0
+            },
+            {
+              "var": "world_danger",
+              "op": "add",
+              "value": 5
+            }
+          ]
+        },
+        {
+          "label": "Ждать выкупа от группы",
+          "target_ref": "capture.ransom",
+          "requires": [
+            {
+              "var": "group_size",
+              "op": ">=",
+              "value": 2
+            }
+          ],
+          "effects": []
+        },
+        {
+          "label": "Работать на хозяев",
+          "target_ref": "capture.forced_labor",
+          "requires": [],
+          "effects": []
+        },
+        {
+          "label": "Погибнуть при попытке",
+          "target_ref": "death.group_wiped",
+          "requires": [],
+          "effects": [
+            {
+              "var": "group_size",
+              "op": "subtract",
+              "value": 1
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "ref": "capture.ransom",
+      "title": "Выкуп",
+      "text": "✅ Из GDD · GDD §21\nГруппа отдаёт запасы.",
+      "type": "event",
+      "category": "factions",
+      "eventSource": "faction",
+      "refs": [],
+      "trigger": {
+        "kind": "conditions",
+        "all": []
+      },
+      "effects": [
+        {
+          "var": "player_captured",
+          "op": "set",
+          "value": 0
+        },
+        {
+          "var": "shelter_water",
+          "op": "subtract",
+          "value": 200
+        },
+        {
+          "var": "shelter_food_days",
+          "op": "subtract",
+          "value": 5
+        }
+      ],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "ending": "",
+      "choices": []
+    },
+    {
+      "ref": "capture.forced_labor",
+      "title": "Принудительная работа",
+      "text": "✅ Из GDD · GDD §21\nДни проходят в работе на чужих. Можно узнать их лагерь изнутри.",
+      "type": "event",
+      "category": "factions",
+      "eventSource": "faction",
+      "refs": [],
+      "trigger": {
+        "kind": "conditions",
+        "all": []
+      },
+      "effects": [
+        {
+          "var": "group_morale",
+          "op": "subtract",
+          "value": 10
+        }
+      ],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "ending": "",
+      "choices": []
+    },
+    {
+      "ref": "capture.member_captured",
+      "title": "Захвачен член группы",
+      "text": "✅ Из GDD · GDD §21\nВыкупить, отбить, обменять или смириться.",
+      "type": "choice",
+      "category": "factions",
+      "eventSource": "faction",
+      "refs": [],
+      "trigger": {
+        "kind": "conditions",
+        "all": []
+      },
+      "effects": [
+        {
+          "var": "member_captured",
+          "op": "set",
+          "value": 1
+        },
+        {
+          "var": "group_size",
+          "op": "subtract",
+          "value": 1
+        }
+      ],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "ending": "",
+      "choices": [
+        {
+          "label": "Выкупить",
+          "target_ref": "capture.ransom",
+          "requires": [],
+          "effects": [
+            {
+              "var": "member_captured",
+              "op": "set",
+              "value": 0
+            },
+            {
+              "var": "group_size",
+              "op": "add",
+              "value": 1
+            }
+          ]
+        },
+        {
+          "label": "Отбить силой",
+          "target_ref": "combat.raid_on_shelter",
+          "requires": [],
+          "effects": [
+            {
+              "var": "rep_slavers",
+              "op": "subtract",
+              "value": 30
+            }
+          ]
+        },
+        {
+          "label": "Смириться",
+          "target_ref": "death.close_friend_reaction",
+          "requires": [],
+          "effects": [
+            {
+              "var": "group_morale",
+              "op": "subtract",
+              "value": 20
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "ref": "capture.slave_market",
+      "title": "Рынок рабов",
+      "text": "✅ Из GDD · GDD §21\nСреди пленных — бывший член группы игрока.",
+      "type": "choice",
+      "category": "factions",
+      "eventSource": "faction",
+      "refs": [
+        "f_slavers"
+      ],
+      "trigger": {
+        "kind": "conditions",
+        "all": []
+      },
+      "effects": [],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "ending": "",
+      "choices": [
+        {
+          "label": "Выкупить",
+          "target_ref": "trade.debt",
+          "requires": [],
+          "effects": [
+            {
+              "var": "group_size",
+              "op": "add",
+              "value": 1
+            },
+            {
+              "var": "debt_traders",
+              "op": "add",
+              "value": 20
+            }
+          ]
+        },
+        {
+          "label": "Освободить силой",
+          "target_ref": "combat.watch_fight",
+          "requires": [],
+          "effects": [
+            {
+              "var": "rep_slavers",
+              "op": "subtract",
+              "value": 40
+            },
+            {
+              "var": "rep_community",
+              "op": "add",
+              "value": 15
+            }
+          ]
+        },
+        {
+          "label": "Пройти мимо",
+          "target_ref": "exploration.ok",
+          "requires": [],
+          "effects": [
+            {
+              "var": "group_morale",
+              "op": "subtract",
+              "value": 15
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "ref": "capture.take_prisoner",
+      "title": "Игрок взял пленного",
+      "text": "✅ Из GDD · GDD §21\nДопросить, отпустить, обменять, продать, принять в группу.",
+      "type": "choice",
+      "category": "factions",
+      "eventSource": "player",
+      "refs": [],
+      "trigger": {
+        "kind": "conditions",
+        "all": []
+      },
+      "effects": [],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "ending": "",
+      "choices": [
+        {
+          "label": "Допросить",
+          "target_ref": "exploration.traces",
+          "requires": [],
+          "effects": []
+        },
+        {
+          "label": "Отпустить",
+          "target_ref": "exploration.ok",
+          "requires": [],
+          "effects": [
+            {
+              "var": "rep_raiders",
+              "op": "add",
+              "value": 5
+            }
+          ]
+        },
+        {
+          "label": "Продать работорговцам",
+          "target_ref": "exploration.ok",
+          "requires": [],
+          "effects": [
+            {
+              "var": "rep_slavers",
+              "op": "add",
+              "value": 10
+            },
+            {
+              "var": "group_morale",
+              "op": "subtract",
+              "value": 10
+            }
+          ]
+        },
+        {
+          "label": "Принять в группу",
+          "target_ref": "group.newcomer_arrives",
+          "requires": [],
+          "effects": [
+            {
+              "var": "group_size",
+              "op": "add",
+              "value": 1
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "ref": "capture.escaped_slave",
+      "title": "Беглый раб у двери",
+      "text": "💡 Предложение\nК убежищу прибежал беглец. За ним идут.",
+      "type": "choice",
+      "category": "factions",
+      "eventSource": "npc",
+      "refs": [],
+      "trigger": {
+        "kind": "conditions",
+        "all": [
+          {
+            "var": "day",
+            "op": ">=",
+            "value": 15
+          }
+        ]
+      },
+      "effects": [],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "ending": "",
+      "choices": [
+        {
+          "label": "Укрыть",
+          "target_ref": "group.newcomer_arrives",
+          "requires": [],
+          "effects": [
+            {
+              "var": "group_size",
+              "op": "add",
+              "value": 1
+            },
+            {
+              "var": "rep_slavers",
+              "op": "subtract",
+              "value": 20
+            }
+          ]
+        },
+        {
+          "label": "Выдать",
+          "target_ref": "exploration.ok",
+          "requires": [],
+          "effects": [
+            {
+              "var": "rep_slavers",
+              "op": "add",
+              "value": 10
+            },
+            {
+              "var": "group_morale",
+              "op": "subtract",
+              "value": 10
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "entities": [
+    {
+      "ref": "f_slavers",
+      "kind": "faction",
+      "name": "Работорговцы"
+    },
+    {
+      "ref": "k_slavery",
+      "kind": "concept",
+      "name": "Плен и рабство"
+    }
+  ]
+}

@@ -1,0 +1,310 @@
+{
+  "idea_id": "world_building",
+  "title": "Убежище как место",
+  "variables": [
+    {
+      "id": "shelter_energy",
+      "name": "Энергия, кВт·ч",
+      "type": "counter",
+      "start": 200,
+      "min": 0,
+      "max": 1200
+    },
+    {
+      "id": "shelter_meds",
+      "name": "Медикаменты, ед.",
+      "type": "counter",
+      "start": 3,
+      "min": 0,
+      "max": 20
+    },
+    {
+      "id": "shelter_condition",
+      "name": "Состояние убежища",
+      "type": "counter",
+      "start": 70,
+      "min": 0,
+      "max": 100
+    },
+    {
+      "id": "group_morale",
+      "name": "Мораль группы",
+      "type": "counter",
+      "start": 60,
+      "min": 0,
+      "max": 100
+    },
+    {
+      "id": "group_tension",
+      "name": "Напряжение в группе",
+      "type": "counter",
+      "start": 10,
+      "min": 0,
+      "max": 100
+    },
+    {
+      "id": "has_greenhouse",
+      "name": "Есть оранжерея",
+      "type": "flag",
+      "start": 0,
+      "min": 0,
+      "max": 1
+    }
+  ],
+  "nodes": [
+    {
+      "ref": "repair.equipment_breaks",
+      "title": "Сломалось оборудование",
+      "text": "✅ Из GDD · GDD §15\nНасос, фильтр или верстак. Ведёт к кризису воды или энергии.",
+      "type": "choice",
+      "category": "repair",
+      "eventSource": "system",
+      "refs": [],
+      "trigger": {
+        "kind": "conditions",
+        "all": [
+          {
+            "var": "shelter_condition",
+            "op": "<",
+            "value": 50
+          }
+        ]
+      },
+      "effects": [],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "ending": "",
+      "choices": [
+        {
+          "label": "Починить своими силами",
+          "target_ref": "building.ok",
+          "requires": [],
+          "effects": [
+            {
+              "var": "shelter_condition",
+              "op": "add",
+              "value": 15
+            }
+          ]
+        },
+        {
+          "label": "Отложить",
+          "target_ref": "water.tank_leak",
+          "requires": [],
+          "effects": []
+        }
+      ]
+    },
+    {
+      "ref": "building.ok",
+      "title": "Работает",
+      "text": "💡 Предложение\nОборудование в порядке.",
+      "type": "event",
+      "category": "building",
+      "eventSource": "system",
+      "refs": [],
+      "trigger": {
+        "kind": "conditions",
+        "all": []
+      },
+      "effects": [],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "ending": "",
+      "choices": []
+    },
+    {
+      "ref": "physics.shelf_collapse",
+      "title": "Рухнула перегруженная полка",
+      "text": "✅ Из GDD · GDD §16\nНагрузка + время → поломка → падение предметов.",
+      "type": "event",
+      "category": "physics",
+      "eventSource": "system",
+      "refs": [],
+      "trigger": {
+        "kind": "scheduled",
+        "afterHours": 384,
+        "sinceNode": "",
+        "repeat": true
+      },
+      "effects": [
+        {
+          "var": "shelter_meds",
+          "op": "subtract",
+          "value": 1
+        },
+        {
+          "var": "shelter_condition",
+          "op": "subtract",
+          "value": 3
+        }
+      ],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "ending": "",
+      "choices": []
+    },
+    {
+      "ref": "building.expansion",
+      "title": "Расширили убежище",
+      "text": "✅ Из GDD · GDD §3.3\nНовая комната (например, оранжерея). Больше места — больше потребление.",
+      "type": "event",
+      "category": "building",
+      "eventSource": "player",
+      "refs": [],
+      "trigger": {
+        "kind": "conditions",
+        "all": []
+      },
+      "effects": [
+        {
+          "var": "shelter_condition",
+          "op": "add",
+          "value": 10
+        },
+        {
+          "var": "shelter_energy",
+          "op": "subtract",
+          "value": 10
+        },
+        {
+          "var": "has_greenhouse",
+          "op": "set",
+          "value": 1
+        }
+      ],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "ending": "",
+      "choices": []
+    },
+    {
+      "ref": "digging.found_cavity",
+      "title": "За стеной пустота",
+      "text": "💡 Предложение\nКопая, наткнулись на старый тоннель или чужой подвал. Новый путь — и для врагов тоже.",
+      "type": "choice",
+      "category": "digging",
+      "eventSource": "location",
+      "refs": [],
+      "trigger": {
+        "kind": "conditions",
+        "all": []
+      },
+      "effects": [],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "ending": "",
+      "choices": [
+        {
+          "label": "Исследовать",
+          "target_ref": "exploration.other_bunker",
+          "requires": [],
+          "effects": []
+        },
+        {
+          "label": "Замуровать",
+          "target_ref": "building.ok",
+          "requires": [],
+          "effects": []
+        }
+      ]
+    },
+    {
+      "ref": "light.dark_room_fear",
+      "title": "Тревога в темноте",
+      "text": "💡 Предложение\nБез света в убежище растёт тревога.",
+      "type": "event",
+      "category": "light",
+      "eventSource": "system",
+      "refs": [],
+      "trigger": {
+        "kind": "conditions",
+        "all": []
+      },
+      "effects": [
+        {
+          "var": "group_morale",
+          "op": "subtract",
+          "value": 5
+        },
+        {
+          "var": "group_tension",
+          "op": "add",
+          "value": 5
+        }
+      ],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "ending": "",
+      "choices": []
+    },
+    {
+      "ref": "crafting.first_tool",
+      "title": "Первый важный инструмент",
+      "text": "✅ Из GDD · GDD §14\nСделан первый инструмент или оружие — открываются новые действия на вылазках.",
+      "type": "event",
+      "category": "crafting",
+      "eventSource": "player",
+      "refs": [],
+      "trigger": {
+        "kind": "conditions",
+        "all": []
+      },
+      "effects": [],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "ending": "",
+      "choices": []
+    }
+  ],
+  "entities": []
+}

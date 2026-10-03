@@ -6,6 +6,7 @@ document.getElementById('btnConnect').onclick=connectProjectFolder;
 document.getElementById('btnRegrant').onclick=regrantProjectFolder;
 document.getElementById('btnRefreshObjectPlan').onclick=refreshObjectPlanData;
 document.getElementById('btnSave').onclick=saveStoryToProject;
+document.getElementById('btnDownloadStory').onclick=downloadStoryJSON;
 
 // Режим "только чтение" — постоянный видимый бейдж вместо alert()'ов на каждый клик (см. 01-core-
 // utils.js): пользователь должен понимать ПОЧЕМУ кнопки не работают, а не гадать.
@@ -87,4 +88,10 @@ resetHistory();
 renderAll();
 renderDirtyStatus();
 renderReadOnlyStatus();
-tryRestoreProjectFolder();
+// Онлайн-режим: сначала данные из репозитория; если в этом браузере уже подключена папка проекта,
+// tryRestoreProjectFolder загрузит её поверх.
+(async()=>{
+  const url=storyOnlineUrl();
+  if(url) await loadStoryFromUrl(url);
+  await tryRestoreProjectFolder();
+})();

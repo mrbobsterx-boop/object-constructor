@@ -1,0 +1,538 @@
+{
+  "idea_id": "world_food",
+  "title": "Еда и ферма",
+  "variables": [
+    {
+      "id": "shelter_water",
+      "name": "Вода в убежище, л",
+      "type": "counter",
+      "start": 300,
+      "min": 0,
+      "max": 5000
+    },
+    {
+      "id": "shelter_energy",
+      "name": "Энергия, кВт·ч",
+      "type": "counter",
+      "start": 200,
+      "min": 0,
+      "max": 1200
+    },
+    {
+      "id": "shelter_food_days",
+      "name": "Еда, дней на группу",
+      "type": "counter",
+      "start": 10,
+      "min": 0,
+      "max": 60
+    },
+    {
+      "id": "group_size",
+      "name": "Людей в группе",
+      "type": "counter",
+      "start": 2,
+      "min": 0,
+      "max": 12
+    },
+    {
+      "id": "group_morale",
+      "name": "Мораль группы",
+      "type": "counter",
+      "start": 60,
+      "min": 0,
+      "max": 100
+    },
+    {
+      "id": "group_tension",
+      "name": "Напряжение в группе",
+      "type": "counter",
+      "start": 10,
+      "min": 0,
+      "max": 100
+    },
+    {
+      "id": "world_danger",
+      "name": "Общая опасность",
+      "type": "counter",
+      "start": 20,
+      "min": 0,
+      "max": 100
+    },
+    {
+      "id": "rep_traders",
+      "name": "Отношение торговцев",
+      "type": "counter",
+      "start": 10,
+      "min": -100,
+      "max": 100
+    },
+    {
+      "id": "debt_traders",
+      "name": "Долг перед торговцами",
+      "type": "counter",
+      "start": 0,
+      "min": 0,
+      "max": 100
+    },
+    {
+      "id": "has_greenhouse",
+      "name": "Есть оранжерея",
+      "type": "flag",
+      "start": 0,
+      "min": 0,
+      "max": 1
+    }
+  ],
+  "nodes": [
+    {
+      "ref": "food.spoilage",
+      "title": "Часть еды испортилась",
+      "text": "✅ Из GDD · GDD §9 food_spoilage\nПорча идёт независимо ни от чего.",
+      "type": "background",
+      "category": "food",
+      "eventSource": "timer",
+      "refs": [],
+      "trigger": {
+        "kind": "scheduled",
+        "afterHours": 168,
+        "sinceNode": "",
+        "repeat": true
+      },
+      "effects": [
+        {
+          "var": "shelter_food_days",
+          "op": "subtract",
+          "value": 2
+        }
+      ],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "ending": "",
+      "choices": []
+    },
+    {
+      "ref": "food.stash_found",
+      "title": "Тайник с консервами",
+      "text": "💡 Предложение\nПод полом в заброшенном доме — запас консервов. Похоже, хозяин собирался вернуться.",
+      "type": "choice",
+      "category": "food",
+      "eventSource": "location",
+      "refs": [],
+      "trigger": {
+        "kind": "conditions",
+        "all": []
+      },
+      "effects": [],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "ending": "",
+      "choices": [
+        {
+          "label": "Забрать всё",
+          "target_ref": "food.owner_returns",
+          "requires": [],
+          "effects": [
+            {
+              "var": "shelter_food_days",
+              "op": "add",
+              "value": 8
+            }
+          ]
+        },
+        {
+          "label": "Взять половину",
+          "target_ref": "food.ok",
+          "requires": [],
+          "effects": [
+            {
+              "var": "shelter_food_days",
+              "op": "add",
+              "value": 4
+            },
+            {
+              "var": "group_morale",
+              "op": "add",
+              "value": 3
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "ref": "food.owner_returns",
+      "title": "Хозяин тайника ищет вора",
+      "text": "💡 Предложение\nЧерез несколько дней у убежища появляется человек: он знает, кто взял его запас.",
+      "type": "event",
+      "category": "food",
+      "eventSource": "npc",
+      "refs": [],
+      "trigger": {
+        "kind": "conditions",
+        "all": []
+      },
+      "effects": [],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "ending": "",
+      "choices": [
+        {
+          "label": "Договориться",
+          "target_ref": "group.newcomer_arrives",
+          "requires": [],
+          "effects": []
+        },
+        {
+          "label": "Прогнать",
+          "target_ref": "combat.ambush_on_road",
+          "requires": [],
+          "effects": [
+            {
+              "var": "world_danger",
+              "op": "add",
+              "value": 5
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "ref": "food.ok",
+      "title": "Еды хватает",
+      "text": "💡 Предложение\nПока сыты.",
+      "type": "event",
+      "category": "food",
+      "eventSource": "player",
+      "refs": [],
+      "trigger": {
+        "kind": "conditions",
+        "all": []
+      },
+      "effects": [],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "ending": "",
+      "choices": []
+    },
+    {
+      "ref": "food.hunger_crisis",
+      "title": "Еда кончается",
+      "text": "✅ Из GDD · GDD §36\nГолод. Напряжение растёт, кто-то начинает таскать еду тайком.",
+      "type": "event",
+      "category": "food",
+      "eventSource": "resource_shortage",
+      "refs": [
+        "r_food"
+      ],
+      "trigger": {
+        "kind": "conditions",
+        "all": [
+          {
+            "var": "shelter_food_days",
+            "op": "<",
+            "value": 3
+          }
+        ]
+      },
+      "effects": [
+        {
+          "var": "group_morale",
+          "op": "subtract",
+          "value": 10
+        },
+        {
+          "var": "group_tension",
+          "op": "add",
+          "value": 15
+        }
+      ],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "ending": "",
+      "choices": [
+        {
+          "label": "Кража внутри группы",
+          "target_ref": "food.theft_inside",
+          "requires": [],
+          "effects": []
+        },
+        {
+          "label": "Купить еду",
+          "target_ref": "food.trade_offer",
+          "requires": [],
+          "effects": []
+        },
+        {
+          "label": "Искать тайники",
+          "target_ref": "food.stash_found",
+          "requires": [],
+          "effects": []
+        }
+      ]
+    },
+    {
+      "ref": "food.theft_inside",
+      "title": "Кто-то ворует еду",
+      "text": "✅ Из GDD · GDD §36 пример\nКража → NPC заметил → доверие ↓ → конфликт.",
+      "type": "choice",
+      "category": "food",
+      "eventSource": "npc",
+      "refs": [],
+      "trigger": {
+        "kind": "conditions",
+        "all": []
+      },
+      "effects": [],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "ending": "",
+      "choices": [
+        {
+          "label": "Поговорить с виновным",
+          "target_ref": "group.quarrel",
+          "requires": [],
+          "effects": [
+            {
+              "var": "group_tension",
+              "op": "add",
+              "value": 5
+            }
+          ]
+        },
+        {
+          "label": "Выгнать",
+          "target_ref": "group.exile",
+          "requires": [],
+          "effects": [
+            {
+              "var": "group_size",
+              "op": "subtract",
+              "value": 1
+            },
+            {
+              "var": "group_morale",
+              "op": "add",
+              "value": -5
+            }
+          ]
+        },
+        {
+          "label": "Закрыть глаза",
+          "target_ref": "food.ok",
+          "requires": [],
+          "effects": [
+            {
+              "var": "group_tension",
+              "op": "add",
+              "value": 10
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "ref": "food.trade_offer",
+      "title": "Торговцы предлагают еду",
+      "text": "✅ Из GDD · GDD §21\nОбмен на воду, медикаменты или детали.",
+      "type": "event",
+      "category": "food",
+      "eventSource": "faction",
+      "refs": [
+        "f_traders"
+      ],
+      "trigger": {
+        "kind": "conditions",
+        "all": []
+      },
+      "effects": [],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "ending": "",
+      "choices": [
+        {
+          "label": "Обменять воду на еду",
+          "target_ref": "food.ok",
+          "requires": [],
+          "effects": [
+            {
+              "var": "shelter_water",
+              "op": "subtract",
+              "value": 80
+            },
+            {
+              "var": "shelter_food_days",
+              "op": "add",
+              "value": 6
+            },
+            {
+              "var": "rep_traders",
+              "op": "add",
+              "value": 5
+            }
+          ]
+        },
+        {
+          "label": "Взять в долг",
+          "target_ref": "trade.debt",
+          "requires": [],
+          "effects": [
+            {
+              "var": "shelter_food_days",
+              "op": "add",
+              "value": 6
+            },
+            {
+              "var": "debt_traders",
+              "op": "add",
+              "value": 15
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "ref": "farming.first_harvest",
+      "title": "Первый урожай",
+      "text": "✅ Из GDD · GDD §10.7\nЕда становится возобновляемой.",
+      "type": "event",
+      "category": "farming",
+      "eventSource": "system",
+      "refs": [],
+      "trigger": {
+        "kind": "conditions",
+        "all": [
+          {
+            "var": "has_greenhouse",
+            "op": "==",
+            "value": 1
+          }
+        ]
+      },
+      "effects": [
+        {
+          "var": "shelter_food_days",
+          "op": "add",
+          "value": 5
+        },
+        {
+          "var": "group_morale",
+          "op": "add",
+          "value": 10
+        }
+      ],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "ending": "",
+      "choices": []
+    },
+    {
+      "ref": "farming.crop_failed",
+      "title": "Урожай погиб",
+      "text": "💡 Предложение\nНет света, воды или ухода. Ферма зависит от энергии и воды.",
+      "type": "event",
+      "category": "farming",
+      "eventSource": "system",
+      "refs": [],
+      "trigger": {
+        "kind": "conditions",
+        "all": [
+          {
+            "var": "has_greenhouse",
+            "op": "==",
+            "value": 1
+          },
+          {
+            "var": "shelter_energy",
+            "op": "<",
+            "value": 20
+          }
+        ]
+      },
+      "effects": [
+        {
+          "var": "group_morale",
+          "op": "subtract",
+          "value": 5
+        }
+      ],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "ending": "",
+      "choices": []
+    }
+  ],
+  "entities": [
+    {
+      "ref": "f_traders",
+      "kind": "faction",
+      "name": "Торговцы / караван"
+    },
+    {
+      "ref": "r_food",
+      "kind": "resource",
+      "name": "Еда"
+    }
+  ]
+}

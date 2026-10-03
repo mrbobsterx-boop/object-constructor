@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Редакторы игры</title>
+<style>
+  :root{--bg:#14171c;--card:#1d2229;--line:#2c333d;--text:#e6e9ee;--muted:#9aa4b2;--accent:#6fbf73}
+  body{margin:0;background:var(--bg);color:var(--text);font:15px/1.5 system-ui,sans-serif}
+  main{max-width:860px;margin:0 auto;padding:32px 16px}
+  h1{font-size:22px;margin:0 0 4px} p{color:var(--muted);margin:0 0 24px}
+  h2{font-size:14px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin:28px 0 10px}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:10px}
+  a.card{display:block;padding:14px 16px;background:var(--card);border:1px solid var(--line);border-radius:10px;color:inherit;text-decoration:none}
+  a.card:hover{border-color:var(--accent)} a.card b{display:block} a.card span{color:var(--muted);font-size:13px}
+  a.main{border-color:var(--accent)}
+</style>
+</head>
+<body>
+<main>
+  <h1>Редакторы игры</h1>
+  <p>Онлайн-версия работает с данными из репозитория. Редакторы, которым нужна папка проекта, просят подключить её (Chrome/Edge).</p>
+  <h2>Сюжет и мир</h2>
+  <div class="grid">
+    <a class="card main" href="story-map/"><b>Story Map</b><span>Карта мира: события, выборы, последствия. Загружает story-map-world/story.json</span></a>
+    <a class="card" href="story-map-world/00-WORLD-MAP.md"><b>Карта мира (текст)</b><span>Обзор: масштаб, фракции, переменные, события</span></a>
+    <a class="card" href="story-bot/"><b>Story Bot</b><span>Симулятор прохождения сюжета</span></a>
+  </div>
+  <h2>Контент</h2>
+  <div class="grid">
+    <a class="card" href="os/"><b>Object Constructor (ОС)</b><span>Объекты и материалы блоков</span></a>
+    <a class="card" href="room-editor/"><b>Room Editor</b><span>Комнаты из объектов</span></a>
+    <a class="card" href="building-editor/"><b>Building Editor</b><span>Здания и улицы из комнат</span></a>
+    <a class="card" href="ipt/image-prep-tool/"><b>Image Prep Tool</b><span>Нарезка картинок на объекты</span></a>
+    <a class="card" href="asset-renamer/"><b>Asset Renamer</b><span>Переименование ассетов</span></a>
+  </div>
+  <h2>Планирование и контроль</h2>
+  <div class="grid">
+    <a class="card" href="object-plan/"><b>Object Plan</b><span>Чек-лист объектов для ОС</span></a>
+    <a class="card" href="Shelter-Architecture-Map/"><b>Shelter Architecture Map</b><span>Системы игры в Godot</span></a>
+    <a class="card" href="project-registry/"><b>Project Registry</b><span>Проверка всего проекта</span></a>
+  </div>
+</main>
+</body>
+</html>

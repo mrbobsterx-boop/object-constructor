@@ -1,0 +1,341 @@
+{
+  "idea_id": "world_time",
+  "title": "Время, погода и фазы мира",
+  "variables": [
+    {
+      "id": "day",
+      "name": "День игры",
+      "type": "counter",
+      "start": 1,
+      "min": 0,
+      "max": 999
+    },
+    {
+      "id": "shelter_water",
+      "name": "Вода в убежище, л",
+      "type": "counter",
+      "start": 300,
+      "min": 0,
+      "max": 5000
+    },
+    {
+      "id": "shelter_energy",
+      "name": "Энергия, кВт·ч",
+      "type": "counter",
+      "start": 200,
+      "min": 0,
+      "max": 1200
+    },
+    {
+      "id": "shelter_food_days",
+      "name": "Еда, дней на группу",
+      "type": "counter",
+      "start": 10,
+      "min": 0,
+      "max": 60
+    },
+    {
+      "id": "shelter_known",
+      "name": "Убежище обнаружено чужими",
+      "type": "flag",
+      "start": 0,
+      "min": 0,
+      "max": 1
+    },
+    {
+      "id": "world_danger",
+      "name": "Общая опасность",
+      "type": "counter",
+      "start": 20,
+      "min": 0,
+      "max": 100
+    },
+    {
+      "id": "zombie_pressure",
+      "name": "Активность зомби рядом",
+      "type": "counter",
+      "start": 15,
+      "min": 0,
+      "max": 100
+    }
+  ],
+  "nodes": [
+    {
+      "ref": "time.new_day",
+      "title": "Новый день",
+      "text": "✅ Из GDD · GDD §9\nКаждые сутки группа ест, пьёт, тратит энергию.",
+      "type": "background",
+      "category": "time",
+      "eventSource": "timer",
+      "refs": [],
+      "trigger": {
+        "kind": "scheduled",
+        "afterHours": 24,
+        "sinceNode": "",
+        "repeat": true
+      },
+      "effects": [
+        {
+          "var": "day",
+          "op": "add",
+          "value": 1
+        },
+        {
+          "var": "shelter_food_days",
+          "op": "subtract",
+          "value": 1
+        },
+        {
+          "var": "shelter_water",
+          "op": "subtract",
+          "value": 10
+        },
+        {
+          "var": "shelter_energy",
+          "op": "subtract",
+          "value": 5
+        }
+      ],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "ending": "",
+      "choices": []
+    },
+    {
+      "ref": "time.night_falls",
+      "title": "Наступает ночь",
+      "text": "✅ Из GDD · GDD §22\nНочью угрозы активнее, вылазки опаснее.",
+      "type": "background",
+      "category": "time",
+      "eventSource": "timer",
+      "refs": [],
+      "trigger": {
+        "kind": "scheduled",
+        "afterHours": 24,
+        "sinceNode": "",
+        "repeat": true
+      },
+      "effects": [
+        {
+          "var": "zombie_pressure",
+          "op": "add",
+          "value": 5
+        }
+      ],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "ending": "",
+      "choices": []
+    },
+    {
+      "ref": "time.storm",
+      "title": "Буря",
+      "text": "💡 Предложение\nСильный дождь и ветер: вода прибывает, панели под угрозой, наружу лучше не выходить.",
+      "type": "background",
+      "category": "time",
+      "eventSource": "weather",
+      "refs": [],
+      "trigger": {
+        "kind": "scheduled",
+        "afterHours": 216,
+        "sinceNode": "",
+        "repeat": true
+      },
+      "effects": [
+        {
+          "var": "shelter_water",
+          "op": "add",
+          "value": 150
+        },
+        {
+          "var": "world_danger",
+          "op": "add",
+          "value": 5
+        }
+      ],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "ending": "",
+      "choices": [
+        {
+          "label": "Панели повреждены",
+          "target_ref": "energy.panel_broken",
+          "requires": [],
+          "effects": []
+        }
+      ]
+    },
+    {
+      "ref": "time.phase_settling",
+      "title": "Фаза «Обживание»",
+      "text": "💡 Предложение\nДень 8. Мир начинает замечать новичков: первые торговцы и случайные гости.",
+      "type": "background",
+      "category": "time",
+      "eventSource": "timer",
+      "refs": [],
+      "trigger": {
+        "kind": "scheduled",
+        "afterHours": 168,
+        "sinceNode": "",
+        "repeat": false
+      },
+      "effects": [],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "ending": "",
+      "choices": [
+        {
+          "label": "Первый караван",
+          "target_ref": "trade.caravan_arrives",
+          "requires": [],
+          "effects": []
+        },
+        {
+          "label": "Кто-то у двери",
+          "target_ref": "group.newcomer_arrives",
+          "requires": [],
+          "effects": []
+        }
+      ]
+    },
+    {
+      "ref": "time.phase_noticed",
+      "title": "Фаза «Мир заметил тебя»",
+      "text": "💡 Предложение\nДень 30. Фракции знают об убежище, растут требования.",
+      "type": "background",
+      "category": "time",
+      "eventSource": "timer",
+      "refs": [],
+      "trigger": {
+        "kind": "scheduled",
+        "afterHours": 720,
+        "sinceNode": "",
+        "repeat": false
+      },
+      "effects": [
+        {
+          "var": "shelter_known",
+          "op": "set",
+          "value": 1
+        },
+        {
+          "var": "world_danger",
+          "op": "add",
+          "value": 10
+        }
+      ],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "ending": "",
+      "choices": [
+        {
+          "label": "Требуют дань",
+          "target_ref": "factions.demand_tribute",
+          "requires": [],
+          "effects": []
+        }
+      ]
+    },
+    {
+      "ref": "time.phase_politics",
+      "title": "Фаза «Большая политика»",
+      "text": "💡 Предложение\nДень 60. Войны, союзы, большие сдвиги территорий.",
+      "type": "background",
+      "category": "time",
+      "eventSource": "timer",
+      "refs": [],
+      "trigger": {
+        "kind": "scheduled",
+        "afterHours": 1440,
+        "sinceNode": "",
+        "repeat": false
+      },
+      "effects": [
+        {
+          "var": "world_danger",
+          "op": "add",
+          "value": 10
+        }
+      ],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "ending": "",
+      "choices": [
+        {
+          "label": "Фракции сталкиваются",
+          "target_ref": "factions.groups_clash",
+          "requires": [],
+          "effects": []
+        }
+      ]
+    },
+    {
+      "ref": "time.seasons",
+      "title": "Сезоны и зима?",
+      "text": "❓ Не решено\n❓ В документах нет сезонов. Зима сильно влияет на воду, еду и топливо — нужны ли они?",
+      "type": "event",
+      "category": "time",
+      "eventSource": "weather",
+      "refs": [],
+      "trigger": {
+        "kind": "conditions",
+        "all": []
+      },
+      "effects": [],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "ending": "",
+      "choices": []
+    }
+  ],
+  "entities": []
+}

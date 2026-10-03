@@ -1,0 +1,489 @@
+{
+  "idea_id": "world_ai",
+  "title": "Группа и отношения",
+  "variables": [
+    {
+      "id": "shelter_food_days",
+      "name": "Еда, дней на группу",
+      "type": "counter",
+      "start": 10,
+      "min": 0,
+      "max": 60
+    },
+    {
+      "id": "shelter_known",
+      "name": "Убежище обнаружено чужими",
+      "type": "flag",
+      "start": 0,
+      "min": 0,
+      "max": 1
+    },
+    {
+      "id": "group_size",
+      "name": "Людей в группе",
+      "type": "counter",
+      "start": 2,
+      "min": 0,
+      "max": 12
+    },
+    {
+      "id": "group_morale",
+      "name": "Мораль группы",
+      "type": "counter",
+      "start": 60,
+      "min": 0,
+      "max": 100
+    },
+    {
+      "id": "group_tension",
+      "name": "Напряжение в группе",
+      "type": "counter",
+      "start": 10,
+      "min": 0,
+      "max": 100
+    },
+    {
+      "id": "world_danger",
+      "name": "Общая опасность",
+      "type": "counter",
+      "start": 20,
+      "min": 0,
+      "max": 100
+    }
+  ],
+  "nodes": [
+    {
+      "ref": "group.newcomer_arrives",
+      "title": "Новый человек",
+      "text": "✅ Из GDD · GDD §24\nПришёл сам или встречен в пути. Принять, проверить или прогнать.",
+      "type": "choice",
+      "category": "ai",
+      "eventSource": "npc",
+      "refs": [
+        "g_loners"
+      ],
+      "trigger": {
+        "kind": "conditions",
+        "all": []
+      },
+      "effects": [],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "ending": "",
+      "choices": [
+        {
+          "label": "Принять",
+          "target_ref": "group.ok",
+          "requires": [],
+          "effects": [
+            {
+              "var": "group_size",
+              "op": "add",
+              "value": 1
+            },
+            {
+              "var": "shelter_food_days",
+              "op": "subtract",
+              "value": 1
+            }
+          ]
+        },
+        {
+          "label": "Испытательный срок",
+          "target_ref": "group.betrayal",
+          "requires": [],
+          "effects": []
+        },
+        {
+          "label": "Прогнать",
+          "target_ref": "exploration.ok",
+          "requires": [],
+          "effects": []
+        }
+      ]
+    },
+    {
+      "ref": "group.ok",
+      "title": "В группе спокойно",
+      "text": "💡 Предложение\nПока все ладят.",
+      "type": "event",
+      "category": "ai",
+      "eventSource": "relationship",
+      "refs": [],
+      "trigger": {
+        "kind": "conditions",
+        "all": []
+      },
+      "effects": [],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "ending": "",
+      "choices": []
+    },
+    {
+      "ref": "group.quarrel",
+      "title": "Ссора",
+      "text": "✅ Из GDD · GDD §23\nДвое не могут ужиться.",
+      "type": "background",
+      "category": "ai",
+      "eventSource": "relationship",
+      "refs": [],
+      "trigger": {
+        "kind": "conditions",
+        "all": [
+          {
+            "var": "group_tension",
+            "op": ">=",
+            "value": 40
+          }
+        ]
+      },
+      "effects": [
+        {
+          "var": "group_tension",
+          "op": "add",
+          "value": 10
+        },
+        {
+          "var": "group_morale",
+          "op": "subtract",
+          "value": 5
+        }
+      ],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "ending": "",
+      "choices": [
+        {
+          "label": "Помирить",
+          "target_ref": "group.ok",
+          "requires": [],
+          "effects": [
+            {
+              "var": "group_tension",
+              "op": "subtract",
+              "value": 15
+            }
+          ]
+        },
+        {
+          "label": "Раскол",
+          "target_ref": "group.split",
+          "requires": [],
+          "effects": []
+        }
+      ]
+    },
+    {
+      "ref": "group.romance",
+      "title": "Двое сближаются",
+      "text": "💡 Предложение\nУровень «любимый человек» (§23). Смерть одного ударит по другому сильнее всего.",
+      "type": "background",
+      "category": "ai",
+      "eventSource": "relationship",
+      "refs": [],
+      "trigger": {
+        "kind": "scheduled",
+        "afterHours": 480,
+        "sinceNode": "",
+        "repeat": true
+      },
+      "effects": [
+        {
+          "var": "group_morale",
+          "op": "add",
+          "value": 10
+        }
+      ],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "ending": "",
+      "choices": []
+    },
+    {
+      "ref": "group.refuses_order",
+      "title": "Отказ выполнять приказ",
+      "text": "✅ Из GDD · GDD §23\nНизкая лояльность.",
+      "type": "event",
+      "category": "ai",
+      "eventSource": "npc",
+      "refs": [],
+      "trigger": {
+        "kind": "conditions",
+        "all": [
+          {
+            "var": "group_morale",
+            "op": "<",
+            "value": 30
+          }
+        ]
+      },
+      "effects": [
+        {
+          "var": "group_tension",
+          "op": "add",
+          "value": 10
+        }
+      ],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "ending": "",
+      "choices": []
+    },
+    {
+      "ref": "group.desertion",
+      "title": "Ушёл ночью",
+      "text": "✅ Из GDD · GDD §23\nЧлен группы ушёл — и, кажется, с вещами.",
+      "type": "event",
+      "category": "ai",
+      "eventSource": "npc",
+      "refs": [],
+      "trigger": {
+        "kind": "conditions",
+        "all": [
+          {
+            "var": "group_morale",
+            "op": "<",
+            "value": 20
+          }
+        ]
+      },
+      "effects": [
+        {
+          "var": "group_size",
+          "op": "subtract",
+          "value": 1
+        },
+        {
+          "var": "shelter_food_days",
+          "op": "subtract",
+          "value": 2
+        }
+      ],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "ending": "",
+      "choices": [
+        {
+          "label": "Позже он вернётся",
+          "target_ref": "group.former_member_returns",
+          "requires": [],
+          "effects": []
+        }
+      ]
+    },
+    {
+      "ref": "group.betrayal",
+      "title": "Предательство",
+      "text": "✅ Из GDD · GDD §23\nЧлен группы сливает информацию об убежище фракции.",
+      "type": "event",
+      "category": "ai",
+      "eventSource": "npc",
+      "refs": [],
+      "trigger": {
+        "kind": "conditions",
+        "all": []
+      },
+      "effects": [
+        {
+          "var": "shelter_known",
+          "op": "set",
+          "value": 1
+        },
+        {
+          "var": "group_morale",
+          "op": "subtract",
+          "value": 15
+        }
+      ],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "ending": "",
+      "choices": [
+        {
+          "label": "Изгнать",
+          "target_ref": "group.exile",
+          "requires": [],
+          "effects": []
+        }
+      ]
+    },
+    {
+      "ref": "group.split",
+      "title": "Группа раскололась",
+      "text": "✅ Из GDD · GDD §23\nЧасть людей уходит и забирает свою долю.",
+      "type": "event",
+      "category": "ai",
+      "eventSource": "relationship",
+      "refs": [],
+      "trigger": {
+        "kind": "conditions",
+        "all": []
+      },
+      "effects": [
+        {
+          "var": "group_size",
+          "op": "subtract",
+          "value": 2
+        },
+        {
+          "var": "group_tension",
+          "op": "set",
+          "value": 20
+        }
+      ],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "ending": "",
+      "choices": []
+    },
+    {
+      "ref": "group.exile",
+      "title": "Изгнание",
+      "text": "✅ Из GDD · GDD §23\nИзгнанный запомнит и может вернуться — один или с другими.",
+      "type": "event",
+      "category": "ai",
+      "eventSource": "player",
+      "refs": [],
+      "trigger": {
+        "kind": "conditions",
+        "all": []
+      },
+      "effects": [
+        {
+          "var": "group_size",
+          "op": "subtract",
+          "value": 1
+        },
+        {
+          "var": "world_danger",
+          "op": "add",
+          "value": 3
+        }
+      ],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "ending": "",
+      "choices": []
+    },
+    {
+      "ref": "group.former_member_returns",
+      "title": "Ушедший вернулся",
+      "text": "✅ Из GDD · GDD §21\n«Возвращать ранее ушедших членов».",
+      "type": "choice",
+      "category": "ai",
+      "eventSource": "npc",
+      "refs": [],
+      "trigger": {
+        "kind": "conditions",
+        "all": []
+      },
+      "effects": [],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "ending": "",
+      "choices": [
+        {
+          "label": "Принять обратно",
+          "target_ref": "group.ok",
+          "requires": [],
+          "effects": [
+            {
+              "var": "group_size",
+              "op": "add",
+              "value": 1
+            },
+            {
+              "var": "group_tension",
+              "op": "add",
+              "value": 5
+            }
+          ]
+        },
+        {
+          "label": "Прогнать",
+          "target_ref": "exploration.ok",
+          "requires": [],
+          "effects": []
+        }
+      ]
+    }
+  ],
+  "entities": [
+    {
+      "ref": "g_loners",
+      "kind": "group",
+      "name": "Одиночки и мародёры"
+    }
+  ]
+}

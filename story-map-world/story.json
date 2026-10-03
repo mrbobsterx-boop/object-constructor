@@ -1,0 +1,7766 @@
+{
+  "schema_version": 1,
+  "saved_at": "2026-10-03T09:22:48.864Z",
+  "variables": [
+    {
+      "id": "day",
+      "name": "День игры",
+      "type": "counter",
+      "start": 1,
+      "min": 0,
+      "max": 999
+    },
+    {
+      "id": "shelter_water",
+      "name": "Вода в убежище, л",
+      "type": "counter",
+      "start": 300,
+      "min": 0,
+      "max": 5000
+    },
+    {
+      "id": "shelter_energy",
+      "name": "Энергия, кВт·ч",
+      "type": "counter",
+      "start": 200,
+      "min": 0,
+      "max": 1200
+    },
+    {
+      "id": "shelter_food_days",
+      "name": "Еда, дней на группу",
+      "type": "counter",
+      "start": 10,
+      "min": 0,
+      "max": 60
+    },
+    {
+      "id": "shelter_meds",
+      "name": "Медикаменты, ед.",
+      "type": "counter",
+      "start": 3,
+      "min": 0,
+      "max": 20
+    },
+    {
+      "id": "shelter_fuel",
+      "name": "Топливо, л",
+      "type": "counter",
+      "start": 20,
+      "min": 0,
+      "max": 200
+    },
+    {
+      "id": "shelter_condition",
+      "name": "Состояние убежища",
+      "type": "counter",
+      "start": 70,
+      "min": 0,
+      "max": 100
+    },
+    {
+      "id": "shelter_known",
+      "name": "Убежище обнаружено чужими",
+      "type": "flag",
+      "start": 0,
+      "min": 0,
+      "max": 1
+    },
+    {
+      "id": "group_size",
+      "name": "Людей в группе",
+      "type": "counter",
+      "start": 2,
+      "min": 0,
+      "max": 12
+    },
+    {
+      "id": "group_morale",
+      "name": "Мораль группы",
+      "type": "counter",
+      "start": 60,
+      "min": 0,
+      "max": 100
+    },
+    {
+      "id": "group_tension",
+      "name": "Напряжение в группе",
+      "type": "counter",
+      "start": 10,
+      "min": 0,
+      "max": 100
+    },
+    {
+      "id": "noise_level",
+      "name": "Шумность игрока",
+      "type": "counter",
+      "start": 0,
+      "min": 0,
+      "max": 100
+    },
+    {
+      "id": "world_danger",
+      "name": "Общая опасность",
+      "type": "counter",
+      "start": 20,
+      "min": 0,
+      "max": 100
+    },
+    {
+      "id": "zombie_pressure",
+      "name": "Активность зомби рядом",
+      "type": "counter",
+      "start": 15,
+      "min": 0,
+      "max": 100
+    },
+    {
+      "id": "rep_community",
+      "name": "Отношение общины",
+      "type": "counter",
+      "start": 0,
+      "min": -100,
+      "max": 100
+    },
+    {
+      "id": "rep_traders",
+      "name": "Отношение торговцев",
+      "type": "counter",
+      "start": 10,
+      "min": -100,
+      "max": 100
+    },
+    {
+      "id": "rep_raiders",
+      "name": "Отношение рейдеров",
+      "type": "counter",
+      "start": -30,
+      "min": -100,
+      "max": 100
+    },
+    {
+      "id": "rep_slavers",
+      "name": "Отношение работорговцев",
+      "type": "counter",
+      "start": -10,
+      "min": -100,
+      "max": 100
+    },
+    {
+      "id": "rep_remnant",
+      "name": "Отношение «остатков порядка»",
+      "type": "counter",
+      "start": 0,
+      "min": -100,
+      "max": 100
+    },
+    {
+      "id": "debt_traders",
+      "name": "Долг перед торговцами",
+      "type": "counter",
+      "start": 0,
+      "min": 0,
+      "max": 100
+    },
+    {
+      "id": "player_captured",
+      "name": "Игрок в плену",
+      "type": "flag",
+      "start": 0,
+      "min": 0,
+      "max": 1
+    },
+    {
+      "id": "member_captured",
+      "name": "Член группы в плену",
+      "type": "flag",
+      "start": 0,
+      "min": 0,
+      "max": 1
+    },
+    {
+      "id": "raiders_know_poison",
+      "name": "Рейдеры знают, кто отравил воду",
+      "type": "flag",
+      "start": 0,
+      "min": 0,
+      "max": 1
+    },
+    {
+      "id": "has_vehicle",
+      "name": "Есть машина",
+      "type": "flag",
+      "start": 0,
+      "min": 0,
+      "max": 1
+    },
+    {
+      "id": "has_greenhouse",
+      "name": "Есть оранжерея",
+      "type": "flag",
+      "start": 0,
+      "min": 0,
+      "max": 1
+    },
+    {
+      "id": "moved_shelter",
+      "name": "Сменил основное убежище",
+      "type": "flag",
+      "start": 0,
+      "min": 0,
+      "max": 1
+    }
+  ],
+  "nodes": [
+    {
+      "id": "story.game_start",
+      "title": "Первое утро в бункере",
+      "text": "💡 Предложение\nДвое выживших в маленьком подземном убежище. Воды на месяц, еды на десять дней. Снаружи тихо.",
+      "type": "choice",
+      "category": "story",
+      "tags": [],
+      "samSystem": "",
+      "arc": "",
+      "chapter": "",
+      "eventSource": "system",
+      "actionRef": {
+        "action": "",
+        "target": ""
+      },
+      "implementationStatus": {},
+      "refs": [
+        "loc_bunker",
+        "g_player"
+      ],
+      "x": 0,
+      "y": 170,
+      "trigger": {
+        "kind": "start"
+      },
+      "effects": [],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "choices": [
+        {
+          "id": "story.game_start#0",
+          "label": "Осмотреть убежище и запасы",
+          "target": "story.inventory_check",
+          "requires": [],
+          "effects": [],
+          "sim": {}
+        },
+        {
+          "id": "story.game_start#1",
+          "label": "Выйти наружу",
+          "target": "exploration.first_exit",
+          "requires": [],
+          "effects": [],
+          "sim": {}
+        }
+      ],
+      "ending": ""
+    },
+    {
+      "id": "story.inventory_check",
+      "title": "Ревизия запасов",
+      "text": "✅ Из GDD · GDD §3.1\nРешаем, что хранить, что использовать, что ремонтировать, когда выходить наружу.",
+      "type": "event",
+      "category": "story",
+      "tags": [],
+      "samSystem": "",
+      "arc": "",
+      "chapter": "",
+      "eventSource": "player",
+      "actionRef": {
+        "action": "",
+        "target": ""
+      },
+      "implementationStatus": {},
+      "refs": [],
+      "x": 270,
+      "y": 170,
+      "trigger": {
+        "kind": "conditions",
+        "all": []
+      },
+      "effects": [],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "choices": [
+        {
+          "id": "story.inventory_check#0",
+          "label": "Пора выходить",
+          "target": "exploration.first_exit",
+          "requires": [],
+          "effects": [],
+          "sim": {}
+        }
+      ],
+      "ending": ""
+    },
+    {
+      "id": "story.move_shelter",
+      "title": "Сменить основное убежище?",
+      "text": "✅ Из GDD · GDD §3.4\nНайдено место лучше нынешнего бункера. Переезд — значимое стратегическое решение: перенос запасов, риск в пути, старое убежище останется пустым.",
+      "type": "choice",
+      "category": "story",
+      "tags": [],
+      "samSystem": "",
+      "arc": "",
+      "chapter": "",
+      "eventSource": "player",
+      "actionRef": {
+        "action": "",
+        "target": ""
+      },
+      "implementationStatus": {},
+      "refs": [
+        "loc_other_bunker"
+      ],
+      "x": 0,
+      "y": 300,
+      "trigger": {
+        "kind": "conditions",
+        "all": [
+          {
+            "var": "day",
+            "op": ">=",
+            "value": 20
+          }
+        ]
+      },
+      "effects": [],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "choices": [
+        {
+          "id": "story.move_shelter#0",
+          "label": "Переехать",
+          "target": "story.moved",
+          "requires": [],
+          "effects": [
+            {
+              "var": "moved_shelter",
+              "op": "set",
+              "value": 1
+            },
+            {
+              "var": "shelter_food_days",
+              "op": "subtract",
+              "value": 3
+            },
+            {
+              "var": "group_morale",
+              "op": "add",
+              "value": 10
+            }
+          ],
+          "sim": {}
+        },
+        {
+          "id": "story.move_shelter#1",
+          "label": "Остаться",
+          "target": "story.stayed",
+          "requires": [],
+          "effects": [],
+          "sim": {}
+        }
+      ],
+      "ending": ""
+    },
+    {
+      "id": "story.moved",
+      "title": "Новый дом",
+      "text": "💡 Предложение\nСтарый бункер пустеет — его может занять кто-то другой.",
+      "type": "event",
+      "category": "story",
+      "tags": [],
+      "samSystem": "",
+      "arc": "",
+      "chapter": "",
+      "eventSource": "player",
+      "actionRef": {
+        "action": "",
+        "target": ""
+      },
+      "implementationStatus": {},
+      "refs": [],
+      "x": 270,
+      "y": 300,
+      "trigger": {
+        "kind": "conditions",
+        "all": []
+      },
+      "effects": [],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "choices": [
+        {
+          "id": "story.moved#0",
+          "label": "Позже: старый бункер занят",
+          "target": "exploration.familiar_place_changed",
+          "requires": [],
+          "effects": [],
+          "sim": {}
+        }
+      ],
+      "ending": ""
+    },
+    {
+      "id": "story.stayed",
+      "title": "Остаёмся",
+      "text": "💡 Предложение\nНайденное место может занять кто-то другой.",
+      "type": "event",
+      "category": "story",
+      "tags": [],
+      "samSystem": "",
+      "arc": "",
+      "chapter": "",
+      "eventSource": "player",
+      "actionRef": {
+        "action": "",
+        "target": ""
+      },
+      "implementationStatus": {},
+      "refs": [],
+      "x": 270,
+      "y": 430,
+      "trigger": {
+        "kind": "conditions",
+        "all": []
+      },
+      "effects": [],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "choices": [],
+      "ending": ""
+    },
+    {
+      "id": "story.found_own_faction",
+      "title": "Своя фракция",
+      "text": "✅ Из GDD · GDD §21\nГруппа выросла настолько, что мир начинает воспринимать её как самостоятельную силу.",
+      "type": "event",
+      "category": "story",
+      "tags": [],
+      "samSystem": "",
+      "arc": "",
+      "chapter": "",
+      "eventSource": "player",
+      "actionRef": {
+        "action": "",
+        "target": ""
+      },
+      "implementationStatus": {},
+      "refs": [],
+      "x": 0,
+      "y": 430,
+      "trigger": {
+        "kind": "conditions",
+        "all": [
+          {
+            "var": "group_size",
+            "op": ">=",
+            "value": 8
+          },
+          {
+            "var": "group_morale",
+            "op": ">=",
+            "value": 60
+          }
+        ]
+      },
+      "effects": [
+        {
+          "var": "world_danger",
+          "op": "add",
+          "value": 5
+        },
+        {
+          "var": "shelter_known",
+          "op": "set",
+          "value": 1
+        }
+      ],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "choices": [],
+      "ending": ""
+    },
+    {
+      "id": "story.become_leader",
+      "title": "Возглавить чужую группу",
+      "text": "✅ Из GDD · GDD §21\nПосле переворота или смерти лидера игроку предлагают возглавить чужую группу.",
+      "type": "event",
+      "category": "story",
+      "tags": [],
+      "samSystem": "",
+      "arc": "",
+      "chapter": "",
+      "eventSource": "relationship",
+      "actionRef": {
+        "action": "",
+        "target": ""
+      },
+      "implementationStatus": {},
+      "refs": [],
+      "x": 0,
+      "y": 560,
+      "trigger": {
+        "kind": "conditions",
+        "all": []
+      },
+      "effects": [],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "choices": [],
+      "ending": ""
+    },
+    {
+      "id": "story.world_history",
+      "title": "Что случилось с миром",
+      "text": "❓ Не решено · GDD §1.3\n❓ Игрок должен «узнать историю мира» (§1.3), но сама история катастрофы нигде не описана.",
+      "type": "event",
+      "category": "story",
+      "tags": [],
+      "samSystem": "",
+      "arc": "",
+      "chapter": "",
+      "eventSource": "location",
+      "actionRef": {
+        "action": "",
+        "target": ""
+      },
+      "implementationStatus": {},
+      "refs": [
+        "k_catastrophe"
+      ],
+      "x": 0,
+      "y": 690,
+      "trigger": {
+        "kind": "conditions",
+        "all": []
+      },
+      "effects": [],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "choices": [],
+      "ending": ""
+    },
+    {
+      "id": "death.group_wiped",
+      "title": "Группа погибла",
+      "text": "✅ Из GDD · GDD §27\nСмерть постоянна. Мир продолжает жить без игрока.",
+      "type": "event",
+      "category": "death",
+      "tags": [],
+      "samSystem": "",
+      "arc": "",
+      "chapter": "",
+      "eventSource": "system",
+      "actionRef": {
+        "action": "",
+        "target": ""
+      },
+      "implementationStatus": {},
+      "refs": [],
+      "x": 0,
+      "y": 820,
+      "trigger": {
+        "kind": "conditions",
+        "all": [
+          {
+            "var": "group_size",
+            "op": "<=",
+            "value": 0
+          }
+        ]
+      },
+      "effects": [],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "choices": [],
+      "ending": "death"
+    },
+    {
+      "id": "time.new_day",
+      "title": "Новый день",
+      "text": "✅ Из GDD · GDD §9\nКаждые сутки группа ест, пьёт, тратит энергию.",
+      "type": "background",
+      "category": "time",
+      "tags": [],
+      "samSystem": "",
+      "arc": "",
+      "chapter": "",
+      "eventSource": "timer",
+      "actionRef": {
+        "action": "",
+        "target": ""
+      },
+      "implementationStatus": {},
+      "refs": [],
+      "x": 760,
+      "y": 170,
+      "trigger": {
+        "kind": "scheduled",
+        "afterHours": 24,
+        "sinceNode": "",
+        "repeat": true
+      },
+      "effects": [
+        {
+          "var": "day",
+          "op": "add",
+          "value": 1
+        },
+        {
+          "var": "shelter_food_days",
+          "op": "subtract",
+          "value": 1
+        },
+        {
+          "var": "shelter_water",
+          "op": "subtract",
+          "value": 10
+        },
+        {
+          "var": "shelter_energy",
+          "op": "subtract",
+          "value": 5
+        }
+      ],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "choices": [],
+      "ending": ""
+    },
+    {
+      "id": "time.night_falls",
+      "title": "Наступает ночь",
+      "text": "✅ Из GDD · GDD §22\nНочью угрозы активнее, вылазки опаснее.",
+      "type": "background",
+      "category": "time",
+      "tags": [],
+      "samSystem": "",
+      "arc": "",
+      "chapter": "",
+      "eventSource": "timer",
+      "actionRef": {
+        "action": "",
+        "target": ""
+      },
+      "implementationStatus": {},
+      "refs": [],
+      "x": 760,
+      "y": 300,
+      "trigger": {
+        "kind": "scheduled",
+        "afterHours": 24,
+        "sinceNode": "",
+        "repeat": true
+      },
+      "effects": [
+        {
+          "var": "zombie_pressure",
+          "op": "add",
+          "value": 5
+        }
+      ],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "choices": [],
+      "ending": ""
+    },
+    {
+      "id": "time.storm",
+      "title": "Буря",
+      "text": "💡 Предложение\nСильный дождь и ветер: вода прибывает, панели под угрозой, наружу лучше не выходить.",
+      "type": "background",
+      "category": "time",
+      "tags": [],
+      "samSystem": "",
+      "arc": "",
+      "chapter": "",
+      "eventSource": "weather",
+      "actionRef": {
+        "action": "",
+        "target": ""
+      },
+      "implementationStatus": {},
+      "refs": [],
+      "x": 760,
+      "y": 430,
+      "trigger": {
+        "kind": "scheduled",
+        "afterHours": 216,
+        "sinceNode": "",
+        "repeat": true
+      },
+      "effects": [
+        {
+          "var": "shelter_water",
+          "op": "add",
+          "value": 150
+        },
+        {
+          "var": "world_danger",
+          "op": "add",
+          "value": 5
+        }
+      ],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "choices": [
+        {
+          "id": "time.storm#0",
+          "label": "Панели повреждены",
+          "target": "energy.panel_broken",
+          "requires": [],
+          "effects": [],
+          "sim": {}
+        }
+      ],
+      "ending": ""
+    },
+    {
+      "id": "time.phase_settling",
+      "title": "Фаза «Обживание»",
+      "text": "💡 Предложение\nДень 8. Мир начинает замечать новичков: первые торговцы и случайные гости.",
+      "type": "background",
+      "category": "time",
+      "tags": [],
+      "samSystem": "",
+      "arc": "",
+      "chapter": "",
+      "eventSource": "timer",
+      "actionRef": {
+        "action": "",
+        "target": ""
+      },
+      "implementationStatus": {},
+      "refs": [],
+      "x": 760,
+      "y": 560,
+      "trigger": {
+        "kind": "scheduled",
+        "afterHours": 168,
+        "sinceNode": "",
+        "repeat": false
+      },
+      "effects": [],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "choices": [
+        {
+          "id": "time.phase_settling#0",
+          "label": "Первый караван",
+          "target": "trade.caravan_arrives",
+          "requires": [],
+          "effects": [],
+          "sim": {}
+        },
+        {
+          "id": "time.phase_settling#1",
+          "label": "Кто-то у двери",
+          "target": "group.newcomer_arrives",
+          "requires": [],
+          "effects": [],
+          "sim": {}
+        }
+      ],
+      "ending": ""
+    },
+    {
+      "id": "time.phase_noticed",
+      "title": "Фаза «Мир заметил тебя»",
+      "text": "💡 Предложение\nДень 30. Фракции знают об убежище, растут требования.",
+      "type": "background",
+      "category": "time",
+      "tags": [],
+      "samSystem": "",
+      "arc": "",
+      "chapter": "",
+      "eventSource": "timer",
+      "actionRef": {
+        "action": "",
+        "target": ""
+      },
+      "implementationStatus": {},
+      "refs": [],
+      "x": 760,
+      "y": 690,
+      "trigger": {
+        "kind": "scheduled",
+        "afterHours": 720,
+        "sinceNode": "",
+        "repeat": false
+      },
+      "effects": [
+        {
+          "var": "shelter_known",
+          "op": "set",
+          "value": 1
+        },
+        {
+          "var": "world_danger",
+          "op": "add",
+          "value": 10
+        }
+      ],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "choices": [
+        {
+          "id": "time.phase_noticed#0",
+          "label": "Требуют дань",
+          "target": "factions.demand_tribute",
+          "requires": [],
+          "effects": [],
+          "sim": {}
+        }
+      ],
+      "ending": ""
+    },
+    {
+      "id": "time.phase_politics",
+      "title": "Фаза «Большая политика»",
+      "text": "💡 Предложение\nДень 60. Войны, союзы, большие сдвиги территорий.",
+      "type": "background",
+      "category": "time",
+      "tags": [],
+      "samSystem": "",
+      "arc": "",
+      "chapter": "",
+      "eventSource": "timer",
+      "actionRef": {
+        "action": "",
+        "target": ""
+      },
+      "implementationStatus": {},
+      "refs": [],
+      "x": 760,
+      "y": 820,
+      "trigger": {
+        "kind": "scheduled",
+        "afterHours": 1440,
+        "sinceNode": "",
+        "repeat": false
+      },
+      "effects": [
+        {
+          "var": "world_danger",
+          "op": "add",
+          "value": 10
+        }
+      ],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "choices": [
+        {
+          "id": "time.phase_politics#0",
+          "label": "Фракции сталкиваются",
+          "target": "factions.groups_clash",
+          "requires": [],
+          "effects": [],
+          "sim": {}
+        }
+      ],
+      "ending": ""
+    },
+    {
+      "id": "time.seasons",
+      "title": "Сезоны и зима?",
+      "text": "❓ Не решено\n❓ В документах нет сезонов. Зима сильно влияет на воду, еду и топливо — нужны ли они?",
+      "type": "event",
+      "category": "time",
+      "tags": [],
+      "samSystem": "",
+      "arc": "",
+      "chapter": "",
+      "eventSource": "weather",
+      "actionRef": {
+        "action": "",
+        "target": ""
+      },
+      "implementationStatus": {},
+      "refs": [],
+      "x": 760,
+      "y": 950,
+      "trigger": {
+        "kind": "conditions",
+        "all": []
+      },
+      "effects": [],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "choices": [],
+      "ending": ""
+    },
+    {
+      "id": "water.rain_fills_tank",
+      "title": "Дождь пополнил резервуар",
+      "text": "✅ Из GDD · GDD §37 время+вода\nДождь → резервуар → запас.",
+      "type": "background",
+      "category": "water",
+      "tags": [],
+      "samSystem": "",
+      "arc": "",
+      "chapter": "",
+      "eventSource": "weather",
+      "actionRef": {
+        "action": "",
+        "target": ""
+      },
+      "implementationStatus": {},
+      "refs": [
+        "r_water"
+      ],
+      "x": 1520,
+      "y": 170,
+      "trigger": {
+        "kind": "scheduled",
+        "afterHours": 72,
+        "sinceNode": "",
+        "repeat": true
+      },
+      "effects": [
+        {
+          "var": "shelter_water",
+          "op": "add",
+          "value": 80
+        }
+      ],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "choices": [],
+      "ending": ""
+    },
+    {
+      "id": "water.drought",
+      "title": "Засуха",
+      "text": "💡 Предложение\nДолго нет дождя. Запас не пополняется, ищем воду снаружи.",
+      "type": "background",
+      "category": "water",
+      "tags": [],
+      "samSystem": "",
+      "arc": "",
+      "chapter": "",
+      "eventSource": "weather",
+      "actionRef": {
+        "action": "",
+        "target": ""
+      },
+      "implementationStatus": {},
+      "refs": [],
+      "x": 1520,
+      "y": 300,
+      "trigger": {
+        "kind": "scheduled",
+        "afterHours": 600,
+        "sinceNode": "",
+        "repeat": true
+      },
+      "effects": [],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "choices": [
+        {
+          "id": "water.drought#0",
+          "label": "Запас тает",
+          "target": "water.shortage_crisis",
+          "requires": [],
+          "effects": [],
+          "sim": {}
+        }
+      ],
+      "ending": ""
+    },
+    {
+      "id": "water.tank_leak",
+      "title": "Резервуар потёк",
+      "text": "✅ Из GDD · GDD §15 износ\nИзнос. Пока не починим — теряем воду каждый день.",
+      "type": "background",
+      "category": "water",
+      "tags": [],
+      "samSystem": "",
+      "arc": "",
+      "chapter": "",
+      "eventSource": "system",
+      "actionRef": {
+        "action": "",
+        "target": ""
+      },
+      "implementationStatus": {},
+      "refs": [],
+      "x": 1520,
+      "y": 430,
+      "trigger": {
+        "kind": "scheduled",
+        "afterHours": 336,
+        "sinceNode": "",
+        "repeat": true
+      },
+      "effects": [
+        {
+          "var": "shelter_water",
+          "op": "subtract",
+          "value": 60
+        },
+        {
+          "var": "shelter_condition",
+          "op": "subtract",
+          "value": 5
+        }
+      ],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "choices": [
+        {
+          "id": "water.tank_leak#0",
+          "label": "Чинить",
+          "target": "repair.equipment_breaks",
+          "requires": [],
+          "effects": [],
+          "sim": {}
+        }
+      ],
+      "ending": ""
+    },
+    {
+      "id": "water.contaminated",
+      "title": "Вода загрязнилась",
+      "text": "✅ Из GDD · GDD §7.3\nВода в запасе грязная. Пить её — риск болезни.",
+      "type": "choice",
+      "category": "water",
+      "tags": [],
+      "samSystem": "",
+      "arc": "",
+      "chapter": "",
+      "eventSource": "world",
+      "actionRef": {
+        "action": "",
+        "target": ""
+      },
+      "implementationStatus": {},
+      "refs": [],
+      "x": 1520,
+      "y": 560,
+      "trigger": {
+        "kind": "conditions",
+        "all": [
+          {
+            "var": "shelter_condition",
+            "op": "<",
+            "value": 40
+          }
+        ]
+      },
+      "effects": [],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "choices": [
+        {
+          "id": "water.contaminated#0",
+          "label": "Очистить (тратим топливо на кипячение)",
+          "target": "water.ok",
+          "requires": [],
+          "effects": [
+            {
+              "var": "shelter_fuel",
+              "op": "subtract",
+              "value": 5
+            }
+          ],
+          "sim": {}
+        },
+        {
+          "id": "water.contaminated#1",
+          "label": "Пить как есть",
+          "target": "health.illness_spreads",
+          "requires": [],
+          "effects": [
+            {
+              "var": "group_morale",
+              "op": "subtract",
+              "value": 5
+            }
+          ],
+          "sim": {}
+        },
+        {
+          "id": "water.contaminated#2",
+          "label": "Слить и искать новую",
+          "target": "water.found_source",
+          "requires": [],
+          "effects": [
+            {
+              "var": "shelter_water",
+              "op": "subtract",
+              "value": 100
+            }
+          ],
+          "sim": {}
+        }
+      ],
+      "ending": ""
+    },
+    {
+      "id": "water.ok",
+      "title": "Вода снова чистая",
+      "text": "💡 Предложение\nКризис миновал.",
+      "type": "event",
+      "category": "water",
+      "tags": [],
+      "samSystem": "",
+      "arc": "",
+      "chapter": "",
+      "eventSource": "player",
+      "actionRef": {
+        "action": "",
+        "target": ""
+      },
+      "implementationStatus": {},
+      "refs": [],
+      "x": 1790,
+      "y": 170,
+      "trigger": {
+        "kind": "conditions",
+        "all": []
+      },
+      "effects": [],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "choices": [],
+      "ending": ""
+    },
+    {
+      "id": "water.found_source",
+      "title": "Найден источник воды",
+      "text": "✅ Из GDD · GDD §7.2\nСкважина, водонапорная башня или склад бочек. Но не чей-то ли он?",
+      "type": "choice",
+      "category": "water",
+      "tags": [],
+      "samSystem": "",
+      "arc": "",
+      "chapter": "",
+      "eventSource": "location",
+      "actionRef": {
+        "action": "",
+        "target": ""
+      },
+      "implementationStatus": {},
+      "refs": [
+        "loc_water_tower"
+      ],
+      "x": 1790,
+      "y": 300,
+      "trigger": {
+        "kind": "conditions",
+        "all": []
+      },
+      "effects": [],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "choices": [
+        {
+          "id": "water.found_source#0",
+          "label": "Брать воду сразу",
+          "target": "water.source_claimed",
+          "requires": [],
+          "effects": [
+            {
+              "var": "shelter_water",
+              "op": "add",
+              "value": 200
+            },
+            {
+              "var": "noise_level",
+              "op": "add",
+              "value": 5
+            }
+          ],
+          "sim": {}
+        },
+        {
+          "id": "water.found_source#1",
+          "label": "Сначала разведать",
+          "target": "exploration.traces",
+          "requires": [],
+          "effects": [],
+          "sim": {}
+        }
+      ],
+      "ending": ""
+    },
+    {
+      "id": "water.source_claimed",
+      "title": "Источник занят фракцией",
+      "text": "✅ Из GDD · GDD §21\nФракция заняла известный источник. Теперь вода за плату или через конфликт.",
+      "type": "choice",
+      "category": "water",
+      "tags": [],
+      "samSystem": "",
+      "arc": "",
+      "chapter": "",
+      "eventSource": "faction",
+      "actionRef": {
+        "action": "",
+        "target": ""
+      },
+      "implementationStatus": {},
+      "refs": [
+        "f_remnant"
+      ],
+      "x": 2060,
+      "y": 170,
+      "trigger": {
+        "kind": "conditions",
+        "all": []
+      },
+      "effects": [],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "choices": [
+        {
+          "id": "water.source_claimed#0",
+          "label": "Платить",
+          "target": "trade.debt",
+          "requires": [],
+          "effects": [
+            {
+              "var": "debt_traders",
+              "op": "add",
+              "value": 10
+            }
+          ],
+          "sim": {}
+        },
+        {
+          "id": "water.source_claimed#1",
+          "label": "Отбить источник",
+          "target": "combat.watch_fight",
+          "requires": [],
+          "effects": [
+            {
+              "var": "rep_remnant",
+              "op": "subtract",
+              "value": 30
+            }
+          ],
+          "sim": {}
+        },
+        {
+          "id": "water.source_claimed#2",
+          "label": "Искать другой",
+          "target": "water.found_source",
+          "requires": [],
+          "effects": [],
+          "sim": {}
+        }
+      ],
+      "ending": ""
+    },
+    {
+      "id": "water.poisoned_by_enemy",
+      "title": "Кто-то отравил наш резервуар",
+      "text": "✅ Из GDD · GDD §29\nЗапас потерян. Кто виноват — неизвестно.",
+      "type": "event",
+      "category": "water",
+      "tags": [],
+      "samSystem": "",
+      "arc": "",
+      "chapter": "",
+      "eventSource": "faction",
+      "actionRef": {
+        "action": "",
+        "target": ""
+      },
+      "implementationStatus": {},
+      "refs": [],
+      "x": 1520,
+      "y": 690,
+      "trigger": {
+        "kind": "conditions",
+        "all": [
+          {
+            "var": "shelter_known",
+            "op": "==",
+            "value": 1
+          },
+          {
+            "var": "rep_raiders",
+            "op": "<=",
+            "value": -50
+          }
+        ]
+      },
+      "effects": [
+        {
+          "var": "shelter_water",
+          "op": "set",
+          "value": 0
+        },
+        {
+          "var": "group_morale",
+          "op": "subtract",
+          "value": 15
+        }
+      ],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "choices": [
+        {
+          "id": "water.poisoned_by_enemy#0",
+          "label": "Искать виновных",
+          "target": "exploration.traces",
+          "requires": [],
+          "effects": [],
+          "sim": {}
+        },
+        {
+          "id": "water.poisoned_by_enemy#1",
+          "label": "Срочно искать воду",
+          "target": "water.found_source",
+          "requires": [],
+          "effects": [],
+          "sim": {}
+        }
+      ],
+      "ending": ""
+    },
+    {
+      "id": "water.player_poisons",
+      "title": "Отравить чужой запас?",
+      "text": "✅ Из GDD · GDD §29\nУ игрока есть яд и доступ к резервуару рейдеров. Количество яда зависит от объёма.",
+      "type": "choice",
+      "category": "water",
+      "tags": [],
+      "samSystem": "",
+      "arc": "",
+      "chapter": "",
+      "eventSource": "player",
+      "actionRef": {
+        "action": "",
+        "target": ""
+      },
+      "implementationStatus": {},
+      "refs": [
+        "loc_raider_camp"
+      ],
+      "x": 1520,
+      "y": 820,
+      "trigger": {
+        "kind": "conditions",
+        "all": []
+      },
+      "effects": [],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "choices": [
+        {
+          "id": "water.player_poisons#0",
+          "label": "Отравить",
+          "target": "water.poison_outcome",
+          "requires": [],
+          "effects": [
+            {
+              "var": "rep_raiders",
+              "op": "subtract",
+              "value": 20
+            }
+          ],
+          "sim": {}
+        },
+        {
+          "id": "water.player_poisons#1",
+          "label": "Не делать этого",
+          "target": "water.ok",
+          "requires": [],
+          "effects": [],
+          "sim": {}
+        }
+      ],
+      "ending": ""
+    },
+    {
+      "id": "water.poison_outcome",
+      "title": "Последствия отравления",
+      "text": "💡 Предложение\nУ рейдеров больные и мёртвые. Узнают ли они, кто это сделал?",
+      "type": "choice",
+      "category": "water",
+      "tags": [],
+      "samSystem": "",
+      "arc": "",
+      "chapter": "",
+      "eventSource": "faction",
+      "actionRef": {
+        "action": "",
+        "target": ""
+      },
+      "implementationStatus": {},
+      "refs": [],
+      "x": 1790,
+      "y": 430,
+      "trigger": {
+        "kind": "conditions",
+        "all": []
+      },
+      "effects": [],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "choices": [
+        {
+          "id": "water.poison_outcome#0",
+          "label": "Узнали — охота на игрока",
+          "target": "combat.raid_on_shelter",
+          "requires": [],
+          "effects": [
+            {
+              "var": "raiders_know_poison",
+              "op": "set",
+              "value": 1
+            },
+            {
+              "var": "rep_raiders",
+              "op": "set",
+              "value": -100
+            }
+          ],
+          "sim": {}
+        },
+        {
+          "id": "water.poison_outcome#1",
+          "label": "Не узнали — рейдеры слабеют",
+          "target": "water.ok",
+          "requires": [],
+          "effects": [
+            {
+              "var": "rep_community",
+              "op": "add",
+              "value": 15
+            },
+            {
+              "var": "world_danger",
+              "op": "subtract",
+              "value": 10
+            }
+          ],
+          "sim": {}
+        }
+      ],
+      "ending": ""
+    },
+    {
+      "id": "water.shortage_crisis",
+      "title": "Вода кончается",
+      "text": "✅ Из GDD · GDD §7.4\nАвтономные NPC сами уходят искать воду в радиусе 500 м. Мораль падает.",
+      "type": "event",
+      "category": "water",
+      "tags": [],
+      "samSystem": "",
+      "arc": "",
+      "chapter": "",
+      "eventSource": "resource_shortage",
+      "actionRef": {
+        "action": "",
+        "target": ""
+      },
+      "implementationStatus": {},
+      "refs": [
+        "r_water"
+      ],
+      "x": 1790,
+      "y": 560,
+      "trigger": {
+        "kind": "conditions",
+        "all": [
+          {
+            "var": "shelter_water",
+            "op": "<",
+            "value": 50
+          }
+        ]
+      },
+      "effects": [
+        {
+          "var": "group_morale",
+          "op": "subtract",
+          "value": 10
+        },
+        {
+          "var": "group_tension",
+          "op": "add",
+          "value": 10
+        }
+      ],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "choices": [
+        {
+          "id": "water.shortage_crisis#0",
+          "label": "Срочная вылазка за водой",
+          "target": "water.found_source",
+          "requires": [],
+          "effects": [],
+          "sim": {}
+        },
+        {
+          "id": "water.shortage_crisis#1",
+          "label": "Купить у торговцев",
+          "target": "trade.caravan_arrives",
+          "requires": [],
+          "effects": [],
+          "sim": {}
+        }
+      ],
+      "ending": ""
+    },
+    {
+      "id": "energy.panel_dirty",
+      "title": "Панели загрязнились",
+      "text": "✅ Из GDD · GDD §8, §9 panel_cleaning\nПроизводство падает, пока панели не почистят.",
+      "type": "background",
+      "category": "energy",
+      "tags": [],
+      "samSystem": "",
+      "arc": "",
+      "chapter": "",
+      "eventSource": "timer",
+      "actionRef": {
+        "action": "",
+        "target": ""
+      },
+      "implementationStatus": {},
+      "refs": [],
+      "x": 2490,
+      "y": 170,
+      "trigger": {
+        "kind": "scheduled",
+        "afterHours": 120,
+        "sinceNode": "",
+        "repeat": true
+      },
+      "effects": [
+        {
+          "var": "shelter_energy",
+          "op": "subtract",
+          "value": 20
+        }
+      ],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "choices": [],
+      "ending": ""
+    },
+    {
+      "id": "energy.panel_broken",
+      "title": "Панель сломана",
+      "text": "✅ Из GDD · GDD §8\nВетер, град или нападение. Нужны ремонт и детали.",
+      "type": "event",
+      "category": "energy",
+      "tags": [],
+      "samSystem": "",
+      "arc": "",
+      "chapter": "",
+      "eventSource": "world",
+      "actionRef": {
+        "action": "",
+        "target": ""
+      },
+      "implementationStatus": {},
+      "refs": [],
+      "x": 2490,
+      "y": 300,
+      "trigger": {
+        "kind": "conditions",
+        "all": []
+      },
+      "effects": [
+        {
+          "var": "shelter_energy",
+          "op": "subtract",
+          "value": 40
+        }
+      ],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "choices": [
+        {
+          "id": "energy.panel_broken#0",
+          "label": "Чинить",
+          "target": "repair.equipment_breaks",
+          "requires": [],
+          "effects": [],
+          "sim": {}
+        }
+      ],
+      "ending": ""
+    },
+    {
+      "id": "energy.battery_low",
+      "title": "Заряд почти кончился",
+      "text": "✅ Из GDD · GDD §8\nСвет, лампы для урожая и холодильник скоро погаснут.",
+      "type": "event",
+      "category": "energy",
+      "tags": [],
+      "samSystem": "",
+      "arc": "",
+      "chapter": "",
+      "eventSource": "resource_shortage",
+      "actionRef": {
+        "action": "",
+        "target": ""
+      },
+      "implementationStatus": {},
+      "refs": [
+        "r_energy"
+      ],
+      "x": 2490,
+      "y": 430,
+      "trigger": {
+        "kind": "conditions",
+        "all": [
+          {
+            "var": "shelter_energy",
+            "op": "<",
+            "value": 40
+          }
+        ]
+      },
+      "effects": [],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "choices": [
+        {
+          "id": "energy.battery_low#0",
+          "label": "Экономить: выключить всё лишнее",
+          "target": "energy.ok",
+          "requires": [],
+          "effects": [
+            {
+              "var": "group_morale",
+              "op": "subtract",
+              "value": 5
+            }
+          ],
+          "sim": {}
+        },
+        {
+          "id": "energy.battery_low#1",
+          "label": "Жечь топливо в генераторе",
+          "target": "energy.ok",
+          "requires": [],
+          "effects": [
+            {
+              "var": "shelter_fuel",
+              "op": "subtract",
+              "value": 10
+            },
+            {
+              "var": "shelter_energy",
+              "op": "add",
+              "value": 60
+            },
+            {
+              "var": "noise_level",
+              "op": "add",
+              "value": 15
+            }
+          ],
+          "sim": {}
+        },
+        {
+          "id": "energy.battery_low#2",
+          "label": "Ничего не делать",
+          "target": "energy.blackout",
+          "requires": [],
+          "effects": [],
+          "sim": {}
+        }
+      ],
+      "ending": ""
+    },
+    {
+      "id": "energy.ok",
+      "title": "Энергия есть",
+      "text": "💡 Предложение\nКризис отложен.",
+      "type": "event",
+      "category": "energy",
+      "tags": [],
+      "samSystem": "",
+      "arc": "",
+      "chapter": "",
+      "eventSource": "player",
+      "actionRef": {
+        "action": "",
+        "target": ""
+      },
+      "implementationStatus": {},
+      "refs": [],
+      "x": 2760,
+      "y": 170,
+      "trigger": {
+        "kind": "conditions",
+        "all": []
+      },
+      "effects": [],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "choices": [],
+      "ending": ""
+    },
+    {
+      "id": "energy.blackout",
+      "title": "Полное отключение",
+      "text": "💡 Предложение\nТемно, холодильник отключён, еда портится, ночью страшнее.",
+      "type": "event",
+      "category": "energy",
+      "tags": [],
+      "samSystem": "",
+      "arc": "",
+      "chapter": "",
+      "eventSource": "resource_shortage",
+      "actionRef": {
+        "action": "",
+        "target": ""
+      },
+      "implementationStatus": {},
+      "refs": [],
+      "x": 2760,
+      "y": 300,
+      "trigger": {
+        "kind": "conditions",
+        "all": [
+          {
+            "var": "shelter_energy",
+            "op": "<=",
+            "value": 0
+          }
+        ]
+      },
+      "effects": [
+        {
+          "var": "group_morale",
+          "op": "subtract",
+          "value": 15
+        },
+        {
+          "var": "shelter_food_days",
+          "op": "subtract",
+          "value": 2
+        }
+      ],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "choices": [
+        {
+          "id": "energy.blackout#0",
+          "label": "Во тьме растёт тревога",
+          "target": "light.dark_room_fear",
+          "requires": [],
+          "effects": [],
+          "sim": {}
+        }
+      ],
+      "ending": ""
+    },
+    {
+      "id": "energy.found_generator",
+      "title": "Найден генератор",
+      "text": "✅ Из GDD · GDD §8\nГенератор, ветряк или велогенератор — новый источник энергии.",
+      "type": "event",
+      "category": "energy",
+      "tags": [],
+      "samSystem": "",
+      "arc": "",
+      "chapter": "",
+      "eventSource": "location",
+      "actionRef": {
+        "action": "",
+        "target": ""
+      },
+      "implementationStatus": {},
+      "refs": [],
+      "x": 2490,
+      "y": 560,
+      "trigger": {
+        "kind": "conditions",
+        "all": []
+      },
+      "effects": [
+        {
+          "var": "shelter_energy",
+          "op": "add",
+          "value": 100
+        }
+      ],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "choices": [],
+      "ending": ""
+    },
+    {
+      "id": "energy.light_attracts",
+      "title": "Свет из убежища заметили",
+      "text": "💡 Предложение\nНочью свет виден снаружи. Убежище перестаёт быть тайной.",
+      "type": "background",
+      "category": "energy",
+      "tags": [],
+      "samSystem": "",
+      "arc": "",
+      "chapter": "",
+      "eventSource": "world",
+      "actionRef": {
+        "action": "",
+        "target": ""
+      },
+      "implementationStatus": {},
+      "refs": [],
+      "x": 2490,
+      "y": 690,
+      "trigger": {
+        "kind": "scheduled",
+        "afterHours": 144,
+        "sinceNode": "",
+        "repeat": true
+      },
+      "effects": [
+        {
+          "var": "shelter_known",
+          "op": "set",
+          "value": 1
+        }
+      ],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "choices": [
+        {
+          "id": "energy.light_attracts#0",
+          "label": "Патруль проходит мимо",
+          "target": "factions.patrol_passes",
+          "requires": [],
+          "effects": [],
+          "sim": {}
+        }
+      ],
+      "ending": ""
+    },
+    {
+      "id": "food.spoilage",
+      "title": "Часть еды испортилась",
+      "text": "✅ Из GDD · GDD §9 food_spoilage\nПорча идёт независимо ни от чего.",
+      "type": "background",
+      "category": "food",
+      "tags": [],
+      "samSystem": "",
+      "arc": "",
+      "chapter": "",
+      "eventSource": "timer",
+      "actionRef": {
+        "action": "",
+        "target": ""
+      },
+      "implementationStatus": {},
+      "refs": [],
+      "x": 0,
+      "y": 1410,
+      "trigger": {
+        "kind": "scheduled",
+        "afterHours": 168,
+        "sinceNode": "",
+        "repeat": true
+      },
+      "effects": [
+        {
+          "var": "shelter_food_days",
+          "op": "subtract",
+          "value": 2
+        }
+      ],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "choices": [],
+      "ending": ""
+    },
+    {
+      "id": "food.stash_found",
+      "title": "Тайник с консервами",
+      "text": "💡 Предложение\nПод полом в заброшенном доме — запас консервов. Похоже, хозяин собирался вернуться.",
+      "type": "choice",
+      "category": "food",
+      "tags": [],
+      "samSystem": "",
+      "arc": "",
+      "chapter": "",
+      "eventSource": "location",
+      "actionRef": {
+        "action": "",
+        "target": ""
+      },
+      "implementationStatus": {},
+      "refs": [],
+      "x": 270,
+      "y": 1410,
+      "trigger": {
+        "kind": "conditions",
+        "all": []
+      },
+      "effects": [],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "choices": [
+        {
+          "id": "food.stash_found#0",
+          "label": "Забрать всё",
+          "target": "food.owner_returns",
+          "requires": [],
+          "effects": [
+            {
+              "var": "shelter_food_days",
+              "op": "add",
+              "value": 8
+            }
+          ],
+          "sim": {}
+        },
+        {
+          "id": "food.stash_found#1",
+          "label": "Взять половину",
+          "target": "food.ok",
+          "requires": [],
+          "effects": [
+            {
+              "var": "shelter_food_days",
+              "op": "add",
+              "value": 4
+            },
+            {
+              "var": "group_morale",
+              "op": "add",
+              "value": 3
+            }
+          ],
+          "sim": {}
+        }
+      ],
+      "ending": ""
+    },
+    {
+      "id": "food.owner_returns",
+      "title": "Хозяин тайника ищет вора",
+      "text": "💡 Предложение\nЧерез несколько дней у убежища появляется человек: он знает, кто взял его запас.",
+      "type": "event",
+      "category": "food",
+      "tags": [],
+      "samSystem": "",
+      "arc": "",
+      "chapter": "",
+      "eventSource": "npc",
+      "actionRef": {
+        "action": "",
+        "target": ""
+      },
+      "implementationStatus": {},
+      "refs": [],
+      "x": 540,
+      "y": 1410,
+      "trigger": {
+        "kind": "conditions",
+        "all": []
+      },
+      "effects": [],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "choices": [
+        {
+          "id": "food.owner_returns#0",
+          "label": "Договориться",
+          "target": "group.newcomer_arrives",
+          "requires": [],
+          "effects": [],
+          "sim": {}
+        },
+        {
+          "id": "food.owner_returns#1",
+          "label": "Прогнать",
+          "target": "combat.ambush_on_road",
+          "requires": [],
+          "effects": [
+            {
+              "var": "world_danger",
+              "op": "add",
+              "value": 5
+            }
+          ],
+          "sim": {}
+        }
+      ],
+      "ending": ""
+    },
+    {
+      "id": "food.ok",
+      "title": "Еды хватает",
+      "text": "💡 Предложение\nПока сыты.",
+      "type": "event",
+      "category": "food",
+      "tags": [],
+      "samSystem": "",
+      "arc": "",
+      "chapter": "",
+      "eventSource": "player",
+      "actionRef": {
+        "action": "",
+        "target": ""
+      },
+      "implementationStatus": {},
+      "refs": [],
+      "x": 540,
+      "y": 1540,
+      "trigger": {
+        "kind": "conditions",
+        "all": []
+      },
+      "effects": [],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "choices": [],
+      "ending": ""
+    },
+    {
+      "id": "food.hunger_crisis",
+      "title": "Еда кончается",
+      "text": "✅ Из GDD · GDD §36\nГолод. Напряжение растёт, кто-то начинает таскать еду тайком.",
+      "type": "event",
+      "category": "food",
+      "tags": [],
+      "samSystem": "",
+      "arc": "",
+      "chapter": "",
+      "eventSource": "resource_shortage",
+      "actionRef": {
+        "action": "",
+        "target": ""
+      },
+      "implementationStatus": {},
+      "refs": [
+        "r_food"
+      ],
+      "x": 0,
+      "y": 1540,
+      "trigger": {
+        "kind": "conditions",
+        "all": [
+          {
+            "var": "shelter_food_days",
+            "op": "<",
+            "value": 3
+          }
+        ]
+      },
+      "effects": [
+        {
+          "var": "group_morale",
+          "op": "subtract",
+          "value": 10
+        },
+        {
+          "var": "group_tension",
+          "op": "add",
+          "value": 15
+        }
+      ],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "choices": [
+        {
+          "id": "food.hunger_crisis#0",
+          "label": "Кража внутри группы",
+          "target": "food.theft_inside",
+          "requires": [],
+          "effects": [],
+          "sim": {}
+        },
+        {
+          "id": "food.hunger_crisis#1",
+          "label": "Купить еду",
+          "target": "food.trade_offer",
+          "requires": [],
+          "effects": [],
+          "sim": {}
+        },
+        {
+          "id": "food.hunger_crisis#2",
+          "label": "Искать тайники",
+          "target": "food.stash_found",
+          "requires": [],
+          "effects": [],
+          "sim": {}
+        }
+      ],
+      "ending": ""
+    },
+    {
+      "id": "food.theft_inside",
+      "title": "Кто-то ворует еду",
+      "text": "✅ Из GDD · GDD §36 пример\nКража → NPC заметил → доверие ↓ → конфликт.",
+      "type": "choice",
+      "category": "food",
+      "tags": [],
+      "samSystem": "",
+      "arc": "",
+      "chapter": "",
+      "eventSource": "npc",
+      "actionRef": {
+        "action": "",
+        "target": ""
+      },
+      "implementationStatus": {},
+      "refs": [],
+      "x": 270,
+      "y": 1540,
+      "trigger": {
+        "kind": "conditions",
+        "all": []
+      },
+      "effects": [],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "choices": [
+        {
+          "id": "food.theft_inside#0",
+          "label": "Поговорить с виновным",
+          "target": "group.quarrel",
+          "requires": [],
+          "effects": [
+            {
+              "var": "group_tension",
+              "op": "add",
+              "value": 5
+            }
+          ],
+          "sim": {}
+        },
+        {
+          "id": "food.theft_inside#1",
+          "label": "Выгнать",
+          "target": "group.exile",
+          "requires": [],
+          "effects": [
+            {
+              "var": "group_size",
+              "op": "subtract",
+              "value": 1
+            },
+            {
+              "var": "group_morale",
+              "op": "add",
+              "value": -5
+            }
+          ],
+          "sim": {}
+        },
+        {
+          "id": "food.theft_inside#2",
+          "label": "Закрыть глаза",
+          "target": "food.ok",
+          "requires": [],
+          "effects": [
+            {
+              "var": "group_tension",
+              "op": "add",
+              "value": 10
+            }
+          ],
+          "sim": {}
+        }
+      ],
+      "ending": ""
+    },
+    {
+      "id": "food.trade_offer",
+      "title": "Торговцы предлагают еду",
+      "text": "✅ Из GDD · GDD §21\nОбмен на воду, медикаменты или детали.",
+      "type": "event",
+      "category": "food",
+      "tags": [],
+      "samSystem": "",
+      "arc": "",
+      "chapter": "",
+      "eventSource": "faction",
+      "actionRef": {
+        "action": "",
+        "target": ""
+      },
+      "implementationStatus": {},
+      "refs": [
+        "f_traders"
+      ],
+      "x": 270,
+      "y": 1670,
+      "trigger": {
+        "kind": "conditions",
+        "all": []
+      },
+      "effects": [],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "choices": [
+        {
+          "id": "food.trade_offer#0",
+          "label": "Обменять воду на еду",
+          "target": "food.ok",
+          "requires": [],
+          "effects": [
+            {
+              "var": "shelter_water",
+              "op": "subtract",
+              "value": 80
+            },
+            {
+              "var": "shelter_food_days",
+              "op": "add",
+              "value": 6
+            },
+            {
+              "var": "rep_traders",
+              "op": "add",
+              "value": 5
+            }
+          ],
+          "sim": {}
+        },
+        {
+          "id": "food.trade_offer#1",
+          "label": "Взять в долг",
+          "target": "trade.debt",
+          "requires": [],
+          "effects": [
+            {
+              "var": "shelter_food_days",
+              "op": "add",
+              "value": 6
+            },
+            {
+              "var": "debt_traders",
+              "op": "add",
+              "value": 15
+            }
+          ],
+          "sim": {}
+        }
+      ],
+      "ending": ""
+    },
+    {
+      "id": "farming.first_harvest",
+      "title": "Первый урожай",
+      "text": "✅ Из GDD · GDD §10.7\nЕда становится возобновляемой.",
+      "type": "event",
+      "category": "farming",
+      "tags": [],
+      "samSystem": "",
+      "arc": "",
+      "chapter": "",
+      "eventSource": "system",
+      "actionRef": {
+        "action": "",
+        "target": ""
+      },
+      "implementationStatus": {},
+      "refs": [],
+      "x": 0,
+      "y": 1670,
+      "trigger": {
+        "kind": "conditions",
+        "all": [
+          {
+            "var": "has_greenhouse",
+            "op": "==",
+            "value": 1
+          }
+        ]
+      },
+      "effects": [
+        {
+          "var": "shelter_food_days",
+          "op": "add",
+          "value": 5
+        },
+        {
+          "var": "group_morale",
+          "op": "add",
+          "value": 10
+        }
+      ],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "choices": [],
+      "ending": ""
+    },
+    {
+      "id": "farming.crop_failed",
+      "title": "Урожай погиб",
+      "text": "💡 Предложение\nНет света, воды или ухода. Ферма зависит от энергии и воды.",
+      "type": "event",
+      "category": "farming",
+      "tags": [],
+      "samSystem": "",
+      "arc": "",
+      "chapter": "",
+      "eventSource": "system",
+      "actionRef": {
+        "action": "",
+        "target": ""
+      },
+      "implementationStatus": {},
+      "refs": [],
+      "x": 0,
+      "y": 1800,
+      "trigger": {
+        "kind": "conditions",
+        "all": [
+          {
+            "var": "has_greenhouse",
+            "op": "==",
+            "value": 1
+          },
+          {
+            "var": "shelter_energy",
+            "op": "<",
+            "value": 20
+          }
+        ]
+      },
+      "effects": [
+        {
+          "var": "group_morale",
+          "op": "subtract",
+          "value": 5
+        }
+      ],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "choices": [],
+      "ending": ""
+    },
+    {
+      "id": "health.injury_on_raid",
+      "title": "Травма на вылазке",
+      "text": "✅ Из GDD · GDD §26\nЭффективность падает, нужно лечение.",
+      "type": "choice",
+      "category": "health",
+      "tags": [],
+      "samSystem": "",
+      "arc": "",
+      "chapter": "",
+      "eventSource": "world",
+      "actionRef": {
+        "action": "",
+        "target": ""
+      },
+      "implementationStatus": {},
+      "refs": [],
+      "x": 970,
+      "y": 1410,
+      "trigger": {
+        "kind": "conditions",
+        "all": []
+      },
+      "effects": [],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "choices": [
+        {
+          "id": "health.injury_on_raid#0",
+          "label": "Лечить своими медикаментами",
+          "target": "health.recovered",
+          "requires": [
+            {
+              "var": "shelter_meds",
+              "op": ">=",
+              "value": 1
+            }
+          ],
+          "effects": [
+            {
+              "var": "shelter_meds",
+              "op": "subtract",
+              "value": 1
+            }
+          ],
+          "sim": {}
+        },
+        {
+          "id": "health.injury_on_raid#1",
+          "label": "Перевязать как есть",
+          "target": "health.infection",
+          "requires": [],
+          "effects": [],
+          "sim": {}
+        }
+      ],
+      "ending": ""
+    },
+    {
+      "id": "health.recovered",
+      "title": "Поправился",
+      "text": "💡 Предложение\nВремя восстановления прошло.",
+      "type": "event",
+      "category": "health",
+      "tags": [],
+      "samSystem": "",
+      "arc": "",
+      "chapter": "",
+      "eventSource": "system",
+      "actionRef": {
+        "action": "",
+        "target": ""
+      },
+      "implementationStatus": {},
+      "refs": [],
+      "x": 1240,
+      "y": 1410,
+      "trigger": {
+        "kind": "conditions",
+        "all": []
+      },
+      "effects": [],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "choices": [],
+      "ending": ""
+    },
+    {
+      "id": "health.infection",
+      "title": "Рана воспалилась",
+      "text": "✅ Из GDD · GDD §26\nБез антибиотиков — ухудшение вплоть до смерти.",
+      "type": "choice",
+      "category": "health",
+      "tags": [],
+      "samSystem": "",
+      "arc": "",
+      "chapter": "",
+      "eventSource": "system",
+      "actionRef": {
+        "action": "",
+        "target": ""
+      },
+      "implementationStatus": {},
+      "refs": [],
+      "x": 1240,
+      "y": 1540,
+      "trigger": {
+        "kind": "conditions",
+        "all": []
+      },
+      "effects": [],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "choices": [
+        {
+          "id": "health.infection#0",
+          "label": "Найти лекарства",
+          "target": "health.no_meds",
+          "requires": [],
+          "effects": [],
+          "sim": {}
+        },
+        {
+          "id": "health.infection#1",
+          "label": "Ждать и надеяться",
+          "target": "death.member_died",
+          "requires": [],
+          "effects": [
+            {
+              "var": "group_size",
+              "op": "subtract",
+              "value": 1
+            }
+          ],
+          "sim": {}
+        }
+      ],
+      "ending": ""
+    },
+    {
+      "id": "health.illness_spreads",
+      "title": "Болезнь в группе",
+      "text": "💡 Предложение\nБолезнь переходит на других. Карантин? Кого лечить первым?",
+      "type": "choice",
+      "category": "health",
+      "tags": [],
+      "samSystem": "",
+      "arc": "",
+      "chapter": "",
+      "eventSource": "system",
+      "actionRef": {
+        "action": "",
+        "target": ""
+      },
+      "implementationStatus": {},
+      "refs": [],
+      "x": 970,
+      "y": 1540,
+      "trigger": {
+        "kind": "conditions",
+        "all": []
+      },
+      "effects": [],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "choices": [
+        {
+          "id": "health.illness_spreads#0",
+          "label": "Карантин",
+          "target": "health.recovered",
+          "requires": [],
+          "effects": [
+            {
+              "var": "group_tension",
+              "op": "add",
+              "value": 10
+            }
+          ],
+          "sim": {}
+        },
+        {
+          "id": "health.illness_spreads#1",
+          "label": "Лечить всех",
+          "target": "health.no_meds",
+          "requires": [],
+          "effects": [
+            {
+              "var": "shelter_meds",
+              "op": "subtract",
+              "value": 3
+            }
+          ],
+          "sim": {}
+        }
+      ],
+      "ending": ""
+    },
+    {
+      "id": "health.no_meds",
+      "title": "Лекарства кончились",
+      "text": "✅ Из GDD · GDD §10.3\nИдти за ними, просить или торговать.",
+      "type": "event",
+      "category": "health",
+      "tags": [],
+      "samSystem": "",
+      "arc": "",
+      "chapter": "",
+      "eventSource": "resource_shortage",
+      "actionRef": {
+        "action": "",
+        "target": ""
+      },
+      "implementationStatus": {},
+      "refs": [
+        "r_meds"
+      ],
+      "x": 1240,
+      "y": 1670,
+      "trigger": {
+        "kind": "conditions",
+        "all": [
+          {
+            "var": "shelter_meds",
+            "op": "<=",
+            "value": 0
+          }
+        ]
+      },
+      "effects": [],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "choices": [
+        {
+          "id": "health.no_meds#0",
+          "label": "Аптека в городе",
+          "target": "exploration.house_states",
+          "requires": [],
+          "effects": [],
+          "sim": {}
+        },
+        {
+          "id": "health.no_meds#1",
+          "label": "Попросить у общины",
+          "target": "factions.first_contact",
+          "requires": [],
+          "effects": [],
+          "sim": {}
+        },
+        {
+          "id": "health.no_meds#2",
+          "label": "Встретить врача",
+          "target": "health.doctor_found",
+          "requires": [],
+          "effects": [],
+          "sim": {}
+        }
+      ],
+      "ending": ""
+    },
+    {
+      "id": "health.doctor_found",
+      "title": "Встречен врач",
+      "text": "✅ Из GDD · GDD §24\nЧеловек с навыком медицины. Присоединится ли он и на каких условиях?",
+      "type": "choice",
+      "category": "health",
+      "tags": [],
+      "samSystem": "",
+      "arc": "",
+      "chapter": "",
+      "eventSource": "npc",
+      "actionRef": {
+        "action": "",
+        "target": ""
+      },
+      "implementationStatus": {},
+      "refs": [],
+      "x": 1510,
+      "y": 1410,
+      "trigger": {
+        "kind": "conditions",
+        "all": []
+      },
+      "effects": [],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "choices": [
+        {
+          "id": "health.doctor_found#0",
+          "label": "Принять в группу",
+          "target": "group.newcomer_arrives",
+          "requires": [],
+          "effects": [
+            {
+              "var": "group_size",
+              "op": "add",
+              "value": 1
+            }
+          ],
+          "sim": {}
+        },
+        {
+          "id": "health.doctor_found#1",
+          "label": "Только вылечить раненого",
+          "target": "health.recovered",
+          "requires": [],
+          "effects": [
+            {
+              "var": "shelter_food_days",
+              "op": "subtract",
+              "value": 2
+            }
+          ],
+          "sim": {}
+        }
+      ],
+      "ending": ""
+    },
+    {
+      "id": "death.member_died",
+      "title": "Член группы погиб",
+      "text": "✅ Из GDD · GDD §27\nОстаются тело и вещи. Близкие реагируют сильно, малознакомые — слабо.",
+      "type": "event",
+      "category": "death",
+      "tags": [],
+      "samSystem": "",
+      "arc": "",
+      "chapter": "",
+      "eventSource": "system",
+      "actionRef": {
+        "action": "",
+        "target": ""
+      },
+      "implementationStatus": {},
+      "refs": [],
+      "x": 1510,
+      "y": 1540,
+      "trigger": {
+        "kind": "conditions",
+        "all": []
+      },
+      "effects": [
+        {
+          "var": "group_morale",
+          "op": "subtract",
+          "value": 20
+        },
+        {
+          "var": "group_tension",
+          "op": "add",
+          "value": 10
+        }
+      ],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "choices": [
+        {
+          "id": "death.member_died#0",
+          "label": "Что делать с телом",
+          "target": "death.body_decision",
+          "requires": [],
+          "effects": [],
+          "sim": {}
+        },
+        {
+          "id": "death.member_died#1",
+          "label": "Реакция близкого друга",
+          "target": "death.close_friend_reaction",
+          "requires": [],
+          "effects": [],
+          "sim": {}
+        }
+      ],
+      "ending": ""
+    },
+    {
+      "id": "death.body_decision",
+      "title": "Что делать с телом",
+      "text": "✅ Из GDD · GDD §27\n❓ Эффекты похорон, разложения и сожжения не заданы (§42).",
+      "type": "choice",
+      "category": "death",
+      "tags": [],
+      "samSystem": "",
+      "arc": "",
+      "chapter": "",
+      "eventSource": "player",
+      "actionRef": {
+        "action": "",
+        "target": ""
+      },
+      "implementationStatus": {},
+      "refs": [],
+      "x": 1780,
+      "y": 1410,
+      "trigger": {
+        "kind": "conditions",
+        "all": []
+      },
+      "effects": [],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "choices": [
+        {
+          "id": "death.body_decision#0",
+          "label": "Похоронить",
+          "target": "health.recovered",
+          "requires": [],
+          "effects": [
+            {
+              "var": "group_morale",
+              "op": "add",
+              "value": 5
+            }
+          ],
+          "sim": {}
+        },
+        {
+          "id": "death.body_decision#1",
+          "label": "Сжечь",
+          "target": "health.recovered",
+          "requires": [],
+          "effects": [
+            {
+              "var": "noise_level",
+              "op": "add",
+              "value": 10
+            }
+          ],
+          "sim": {}
+        },
+        {
+          "id": "death.body_decision#2",
+          "label": "Обыскать и оставить",
+          "target": "health.recovered",
+          "requires": [],
+          "effects": [
+            {
+              "var": "group_morale",
+              "op": "subtract",
+              "value": 5
+            }
+          ],
+          "sim": {}
+        }
+      ],
+      "ending": ""
+    },
+    {
+      "id": "death.close_friend_reaction",
+      "title": "Близкий друг в шоке",
+      "text": "✅ Из GDD · GDD §23, §27\nОтказ работать, уход из группы, злость на игрока.",
+      "type": "choice",
+      "category": "death",
+      "tags": [],
+      "samSystem": "",
+      "arc": "",
+      "chapter": "",
+      "eventSource": "relationship",
+      "actionRef": {
+        "action": "",
+        "target": ""
+      },
+      "implementationStatus": {},
+      "refs": [],
+      "x": 1780,
+      "y": 1540,
+      "trigger": {
+        "kind": "conditions",
+        "all": []
+      },
+      "effects": [],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "choices": [
+        {
+          "id": "death.close_friend_reaction#0",
+          "label": "Дать время",
+          "target": "health.recovered",
+          "requires": [],
+          "effects": [],
+          "sim": {}
+        },
+        {
+          "id": "death.close_friend_reaction#1",
+          "label": "Он уходит",
+          "target": "group.desertion",
+          "requires": [],
+          "effects": [
+            {
+              "var": "group_size",
+              "op": "subtract",
+              "value": 1
+            }
+          ],
+          "sim": {}
+        }
+      ],
+      "ending": ""
+    },
+    {
+      "id": "death.stranger_body_found",
+      "title": "Тело незнакомца",
+      "text": "✅ Из GDD · GDD §25, §27\nТело с вещами. Чьё это? Кто его убил?",
+      "type": "choice",
+      "category": "death",
+      "tags": [],
+      "samSystem": "",
+      "arc": "",
+      "chapter": "",
+      "eventSource": "location",
+      "actionRef": {
+        "action": "",
+        "target": ""
+      },
+      "implementationStatus": {},
+      "refs": [],
+      "x": 970,
+      "y": 1670,
+      "trigger": {
+        "kind": "conditions",
+        "all": []
+      },
+      "effects": [],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "choices": [
+        {
+          "id": "death.stranger_body_found#0",
+          "label": "Обыскать",
+          "target": "food.ok",
+          "requires": [],
+          "effects": [
+            {
+              "var": "shelter_meds",
+              "op": "add",
+              "value": 1
+            }
+          ],
+          "sim": {}
+        },
+        {
+          "id": "death.stranger_body_found#1",
+          "label": "Искать следы убийцы",
+          "target": "exploration.traces",
+          "requires": [],
+          "effects": [],
+          "sim": {}
+        }
+      ],
+      "ending": ""
+    },
+    {
+      "id": "exploration.first_exit",
+      "title": "Первый выход наружу",
+      "text": "💡 Предложение\nОкрестности бункера: тишина, следы на земле, указатель вдали.",
+      "type": "choice",
+      "category": "exploration",
+      "tags": [],
+      "samSystem": "",
+      "arc": "",
+      "chapter": "",
+      "eventSource": "player",
+      "actionRef": {
+        "action": "",
+        "target": ""
+      },
+      "implementationStatus": {},
+      "refs": [
+        "loc_outskirts"
+      ],
+      "x": 2210,
+      "y": 1410,
+      "trigger": {
+        "kind": "conditions",
+        "all": []
+      },
+      "effects": [
+        {
+          "var": "noise_level",
+          "op": "add",
+          "value": 5
+        }
+      ],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "choices": [
+        {
+          "id": "exploration.first_exit#0",
+          "label": "К дороге",
+          "target": "exploration.signpost",
+          "requires": [],
+          "effects": [],
+          "sim": {}
+        },
+        {
+          "id": "exploration.first_exit#1",
+          "label": "Идти по следам",
+          "target": "exploration.traces",
+          "requires": [],
+          "effects": [],
+          "sim": {}
+        },
+        {
+          "id": "exploration.first_exit#2",
+          "label": "Обыскать ближний дом",
+          "target": "exploration.house_states",
+          "requires": [],
+          "effects": [],
+          "sim": {}
+        }
+      ],
+      "ending": ""
+    },
+    {
+      "id": "exploration.signpost",
+      "title": "Указатель на развилке",
+      "text": "✅ Из GDD · GDD §4.2\nНовое направление: город или промзона.",
+      "type": "choice",
+      "category": "exploration",
+      "tags": [],
+      "samSystem": "",
+      "arc": "",
+      "chapter": "",
+      "eventSource": "location",
+      "actionRef": {
+        "action": "",
+        "target": ""
+      },
+      "implementationStatus": {},
+      "refs": [
+        "loc_highway"
+      ],
+      "x": 2480,
+      "y": 1410,
+      "trigger": {
+        "kind": "conditions",
+        "all": []
+      },
+      "effects": [],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "choices": [
+        {
+          "id": "exploration.signpost#0",
+          "label": "В город",
+          "target": "exploration.house_states",
+          "requires": [],
+          "effects": [],
+          "sim": {}
+        },
+        {
+          "id": "exploration.signpost#1",
+          "label": "В промзону",
+          "target": "water.found_source",
+          "requires": [],
+          "effects": [],
+          "sim": {}
+        },
+        {
+          "id": "exploration.signpost#2",
+          "label": "Машина у обочины",
+          "target": "exploration.vehicle_found",
+          "requires": [],
+          "effects": [],
+          "sim": {}
+        }
+      ],
+      "ending": ""
+    },
+    {
+      "id": "exploration.house_states",
+      "title": "Дом: в каком он состоянии",
+      "text": "✅ Из GDD · GDD §18\nОбычный, ограбленный, покинутый в спешке, частично разрушенный, недавно покинутый, занятый выжившими.",
+      "type": "choice",
+      "category": "exploration",
+      "tags": [],
+      "samSystem": "",
+      "arc": "",
+      "chapter": "",
+      "eventSource": "location",
+      "actionRef": {
+        "action": "",
+        "target": ""
+      },
+      "implementationStatus": {},
+      "refs": [
+        "loc_city"
+      ],
+      "x": 2480,
+      "y": 1540,
+      "trigger": {
+        "kind": "conditions",
+        "all": []
+      },
+      "effects": [],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "choices": [
+        {
+          "id": "exploration.house_states#0",
+          "label": "Недавно покинут",
+          "target": "exploration.recently_left",
+          "requires": [],
+          "effects": [],
+          "sim": {}
+        },
+        {
+          "id": "exploration.house_states#1",
+          "label": "Заперт",
+          "target": "exploration.locked_door",
+          "requires": [],
+          "effects": [],
+          "sim": {}
+        },
+        {
+          "id": "exploration.house_states#2",
+          "label": "Уже ограблен",
+          "target": "loot.someone_else_looted",
+          "requires": [],
+          "effects": [],
+          "sim": {}
+        },
+        {
+          "id": "exploration.house_states#3",
+          "label": "Тайник",
+          "target": "food.stash_found",
+          "requires": [],
+          "effects": [],
+          "sim": {}
+        },
+        {
+          "id": "exploration.house_states#4",
+          "label": "Тело внутри",
+          "target": "death.stranger_body_found",
+          "requires": [],
+          "effects": [],
+          "sim": {}
+        }
+      ],
+      "ending": ""
+    },
+    {
+      "id": "exploration.recently_left",
+      "title": "Еда ещё тёплая",
+      "text": "✅ Из GDD · GDD §18\nМесто «недавно покинуто». Кто-то рядом. Друг или враг?",
+      "type": "choice",
+      "category": "exploration",
+      "tags": [],
+      "samSystem": "",
+      "arc": "",
+      "chapter": "",
+      "eventSource": "location",
+      "actionRef": {
+        "action": "",
+        "target": ""
+      },
+      "implementationStatus": {},
+      "refs": [],
+      "x": 2750,
+      "y": 1410,
+      "trigger": {
+        "kind": "conditions",
+        "all": []
+      },
+      "effects": [],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "choices": [
+        {
+          "id": "exploration.recently_left#0",
+          "label": "Подождать хозяев",
+          "target": "group.newcomer_arrives",
+          "requires": [],
+          "effects": [],
+          "sim": {}
+        },
+        {
+          "id": "exploration.recently_left#1",
+          "label": "Уйти тихо",
+          "target": "exploration.ok",
+          "requires": [],
+          "effects": [],
+          "sim": {}
+        },
+        {
+          "id": "exploration.recently_left#2",
+          "label": "Забрать всё",
+          "target": "combat.ambush_on_road",
+          "requires": [],
+          "effects": [
+            {
+              "var": "shelter_food_days",
+              "op": "add",
+              "value": 3
+            }
+          ],
+          "sim": {}
+        }
+      ],
+      "ending": ""
+    },
+    {
+      "id": "exploration.ok",
+      "title": "Вернулись домой",
+      "text": "💡 Предложение\nВылазка закончилась без происшествий.",
+      "type": "event",
+      "category": "exploration",
+      "tags": [],
+      "samSystem": "",
+      "arc": "",
+      "chapter": "",
+      "eventSource": "player",
+      "actionRef": {
+        "action": "",
+        "target": ""
+      },
+      "implementationStatus": {},
+      "refs": [],
+      "x": 3020,
+      "y": 1410,
+      "trigger": {
+        "kind": "conditions",
+        "all": []
+      },
+      "effects": [],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "choices": [],
+      "ending": ""
+    },
+    {
+      "id": "exploration.traces",
+      "title": "Следы чужого присутствия",
+      "text": "✅ Из GDD · GDD §22\nУгрозы и люди оставляют следы — и сами идут по следам игрока.",
+      "type": "event",
+      "category": "exploration",
+      "tags": [],
+      "samSystem": "",
+      "arc": "",
+      "chapter": "",
+      "eventSource": "world",
+      "actionRef": {
+        "action": "",
+        "target": ""
+      },
+      "implementationStatus": {},
+      "refs": [],
+      "x": 2480,
+      "y": 1670,
+      "trigger": {
+        "kind": "conditions",
+        "all": []
+      },
+      "effects": [],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "choices": [
+        {
+          "id": "exploration.traces#0",
+          "label": "Следы ведут к лагерю",
+          "target": "factions.first_contact",
+          "requires": [],
+          "effects": [],
+          "sim": {}
+        },
+        {
+          "id": "exploration.traces#1",
+          "label": "Следы зомби",
+          "target": "combat.zombies_drawn_by_noise",
+          "requires": [],
+          "effects": [],
+          "sim": {}
+        }
+      ],
+      "ending": ""
+    },
+    {
+      "id": "exploration.locked_door",
+      "title": "Запертая дверь",
+      "text": "✅ Из GDD · GDD §13, §31 break_door\nВзломать (шумно) или искать ключ (долго).",
+      "type": "choice",
+      "category": "exploration",
+      "tags": [],
+      "samSystem": "",
+      "arc": "",
+      "chapter": "",
+      "eventSource": "player",
+      "actionRef": {
+        "action": "",
+        "target": ""
+      },
+      "implementationStatus": {},
+      "refs": [],
+      "x": 2750,
+      "y": 1540,
+      "trigger": {
+        "kind": "conditions",
+        "all": []
+      },
+      "effects": [],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "choices": [
+        {
+          "id": "exploration.locked_door#0",
+          "label": "Взломать",
+          "target": "exploration.ok",
+          "requires": [],
+          "effects": [
+            {
+              "var": "noise_level",
+              "op": "add",
+              "value": 20
+            }
+          ],
+          "sim": {}
+        },
+        {
+          "id": "exploration.locked_door#1",
+          "label": "Искать ключ",
+          "target": "exploration.ok",
+          "requires": [],
+          "effects": [],
+          "sim": {}
+        }
+      ],
+      "ending": ""
+    },
+    {
+      "id": "exploration.other_bunker",
+      "title": "Найден другой бункер",
+      "text": "✅ Из GDD · GDD §3.4, §41\nБольше, лучше оборудован, с выжившими или заброшен.",
+      "type": "choice",
+      "category": "exploration",
+      "tags": [],
+      "samSystem": "",
+      "arc": "",
+      "chapter": "",
+      "eventSource": "location",
+      "actionRef": {
+        "action": "",
+        "target": ""
+      },
+      "implementationStatus": {},
+      "refs": [
+        "loc_other_bunker"
+      ],
+      "x": 2210,
+      "y": 1540,
+      "trigger": {
+        "kind": "conditions",
+        "all": [
+          {
+            "var": "day",
+            "op": ">=",
+            "value": 10
+          }
+        ]
+      },
+      "effects": [],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "choices": [
+        {
+          "id": "exploration.other_bunker#0",
+          "label": "Там живёт группа",
+          "target": "factions.first_contact",
+          "requires": [],
+          "effects": [],
+          "sim": {}
+        },
+        {
+          "id": "exploration.other_bunker#1",
+          "label": "Пустой — занять?",
+          "target": "story.move_shelter",
+          "requires": [],
+          "effects": [],
+          "sim": {}
+        }
+      ],
+      "ending": ""
+    },
+    {
+      "id": "exploration.vehicle_found",
+      "title": "Найдена машина",
+      "text": "✅ Из GDD · GDD §8, §21\nТранспорт: свой энергоконтур/топливо, своё хранилище.",
+      "type": "event",
+      "category": "exploration",
+      "tags": [],
+      "samSystem": "",
+      "arc": "",
+      "chapter": "",
+      "eventSource": "location",
+      "actionRef": {
+        "action": "",
+        "target": ""
+      },
+      "implementationStatus": {},
+      "refs": [],
+      "x": 2750,
+      "y": 1670,
+      "trigger": {
+        "kind": "conditions",
+        "all": []
+      },
+      "effects": [
+        {
+          "var": "has_vehicle",
+          "op": "set",
+          "value": 1
+        }
+      ],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "choices": [],
+      "ending": ""
+    },
+    {
+      "id": "exploration.familiar_place_changed",
+      "title": "Знакомое место изменилось",
+      "text": "✅ Из GDD · GDD §1.2\nЗнакомый дом заняли, сожгли или разграбили. Мир не ждёт игрока.",
+      "type": "background",
+      "category": "exploration",
+      "tags": [],
+      "samSystem": "",
+      "arc": "",
+      "chapter": "",
+      "eventSource": "world",
+      "actionRef": {
+        "action": "",
+        "target": ""
+      },
+      "implementationStatus": {},
+      "refs": [],
+      "x": 2210,
+      "y": 1670,
+      "trigger": {
+        "kind": "scheduled",
+        "afterHours": 240,
+        "sinceNode": "",
+        "repeat": true
+      },
+      "effects": [],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "choices": [],
+      "ending": ""
+    },
+    {
+      "id": "loot.someone_else_looted",
+      "title": "Кто-то успел первым",
+      "text": "💡 Предложение\nМесто, которое игрок не успел обыскать, уже ограблено.",
+      "type": "event",
+      "category": "loot",
+      "tags": [],
+      "samSystem": "",
+      "arc": "",
+      "chapter": "",
+      "eventSource": "npc",
+      "actionRef": {
+        "action": "",
+        "target": ""
+      },
+      "implementationStatus": {},
+      "refs": [],
+      "x": 2750,
+      "y": 1800,
+      "trigger": {
+        "kind": "conditions",
+        "all": []
+      },
+      "effects": [],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "choices": [],
+      "ending": ""
+    },
+    {
+      "id": "exploration.fast_travel_unlocked",
+      "title": "Быстрое перемещение",
+      "text": "❓ Не решено · GDD §4.3\n❓ Правила fast travel не определены. Первое прохождение должно быть физическим.",
+      "type": "event",
+      "category": "exploration",
+      "tags": [],
+      "samSystem": "",
+      "arc": "",
+      "chapter": "",
+      "eventSource": "system",
+      "actionRef": {
+        "action": "",
+        "target": ""
+      },
+      "implementationStatus": {},
+      "refs": [],
+      "x": 2210,
+      "y": 1800,
+      "trigger": {
+        "kind": "conditions",
+        "all": []
+      },
+      "effects": [],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "choices": [],
+      "ending": ""
+    },
+    {
+      "id": "factions.patrol_passes",
+      "title": "Патруль у убежища",
+      "text": "✅ Из GDD · GDD §21 патрулировать\nПатруль проходит мимо. Если убежище известно — заходит.",
+      "type": "background",
+      "category": "factions",
+      "tags": [],
+      "samSystem": "",
+      "arc": "",
+      "chapter": "",
+      "eventSource": "faction",
+      "actionRef": {
+        "action": "",
+        "target": ""
+      },
+      "implementationStatus": {},
+      "refs": [],
+      "x": 3450,
+      "y": 1410,
+      "trigger": {
+        "kind": "scheduled",
+        "afterHours": 96,
+        "sinceNode": "",
+        "repeat": true
+      },
+      "effects": [],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "choices": [
+        {
+          "id": "factions.patrol_passes#0",
+          "label": "Гости у двери",
+          "target": "factions.visitors_at_door",
+          "requires": [],
+          "effects": [],
+          "sim": {}
+        }
+      ],
+      "ending": ""
+    },
+    {
+      "id": "factions.groups_clash",
+      "title": "Две группы столкнулись",
+      "text": "✅ Из GDD · GDD §21 пример\nВстретились на ресурсах: бой, торговля или договор. Отношения между ними меняются.",
+      "type": "background",
+      "category": "factions",
+      "tags": [],
+      "samSystem": "",
+      "arc": "",
+      "chapter": "",
+      "eventSource": "faction",
+      "actionRef": {
+        "action": "",
+        "target": ""
+      },
+      "implementationStatus": {},
+      "refs": [],
+      "x": 3720,
+      "y": 1410,
+      "trigger": {
+        "kind": "scheduled",
+        "afterHours": 192,
+        "sinceNode": "",
+        "repeat": true
+      },
+      "effects": [],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "choices": [
+        {
+          "id": "factions.groups_clash#0",
+          "label": "Игрок видит бой",
+          "target": "combat.watch_fight",
+          "requires": [],
+          "effects": [],
+          "sim": {}
+        }
+      ],
+      "ending": ""
+    },
+    {
+      "id": "factions.territory_taken",
+      "title": "Территория захвачена",
+      "text": "✅ Из GDD · GDD §21\nЗнакомое место теперь чужое.",
+      "type": "background",
+      "category": "factions",
+      "tags": [],
+      "samSystem": "",
+      "arc": "",
+      "chapter": "",
+      "eventSource": "faction",
+      "actionRef": {
+        "action": "",
+        "target": ""
+      },
+      "implementationStatus": {},
+      "refs": [],
+      "x": 3450,
+      "y": 1540,
+      "trigger": {
+        "kind": "scheduled",
+        "afterHours": 360,
+        "sinceNode": "",
+        "repeat": true
+      },
+      "effects": [
+        {
+          "var": "world_danger",
+          "op": "add",
+          "value": 5
+        }
+      ],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "choices": [
+        {
+          "id": "factions.territory_taken#0",
+          "label": "Это видно на месте",
+          "target": "exploration.familiar_place_changed",
+          "requires": [],
+          "effects": [],
+          "sim": {}
+        }
+      ],
+      "ending": ""
+    },
+    {
+      "id": "factions.camp_abandoned",
+      "title": "Лагерь брошен",
+      "text": "✅ Из GDD · GDD §21\nФракция ушла. Лагерь можно занять или разграбить.",
+      "type": "event",
+      "category": "factions",
+      "tags": [],
+      "samSystem": "",
+      "arc": "",
+      "chapter": "",
+      "eventSource": "faction",
+      "actionRef": {
+        "action": "",
+        "target": ""
+      },
+      "implementationStatus": {},
+      "refs": [],
+      "x": 3450,
+      "y": 1670,
+      "trigger": {
+        "kind": "conditions",
+        "all": []
+      },
+      "effects": [],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "choices": [
+        {
+          "id": "factions.camp_abandoned#0",
+          "label": "Разграбить",
+          "target": "food.ok",
+          "requires": [],
+          "effects": [
+            {
+              "var": "shelter_fuel",
+              "op": "add",
+              "value": 20
+            }
+          ],
+          "sim": {}
+        },
+        {
+          "id": "factions.camp_abandoned#1",
+          "label": "Занять",
+          "target": "story.move_shelter",
+          "requires": [],
+          "effects": [],
+          "sim": {}
+        }
+      ],
+      "ending": ""
+    },
+    {
+      "id": "factions.leader_changed",
+      "title": "Сменился лидер",
+      "text": "✅ Из GDD · GDD §21\nПереворот или смерть лидера. Отношение к игроку может перевернуться.",
+      "type": "background",
+      "category": "factions",
+      "tags": [],
+      "samSystem": "",
+      "arc": "",
+      "chapter": "",
+      "eventSource": "faction",
+      "actionRef": {
+        "action": "",
+        "target": ""
+      },
+      "implementationStatus": {},
+      "refs": [],
+      "x": 3450,
+      "y": 1800,
+      "trigger": {
+        "kind": "scheduled",
+        "afterHours": 480,
+        "sinceNode": "",
+        "repeat": true
+      },
+      "effects": [],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "choices": [
+        {
+          "id": "factions.leader_changed#0",
+          "label": "Новый лидер зовёт поддержать его",
+          "target": "factions.internal_coup",
+          "requires": [],
+          "effects": [],
+          "sim": {}
+        }
+      ],
+      "ending": ""
+    },
+    {
+      "id": "factions.split",
+      "title": "Фракция раскололась",
+      "text": "✅ Из GDD · GDD §21\nПоявилась новая группа, часть людей ищет новый дом.",
+      "type": "event",
+      "category": "factions",
+      "tags": [],
+      "samSystem": "",
+      "arc": "",
+      "chapter": "",
+      "eventSource": "faction",
+      "actionRef": {
+        "action": "",
+        "target": ""
+      },
+      "implementationStatus": {},
+      "refs": [],
+      "x": 3450,
+      "y": 1930,
+      "trigger": {
+        "kind": "conditions",
+        "all": []
+      },
+      "effects": [],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "choices": [
+        {
+          "id": "factions.split#0",
+          "label": "Беженцы просят приюта",
+          "target": "factions.ask_refuge",
+          "requires": [],
+          "effects": [],
+          "sim": {}
+        }
+      ],
+      "ending": ""
+    },
+    {
+      "id": "factions.prisoners_sold",
+      "title": "Работорговцы продали пленных",
+      "text": "✅ Из GDD · GDD §21\nЗнакомый NPC может оказаться в рабстве.",
+      "type": "background",
+      "category": "factions",
+      "tags": [],
+      "samSystem": "",
+      "arc": "",
+      "chapter": "",
+      "eventSource": "faction",
+      "actionRef": {
+        "action": "",
+        "target": ""
+      },
+      "implementationStatus": {},
+      "refs": [
+        "f_slavers"
+      ],
+      "x": 3450,
+      "y": 2060,
+      "trigger": {
+        "kind": "scheduled",
+        "afterHours": 288,
+        "sinceNode": "",
+        "repeat": true
+      },
+      "effects": [],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "choices": [
+        {
+          "id": "factions.prisoners_sold#0",
+          "label": "Рынок рабов",
+          "target": "capture.slave_market",
+          "requires": [],
+          "effects": [],
+          "sim": {}
+        }
+      ],
+      "ending": ""
+    },
+    {
+      "id": "factions.shortage",
+      "title": "У фракции дефицит",
+      "text": "✅ Из GDD · GDD §21 потребности\nУ фракции кончаются вода или еда — она становится агрессивнее или идёт торговать.",
+      "type": "event",
+      "category": "factions",
+      "tags": [],
+      "samSystem": "",
+      "arc": "",
+      "chapter": "",
+      "eventSource": "resource_shortage",
+      "actionRef": {
+        "action": "",
+        "target": ""
+      },
+      "implementationStatus": {},
+      "refs": [],
+      "x": 3450,
+      "y": 2190,
+      "trigger": {
+        "kind": "conditions",
+        "all": []
+      },
+      "effects": [],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "choices": [
+        {
+          "id": "factions.shortage#0",
+          "label": "Идут отнимать",
+          "target": "combat.raid_on_shelter",
+          "requires": [],
+          "effects": [],
+          "sim": {}
+        },
+        {
+          "id": "factions.shortage#1",
+          "label": "Идут торговать",
+          "target": "trade.caravan_arrives",
+          "requires": [],
+          "effects": [],
+          "sim": {}
+        }
+      ],
+      "ending": ""
+    },
+    {
+      "id": "factions.first_contact",
+      "title": "Первая встреча с фракцией",
+      "text": "✅ Из GDD · GDD §21\nТон отношений на всю дальнейшую игру.",
+      "type": "choice",
+      "category": "factions",
+      "tags": [],
+      "samSystem": "",
+      "arc": "",
+      "chapter": "",
+      "eventSource": "faction",
+      "actionRef": {
+        "action": "",
+        "target": ""
+      },
+      "implementationStatus": {},
+      "refs": [
+        "f_community"
+      ],
+      "x": 3450,
+      "y": 2320,
+      "trigger": {
+        "kind": "conditions",
+        "all": []
+      },
+      "effects": [],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "choices": [
+        {
+          "id": "factions.first_contact#0",
+          "label": "Мирно, предложить обмен",
+          "target": "trade.caravan_arrives",
+          "requires": [],
+          "effects": [
+            {
+              "var": "rep_community",
+              "op": "add",
+              "value": 10
+            }
+          ],
+          "sim": {}
+        },
+        {
+          "id": "factions.first_contact#1",
+          "label": "Настороженно, не раскрывать убежище",
+          "target": "exploration.ok",
+          "requires": [],
+          "effects": [],
+          "sim": {}
+        },
+        {
+          "id": "factions.first_contact#2",
+          "label": "Показать силу",
+          "target": "combat.watch_fight",
+          "requires": [],
+          "effects": [
+            {
+              "var": "rep_community",
+              "op": "subtract",
+              "value": 15
+            }
+          ],
+          "sim": {}
+        }
+      ],
+      "ending": ""
+    },
+    {
+      "id": "factions.visitors_at_door",
+      "title": "Фракция пришла к убежищу",
+      "text": "✅ Из GDD · GDD §21\n«Встречать фракцию, которая сама пришла на территорию игрока».",
+      "type": "choice",
+      "category": "factions",
+      "tags": [],
+      "samSystem": "",
+      "arc": "",
+      "chapter": "",
+      "eventSource": "faction",
+      "actionRef": {
+        "action": "",
+        "target": ""
+      },
+      "implementationStatus": {},
+      "refs": [],
+      "x": 3720,
+      "y": 1540,
+      "trigger": {
+        "kind": "conditions",
+        "all": [
+          {
+            "var": "shelter_known",
+            "op": "==",
+            "value": 1
+          }
+        ]
+      },
+      "effects": [],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "choices": [
+        {
+          "id": "factions.visitors_at_door#0",
+          "label": "Выслушать",
+          "target": "factions.demand_tribute",
+          "requires": [],
+          "effects": [],
+          "sim": {}
+        },
+        {
+          "id": "factions.visitors_at_door#1",
+          "label": "Не открывать",
+          "target": "combat.raid_on_shelter",
+          "requires": [],
+          "effects": [
+            {
+              "var": "world_danger",
+              "op": "add",
+              "value": 5
+            }
+          ],
+          "sim": {}
+        }
+      ],
+      "ending": ""
+    },
+    {
+      "id": "factions.demand_tribute",
+      "title": "Требуют дань",
+      "text": "✅ Из GDD · GDD §21 выдвигать требования\nЗаплатить, отказаться, торговаться или драться.",
+      "type": "choice",
+      "category": "factions",
+      "tags": [],
+      "samSystem": "",
+      "arc": "",
+      "chapter": "",
+      "eventSource": "faction",
+      "actionRef": {
+        "action": "",
+        "target": ""
+      },
+      "implementationStatus": {},
+      "refs": [
+        "f_raiders"
+      ],
+      "x": 3990,
+      "y": 1410,
+      "trigger": {
+        "kind": "conditions",
+        "all": []
+      },
+      "effects": [],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "choices": [
+        {
+          "id": "factions.demand_tribute#0",
+          "label": "Заплатить",
+          "target": "factions.tribute_paid",
+          "requires": [],
+          "effects": [
+            {
+              "var": "shelter_food_days",
+              "op": "subtract",
+              "value": 4
+            },
+            {
+              "var": "shelter_water",
+              "op": "subtract",
+              "value": 100
+            },
+            {
+              "var": "rep_raiders",
+              "op": "add",
+              "value": 10
+            }
+          ],
+          "sim": {}
+        },
+        {
+          "id": "factions.demand_tribute#1",
+          "label": "Отказаться",
+          "target": "combat.raid_on_shelter",
+          "requires": [],
+          "effects": [
+            {
+              "var": "rep_raiders",
+              "op": "subtract",
+              "value": 20
+            }
+          ],
+          "sim": {}
+        },
+        {
+          "id": "factions.demand_tribute#2",
+          "label": "Просить защиты у другой фракции",
+          "target": "factions.offer_alliance",
+          "requires": [],
+          "effects": [],
+          "sim": {}
+        }
+      ],
+      "ending": ""
+    },
+    {
+      "id": "factions.tribute_paid",
+      "title": "Дань уплачена",
+      "text": "💡 Предложение\nПока тихо. Через неделю придут снова — и попросят больше.",
+      "type": "event",
+      "category": "factions",
+      "tags": [],
+      "samSystem": "",
+      "arc": "",
+      "chapter": "",
+      "eventSource": "faction",
+      "actionRef": {
+        "action": "",
+        "target": ""
+      },
+      "implementationStatus": {},
+      "refs": [],
+      "x": 4260,
+      "y": 1410,
+      "trigger": {
+        "kind": "conditions",
+        "all": []
+      },
+      "effects": [
+        {
+          "var": "group_morale",
+          "op": "subtract",
+          "value": 10
+        }
+      ],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "choices": [],
+      "ending": ""
+    },
+    {
+      "id": "factions.offer_alliance",
+      "title": "Предложение союза",
+      "text": "✅ Из GDD · GDD §21\nЗащита в обмен на обязательства: часть ресурсов, люди на патрули, подчинение правилам.",
+      "type": "choice",
+      "category": "factions",
+      "tags": [],
+      "samSystem": "",
+      "arc": "",
+      "chapter": "",
+      "eventSource": "faction",
+      "actionRef": {
+        "action": "",
+        "target": ""
+      },
+      "implementationStatus": {},
+      "refs": [
+        "f_remnant"
+      ],
+      "x": 4260,
+      "y": 1540,
+      "trigger": {
+        "kind": "conditions",
+        "all": []
+      },
+      "effects": [],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "choices": [
+        {
+          "id": "factions.offer_alliance#0",
+          "label": "Согласиться",
+          "target": "factions.task_given",
+          "requires": [],
+          "effects": [
+            {
+              "var": "rep_remnant",
+              "op": "add",
+              "value": 20
+            },
+            {
+              "var": "world_danger",
+              "op": "subtract",
+              "value": 10
+            }
+          ],
+          "sim": {}
+        },
+        {
+          "id": "factions.offer_alliance#1",
+          "label": "Отказаться",
+          "target": "exploration.ok",
+          "requires": [],
+          "effects": [],
+          "sim": {}
+        }
+      ],
+      "ending": ""
+    },
+    {
+      "id": "factions.task_given",
+      "title": "Задание от фракции",
+      "text": "✅ Из GDD · GDD §21\nВыполнить, провалить, выполнить частично или отказаться.",
+      "type": "choice",
+      "category": "factions",
+      "tags": [],
+      "samSystem": "",
+      "arc": "",
+      "chapter": "",
+      "eventSource": "faction",
+      "actionRef": {
+        "action": "",
+        "target": ""
+      },
+      "implementationStatus": {},
+      "refs": [],
+      "x": 4530,
+      "y": 1410,
+      "trigger": {
+        "kind": "conditions",
+        "all": []
+      },
+      "effects": [],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "choices": [
+        {
+          "id": "factions.task_given#0",
+          "label": "Выполнить",
+          "target": "exploration.ok",
+          "requires": [],
+          "effects": [
+            {
+              "var": "rep_remnant",
+              "op": "add",
+              "value": 10
+            }
+          ],
+          "sim": {}
+        },
+        {
+          "id": "factions.task_given#1",
+          "label": "Сорвать договор",
+          "target": "factions.broken_deal",
+          "requires": [],
+          "effects": [],
+          "sim": {}
+        }
+      ],
+      "ending": ""
+    },
+    {
+      "id": "factions.broken_deal",
+      "title": "Договор нарушен",
+      "text": "✅ Из GDD · GDD §21\nРепутация падает, фракция может начать охоту на игрока.",
+      "type": "event",
+      "category": "factions",
+      "tags": [],
+      "samSystem": "",
+      "arc": "",
+      "chapter": "",
+      "eventSource": "player",
+      "actionRef": {
+        "action": "",
+        "target": ""
+      },
+      "implementationStatus": {},
+      "refs": [],
+      "x": 4530,
+      "y": 1540,
+      "trigger": {
+        "kind": "conditions",
+        "all": []
+      },
+      "effects": [
+        {
+          "var": "rep_remnant",
+          "op": "subtract",
+          "value": 40
+        }
+      ],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "choices": [
+        {
+          "id": "factions.broken_deal#0",
+          "label": "Охота",
+          "target": "combat.ambush_on_road",
+          "requires": [],
+          "effects": [],
+          "sim": {}
+        }
+      ],
+      "ending": ""
+    },
+    {
+      "id": "factions.ask_refuge",
+      "title": "Просят убежища",
+      "text": "✅ Из GDD · GDD §21\nЕщё рты, но и ещё руки.",
+      "type": "choice",
+      "category": "factions",
+      "tags": [],
+      "samSystem": "",
+      "arc": "",
+      "chapter": "",
+      "eventSource": "npc",
+      "actionRef": {
+        "action": "",
+        "target": ""
+      },
+      "implementationStatus": {},
+      "refs": [],
+      "x": 3720,
+      "y": 1670,
+      "trigger": {
+        "kind": "conditions",
+        "all": []
+      },
+      "effects": [],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "choices": [
+        {
+          "id": "factions.ask_refuge#0",
+          "label": "Принять",
+          "target": "group.newcomer_arrives",
+          "requires": [],
+          "effects": [
+            {
+              "var": "group_size",
+              "op": "add",
+              "value": 2
+            },
+            {
+              "var": "shelter_food_days",
+              "op": "subtract",
+              "value": 2
+            }
+          ],
+          "sim": {}
+        },
+        {
+          "id": "factions.ask_refuge#1",
+          "label": "Отказать",
+          "target": "exploration.ok",
+          "requires": [],
+          "effects": [
+            {
+              "var": "group_morale",
+              "op": "subtract",
+              "value": 5
+            }
+          ],
+          "sim": {}
+        }
+      ],
+      "ending": ""
+    },
+    {
+      "id": "factions.internal_coup",
+      "title": "Переворот: выбери сторону",
+      "text": "✅ Из GDD · GDD §21\nВнутри фракции борьба за власть, обе стороны просят поддержки.",
+      "type": "choice",
+      "category": "factions",
+      "tags": [],
+      "samSystem": "",
+      "arc": "",
+      "chapter": "",
+      "eventSource": "faction",
+      "actionRef": {
+        "action": "",
+        "target": ""
+      },
+      "implementationStatus": {},
+      "refs": [],
+      "x": 3720,
+      "y": 1800,
+      "trigger": {
+        "kind": "conditions",
+        "all": []
+      },
+      "effects": [],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "choices": [
+        {
+          "id": "factions.internal_coup#0",
+          "label": "Поддержать старого лидера",
+          "target": "exploration.ok",
+          "requires": [],
+          "effects": [
+            {
+              "var": "rep_community",
+              "op": "add",
+              "value": 15
+            }
+          ],
+          "sim": {}
+        },
+        {
+          "id": "factions.internal_coup#1",
+          "label": "Поддержать заговорщиков",
+          "target": "story.become_leader",
+          "requires": [],
+          "effects": [],
+          "sim": {}
+        }
+      ],
+      "ending": ""
+    },
+    {
+      "id": "factions.provoke_war",
+      "title": "Стравить две фракции",
+      "text": "✅ Из GDD · GDD §21\nПока они воюют друг с другом, им не до игрока.",
+      "type": "event",
+      "category": "factions",
+      "tags": [],
+      "samSystem": "",
+      "arc": "",
+      "chapter": "",
+      "eventSource": "player",
+      "actionRef": {
+        "action": "",
+        "target": ""
+      },
+      "implementationStatus": {},
+      "refs": [],
+      "x": 3450,
+      "y": 2450,
+      "trigger": {
+        "kind": "conditions",
+        "all": []
+      },
+      "effects": [
+        {
+          "var": "rep_raiders",
+          "op": "subtract",
+          "value": 10
+        },
+        {
+          "var": "world_danger",
+          "op": "add",
+          "value": 10
+        }
+      ],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "choices": [
+        {
+          "id": "factions.provoke_war#0",
+          "label": "Война",
+          "target": "factions.groups_clash",
+          "requires": [],
+          "effects": [],
+          "sim": {}
+        }
+      ],
+      "ending": ""
+    },
+    {
+      "id": "factions.mediate_peace",
+      "title": "Помирить фракции",
+      "text": "✅ Из GDD · GDD §21\nПосредничество в переговорах.",
+      "type": "event",
+      "category": "factions",
+      "tags": [],
+      "samSystem": "",
+      "arc": "",
+      "chapter": "",
+      "eventSource": "player",
+      "actionRef": {
+        "action": "",
+        "target": ""
+      },
+      "implementationStatus": {},
+      "refs": [],
+      "x": 3450,
+      "y": 2580,
+      "trigger": {
+        "kind": "conditions",
+        "all": []
+      },
+      "effects": [
+        {
+          "var": "rep_community",
+          "op": "add",
+          "value": 10
+        },
+        {
+          "var": "rep_traders",
+          "op": "add",
+          "value": 10
+        },
+        {
+          "var": "world_danger",
+          "op": "subtract",
+          "value": 10
+        }
+      ],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "choices": [],
+      "ending": ""
+    },
+    {
+      "id": "trade.caravan_arrives",
+      "title": "Пришёл караван",
+      "text": "✅ Из GDD · GDD §21\nОбмен ресурсов; цены зависят от дефицита.",
+      "type": "choice",
+      "category": "trade",
+      "tags": [],
+      "samSystem": "",
+      "arc": "",
+      "chapter": "",
+      "eventSource": "faction",
+      "actionRef": {
+        "action": "",
+        "target": ""
+      },
+      "implementationStatus": {},
+      "refs": [
+        "f_traders"
+      ],
+      "x": 3720,
+      "y": 1930,
+      "trigger": {
+        "kind": "scheduled",
+        "afterHours": 144,
+        "sinceNode": "",
+        "repeat": true
+      },
+      "effects": [],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "choices": [
+        {
+          "id": "trade.caravan_arrives#0",
+          "label": "Купить еду",
+          "target": "food.trade_offer",
+          "requires": [],
+          "effects": [],
+          "sim": {}
+        },
+        {
+          "id": "trade.caravan_arrives#1",
+          "label": "Купить топливо",
+          "target": "exploration.ok",
+          "requires": [],
+          "effects": [
+            {
+              "var": "shelter_water",
+              "op": "subtract",
+              "value": 60
+            },
+            {
+              "var": "shelter_fuel",
+              "op": "add",
+              "value": 30
+            }
+          ],
+          "sim": {}
+        },
+        {
+          "id": "trade.caravan_arrives#2",
+          "label": "Взять в долг",
+          "target": "trade.debt",
+          "requires": [],
+          "effects": [],
+          "sim": {}
+        }
+      ],
+      "ending": ""
+    },
+    {
+      "id": "trade.debt",
+      "title": "Долг",
+      "text": "✅ Из GDD · GDD §21 становиться должником\nСрок, проценты, последствия неуплаты.",
+      "type": "event",
+      "category": "trade",
+      "tags": [],
+      "samSystem": "",
+      "arc": "",
+      "chapter": "",
+      "eventSource": "faction",
+      "actionRef": {
+        "action": "",
+        "target": ""
+      },
+      "implementationStatus": {},
+      "refs": [],
+      "x": 3990,
+      "y": 1540,
+      "trigger": {
+        "kind": "conditions",
+        "all": []
+      },
+      "effects": [
+        {
+          "var": "debt_traders",
+          "op": "add",
+          "value": 10
+        }
+      ],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "choices": [
+        {
+          "id": "trade.debt#0",
+          "label": "Срок вышел",
+          "target": "trade.debt_due",
+          "requires": [],
+          "effects": [],
+          "sim": {}
+        }
+      ],
+      "ending": ""
+    },
+    {
+      "id": "trade.debt_due",
+      "title": "Пора платить",
+      "text": "💡 Предложение\nТорговцы пришли за долгом.",
+      "type": "choice",
+      "category": "trade",
+      "tags": [],
+      "samSystem": "",
+      "arc": "",
+      "chapter": "",
+      "eventSource": "faction",
+      "actionRef": {
+        "action": "",
+        "target": ""
+      },
+      "implementationStatus": {},
+      "refs": [],
+      "x": 4260,
+      "y": 1670,
+      "trigger": {
+        "kind": "conditions",
+        "all": [
+          {
+            "var": "debt_traders",
+            "op": ">=",
+            "value": 30
+          }
+        ]
+      },
+      "effects": [],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "choices": [
+        {
+          "id": "trade.debt_due#0",
+          "label": "Отдать",
+          "target": "exploration.ok",
+          "requires": [],
+          "effects": [
+            {
+              "var": "debt_traders",
+              "op": "set",
+              "value": 0
+            },
+            {
+              "var": "shelter_water",
+              "op": "subtract",
+              "value": 150
+            }
+          ],
+          "sim": {}
+        },
+        {
+          "id": "trade.debt_due#1",
+          "label": "Не платить",
+          "target": "capture.member_captured",
+          "requires": [],
+          "effects": [
+            {
+              "var": "rep_traders",
+              "op": "subtract",
+              "value": 40
+            }
+          ],
+          "sim": {}
+        }
+      ],
+      "ending": ""
+    },
+    {
+      "id": "trade.route_cut",
+      "title": "Маршрут перерезан бандой",
+      "text": "✅ Из GDD · GDD §21\nКараваны не приходят, товары дорожают или пропадают.",
+      "type": "background",
+      "category": "trade",
+      "tags": [],
+      "samSystem": "",
+      "arc": "",
+      "chapter": "",
+      "eventSource": "faction",
+      "actionRef": {
+        "action": "",
+        "target": ""
+      },
+      "implementationStatus": {},
+      "refs": [],
+      "x": 3450,
+      "y": 2710,
+      "trigger": {
+        "kind": "scheduled",
+        "afterHours": 432,
+        "sinceNode": "",
+        "repeat": true
+      },
+      "effects": [],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "choices": [],
+      "ending": ""
+    },
+    {
+      "id": "capture.player_captured",
+      "title": "Игрок в плену",
+      "text": "✅ Из GDD · GDD §21\nПлен, рабство, продажа, обмен, выкуп, побег, спасение NPC, принудительная работа, смерть.",
+      "type": "choice",
+      "category": "factions",
+      "tags": [],
+      "samSystem": "",
+      "arc": "",
+      "chapter": "",
+      "eventSource": "faction",
+      "actionRef": {
+        "action": "",
+        "target": ""
+      },
+      "implementationStatus": {},
+      "refs": [
+        "k_slavery",
+        "f_slavers"
+      ],
+      "x": 0,
+      "y": 3170,
+      "trigger": {
+        "kind": "conditions",
+        "all": []
+      },
+      "effects": [
+        {
+          "var": "player_captured",
+          "op": "set",
+          "value": 1
+        }
+      ],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "choices": [
+        {
+          "id": "capture.player_captured#0",
+          "label": "Бежать",
+          "target": "exploration.ok",
+          "requires": [],
+          "effects": [
+            {
+              "var": "player_captured",
+              "op": "set",
+              "value": 0
+            },
+            {
+              "var": "world_danger",
+              "op": "add",
+              "value": 5
+            }
+          ],
+          "sim": {}
+        },
+        {
+          "id": "capture.player_captured#1",
+          "label": "Ждать выкупа от группы",
+          "target": "capture.ransom",
+          "requires": [
+            {
+              "var": "group_size",
+              "op": ">=",
+              "value": 2
+            }
+          ],
+          "effects": [],
+          "sim": {}
+        },
+        {
+          "id": "capture.player_captured#2",
+          "label": "Работать на хозяев",
+          "target": "capture.forced_labor",
+          "requires": [],
+          "effects": [],
+          "sim": {}
+        },
+        {
+          "id": "capture.player_captured#3",
+          "label": "Погибнуть при попытке",
+          "target": "death.group_wiped",
+          "requires": [],
+          "effects": [
+            {
+              "var": "group_size",
+              "op": "subtract",
+              "value": 1
+            }
+          ],
+          "sim": {}
+        }
+      ],
+      "ending": ""
+    },
+    {
+      "id": "capture.ransom",
+      "title": "Выкуп",
+      "text": "✅ Из GDD · GDD §21\nГруппа отдаёт запасы.",
+      "type": "event",
+      "category": "factions",
+      "tags": [],
+      "samSystem": "",
+      "arc": "",
+      "chapter": "",
+      "eventSource": "faction",
+      "actionRef": {
+        "action": "",
+        "target": ""
+      },
+      "implementationStatus": {},
+      "refs": [],
+      "x": 270,
+      "y": 3170,
+      "trigger": {
+        "kind": "conditions",
+        "all": []
+      },
+      "effects": [
+        {
+          "var": "player_captured",
+          "op": "set",
+          "value": 0
+        },
+        {
+          "var": "shelter_water",
+          "op": "subtract",
+          "value": 200
+        },
+        {
+          "var": "shelter_food_days",
+          "op": "subtract",
+          "value": 5
+        }
+      ],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "choices": [],
+      "ending": ""
+    },
+    {
+      "id": "capture.forced_labor",
+      "title": "Принудительная работа",
+      "text": "✅ Из GDD · GDD §21\nДни проходят в работе на чужих. Можно узнать их лагерь изнутри.",
+      "type": "event",
+      "category": "factions",
+      "tags": [],
+      "samSystem": "",
+      "arc": "",
+      "chapter": "",
+      "eventSource": "faction",
+      "actionRef": {
+        "action": "",
+        "target": ""
+      },
+      "implementationStatus": {},
+      "refs": [],
+      "x": 270,
+      "y": 3300,
+      "trigger": {
+        "kind": "conditions",
+        "all": []
+      },
+      "effects": [
+        {
+          "var": "group_morale",
+          "op": "subtract",
+          "value": 10
+        }
+      ],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "choices": [],
+      "ending": ""
+    },
+    {
+      "id": "capture.member_captured",
+      "title": "Захвачен член группы",
+      "text": "✅ Из GDD · GDD §21\nВыкупить, отбить, обменять или смириться.",
+      "type": "choice",
+      "category": "factions",
+      "tags": [],
+      "samSystem": "",
+      "arc": "",
+      "chapter": "",
+      "eventSource": "faction",
+      "actionRef": {
+        "action": "",
+        "target": ""
+      },
+      "implementationStatus": {},
+      "refs": [],
+      "x": 0,
+      "y": 3300,
+      "trigger": {
+        "kind": "conditions",
+        "all": []
+      },
+      "effects": [
+        {
+          "var": "member_captured",
+          "op": "set",
+          "value": 1
+        },
+        {
+          "var": "group_size",
+          "op": "subtract",
+          "value": 1
+        }
+      ],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "choices": [
+        {
+          "id": "capture.member_captured#0",
+          "label": "Выкупить",
+          "target": "capture.ransom",
+          "requires": [],
+          "effects": [
+            {
+              "var": "member_captured",
+              "op": "set",
+              "value": 0
+            },
+            {
+              "var": "group_size",
+              "op": "add",
+              "value": 1
+            }
+          ],
+          "sim": {}
+        },
+        {
+          "id": "capture.member_captured#1",
+          "label": "Отбить силой",
+          "target": "combat.raid_on_shelter",
+          "requires": [],
+          "effects": [
+            {
+              "var": "rep_slavers",
+              "op": "subtract",
+              "value": 30
+            }
+          ],
+          "sim": {}
+        },
+        {
+          "id": "capture.member_captured#2",
+          "label": "Смириться",
+          "target": "death.close_friend_reaction",
+          "requires": [],
+          "effects": [
+            {
+              "var": "group_morale",
+              "op": "subtract",
+              "value": 20
+            }
+          ],
+          "sim": {}
+        }
+      ],
+      "ending": ""
+    },
+    {
+      "id": "capture.slave_market",
+      "title": "Рынок рабов",
+      "text": "✅ Из GDD · GDD §21\nСреди пленных — бывший член группы игрока.",
+      "type": "choice",
+      "category": "factions",
+      "tags": [],
+      "samSystem": "",
+      "arc": "",
+      "chapter": "",
+      "eventSource": "faction",
+      "actionRef": {
+        "action": "",
+        "target": ""
+      },
+      "implementationStatus": {},
+      "refs": [
+        "f_slavers"
+      ],
+      "x": 0,
+      "y": 3430,
+      "trigger": {
+        "kind": "conditions",
+        "all": []
+      },
+      "effects": [],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "choices": [
+        {
+          "id": "capture.slave_market#0",
+          "label": "Выкупить",
+          "target": "trade.debt",
+          "requires": [],
+          "effects": [
+            {
+              "var": "group_size",
+              "op": "add",
+              "value": 1
+            },
+            {
+              "var": "debt_traders",
+              "op": "add",
+              "value": 20
+            }
+          ],
+          "sim": {}
+        },
+        {
+          "id": "capture.slave_market#1",
+          "label": "Освободить силой",
+          "target": "combat.watch_fight",
+          "requires": [],
+          "effects": [
+            {
+              "var": "rep_slavers",
+              "op": "subtract",
+              "value": 40
+            },
+            {
+              "var": "rep_community",
+              "op": "add",
+              "value": 15
+            }
+          ],
+          "sim": {}
+        },
+        {
+          "id": "capture.slave_market#2",
+          "label": "Пройти мимо",
+          "target": "exploration.ok",
+          "requires": [],
+          "effects": [
+            {
+              "var": "group_morale",
+              "op": "subtract",
+              "value": 15
+            }
+          ],
+          "sim": {}
+        }
+      ],
+      "ending": ""
+    },
+    {
+      "id": "capture.take_prisoner",
+      "title": "Игрок взял пленного",
+      "text": "✅ Из GDD · GDD §21\nДопросить, отпустить, обменять, продать, принять в группу.",
+      "type": "choice",
+      "category": "factions",
+      "tags": [],
+      "samSystem": "",
+      "arc": "",
+      "chapter": "",
+      "eventSource": "player",
+      "actionRef": {
+        "action": "",
+        "target": ""
+      },
+      "implementationStatus": {},
+      "refs": [],
+      "x": 0,
+      "y": 3560,
+      "trigger": {
+        "kind": "conditions",
+        "all": []
+      },
+      "effects": [],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "choices": [
+        {
+          "id": "capture.take_prisoner#0",
+          "label": "Допросить",
+          "target": "exploration.traces",
+          "requires": [],
+          "effects": [],
+          "sim": {}
+        },
+        {
+          "id": "capture.take_prisoner#1",
+          "label": "Отпустить",
+          "target": "exploration.ok",
+          "requires": [],
+          "effects": [
+            {
+              "var": "rep_raiders",
+              "op": "add",
+              "value": 5
+            }
+          ],
+          "sim": {}
+        },
+        {
+          "id": "capture.take_prisoner#2",
+          "label": "Продать работорговцам",
+          "target": "exploration.ok",
+          "requires": [],
+          "effects": [
+            {
+              "var": "rep_slavers",
+              "op": "add",
+              "value": 10
+            },
+            {
+              "var": "group_morale",
+              "op": "subtract",
+              "value": 10
+            }
+          ],
+          "sim": {}
+        },
+        {
+          "id": "capture.take_prisoner#3",
+          "label": "Принять в группу",
+          "target": "group.newcomer_arrives",
+          "requires": [],
+          "effects": [
+            {
+              "var": "group_size",
+              "op": "add",
+              "value": 1
+            }
+          ],
+          "sim": {}
+        }
+      ],
+      "ending": ""
+    },
+    {
+      "id": "capture.escaped_slave",
+      "title": "Беглый раб у двери",
+      "text": "💡 Предложение\nК убежищу прибежал беглец. За ним идут.",
+      "type": "choice",
+      "category": "factions",
+      "tags": [],
+      "samSystem": "",
+      "arc": "",
+      "chapter": "",
+      "eventSource": "npc",
+      "actionRef": {
+        "action": "",
+        "target": ""
+      },
+      "implementationStatus": {},
+      "refs": [],
+      "x": 0,
+      "y": 3690,
+      "trigger": {
+        "kind": "conditions",
+        "all": [
+          {
+            "var": "day",
+            "op": ">=",
+            "value": 15
+          }
+        ]
+      },
+      "effects": [],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "choices": [
+        {
+          "id": "capture.escaped_slave#0",
+          "label": "Укрыть",
+          "target": "group.newcomer_arrives",
+          "requires": [],
+          "effects": [
+            {
+              "var": "group_size",
+              "op": "add",
+              "value": 1
+            },
+            {
+              "var": "rep_slavers",
+              "op": "subtract",
+              "value": 20
+            }
+          ],
+          "sim": {}
+        },
+        {
+          "id": "capture.escaped_slave#1",
+          "label": "Выдать",
+          "target": "exploration.ok",
+          "requires": [],
+          "effects": [
+            {
+              "var": "rep_slavers",
+              "op": "add",
+              "value": 10
+            },
+            {
+              "var": "group_morale",
+              "op": "subtract",
+              "value": 10
+            }
+          ],
+          "sim": {}
+        }
+      ],
+      "ending": ""
+    },
+    {
+      "id": "group.newcomer_arrives",
+      "title": "Новый человек",
+      "text": "✅ Из GDD · GDD §24\nПришёл сам или встречен в пути. Принять, проверить или прогнать.",
+      "type": "choice",
+      "category": "ai",
+      "tags": [],
+      "samSystem": "",
+      "arc": "",
+      "chapter": "",
+      "eventSource": "npc",
+      "actionRef": {
+        "action": "",
+        "target": ""
+      },
+      "implementationStatus": {},
+      "refs": [
+        "g_loners"
+      ],
+      "x": 760,
+      "y": 3170,
+      "trigger": {
+        "kind": "conditions",
+        "all": []
+      },
+      "effects": [],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "choices": [
+        {
+          "id": "group.newcomer_arrives#0",
+          "label": "Принять",
+          "target": "group.ok",
+          "requires": [],
+          "effects": [
+            {
+              "var": "group_size",
+              "op": "add",
+              "value": 1
+            },
+            {
+              "var": "shelter_food_days",
+              "op": "subtract",
+              "value": 1
+            }
+          ],
+          "sim": {}
+        },
+        {
+          "id": "group.newcomer_arrives#1",
+          "label": "Испытательный срок",
+          "target": "group.betrayal",
+          "requires": [],
+          "effects": [],
+          "sim": {}
+        },
+        {
+          "id": "group.newcomer_arrives#2",
+          "label": "Прогнать",
+          "target": "exploration.ok",
+          "requires": [],
+          "effects": [],
+          "sim": {}
+        }
+      ],
+      "ending": ""
+    },
+    {
+      "id": "group.ok",
+      "title": "В группе спокойно",
+      "text": "💡 Предложение\nПока все ладят.",
+      "type": "event",
+      "category": "ai",
+      "tags": [],
+      "samSystem": "",
+      "arc": "",
+      "chapter": "",
+      "eventSource": "relationship",
+      "actionRef": {
+        "action": "",
+        "target": ""
+      },
+      "implementationStatus": {},
+      "refs": [],
+      "x": 1030,
+      "y": 3170,
+      "trigger": {
+        "kind": "conditions",
+        "all": []
+      },
+      "effects": [],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "choices": [],
+      "ending": ""
+    },
+    {
+      "id": "group.quarrel",
+      "title": "Ссора",
+      "text": "✅ Из GDD · GDD §23\nДвое не могут ужиться.",
+      "type": "background",
+      "category": "ai",
+      "tags": [],
+      "samSystem": "",
+      "arc": "",
+      "chapter": "",
+      "eventSource": "relationship",
+      "actionRef": {
+        "action": "",
+        "target": ""
+      },
+      "implementationStatus": {},
+      "refs": [],
+      "x": 760,
+      "y": 3300,
+      "trigger": {
+        "kind": "conditions",
+        "all": [
+          {
+            "var": "group_tension",
+            "op": ">=",
+            "value": 40
+          }
+        ]
+      },
+      "effects": [
+        {
+          "var": "group_tension",
+          "op": "add",
+          "value": 10
+        },
+        {
+          "var": "group_morale",
+          "op": "subtract",
+          "value": 5
+        }
+      ],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "choices": [
+        {
+          "id": "group.quarrel#0",
+          "label": "Помирить",
+          "target": "group.ok",
+          "requires": [],
+          "effects": [
+            {
+              "var": "group_tension",
+              "op": "subtract",
+              "value": 15
+            }
+          ],
+          "sim": {}
+        },
+        {
+          "id": "group.quarrel#1",
+          "label": "Раскол",
+          "target": "group.split",
+          "requires": [],
+          "effects": [],
+          "sim": {}
+        }
+      ],
+      "ending": ""
+    },
+    {
+      "id": "group.romance",
+      "title": "Двое сближаются",
+      "text": "💡 Предложение\nУровень «любимый человек» (§23). Смерть одного ударит по другому сильнее всего.",
+      "type": "background",
+      "category": "ai",
+      "tags": [],
+      "samSystem": "",
+      "arc": "",
+      "chapter": "",
+      "eventSource": "relationship",
+      "actionRef": {
+        "action": "",
+        "target": ""
+      },
+      "implementationStatus": {},
+      "refs": [],
+      "x": 760,
+      "y": 3430,
+      "trigger": {
+        "kind": "scheduled",
+        "afterHours": 480,
+        "sinceNode": "",
+        "repeat": true
+      },
+      "effects": [
+        {
+          "var": "group_morale",
+          "op": "add",
+          "value": 10
+        }
+      ],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "choices": [],
+      "ending": ""
+    },
+    {
+      "id": "group.refuses_order",
+      "title": "Отказ выполнять приказ",
+      "text": "✅ Из GDD · GDD §23\nНизкая лояльность.",
+      "type": "event",
+      "category": "ai",
+      "tags": [],
+      "samSystem": "",
+      "arc": "",
+      "chapter": "",
+      "eventSource": "npc",
+      "actionRef": {
+        "action": "",
+        "target": ""
+      },
+      "implementationStatus": {},
+      "refs": [],
+      "x": 760,
+      "y": 3560,
+      "trigger": {
+        "kind": "conditions",
+        "all": [
+          {
+            "var": "group_morale",
+            "op": "<",
+            "value": 30
+          }
+        ]
+      },
+      "effects": [
+        {
+          "var": "group_tension",
+          "op": "add",
+          "value": 10
+        }
+      ],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "choices": [],
+      "ending": ""
+    },
+    {
+      "id": "group.desertion",
+      "title": "Ушёл ночью",
+      "text": "✅ Из GDD · GDD §23\nЧлен группы ушёл — и, кажется, с вещами.",
+      "type": "event",
+      "category": "ai",
+      "tags": [],
+      "samSystem": "",
+      "arc": "",
+      "chapter": "",
+      "eventSource": "npc",
+      "actionRef": {
+        "action": "",
+        "target": ""
+      },
+      "implementationStatus": {},
+      "refs": [],
+      "x": 760,
+      "y": 3690,
+      "trigger": {
+        "kind": "conditions",
+        "all": [
+          {
+            "var": "group_morale",
+            "op": "<",
+            "value": 20
+          }
+        ]
+      },
+      "effects": [
+        {
+          "var": "group_size",
+          "op": "subtract",
+          "value": 1
+        },
+        {
+          "var": "shelter_food_days",
+          "op": "subtract",
+          "value": 2
+        }
+      ],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "choices": [
+        {
+          "id": "group.desertion#0",
+          "label": "Позже он вернётся",
+          "target": "group.former_member_returns",
+          "requires": [],
+          "effects": [],
+          "sim": {}
+        }
+      ],
+      "ending": ""
+    },
+    {
+      "id": "group.betrayal",
+      "title": "Предательство",
+      "text": "✅ Из GDD · GDD §23\nЧлен группы сливает информацию об убежище фракции.",
+      "type": "event",
+      "category": "ai",
+      "tags": [],
+      "samSystem": "",
+      "arc": "",
+      "chapter": "",
+      "eventSource": "npc",
+      "actionRef": {
+        "action": "",
+        "target": ""
+      },
+      "implementationStatus": {},
+      "refs": [],
+      "x": 1030,
+      "y": 3300,
+      "trigger": {
+        "kind": "conditions",
+        "all": []
+      },
+      "effects": [
+        {
+          "var": "shelter_known",
+          "op": "set",
+          "value": 1
+        },
+        {
+          "var": "group_morale",
+          "op": "subtract",
+          "value": 15
+        }
+      ],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "choices": [
+        {
+          "id": "group.betrayal#0",
+          "label": "Изгнать",
+          "target": "group.exile",
+          "requires": [],
+          "effects": [],
+          "sim": {}
+        }
+      ],
+      "ending": ""
+    },
+    {
+      "id": "group.split",
+      "title": "Группа раскололась",
+      "text": "✅ Из GDD · GDD §23\nЧасть людей уходит и забирает свою долю.",
+      "type": "event",
+      "category": "ai",
+      "tags": [],
+      "samSystem": "",
+      "arc": "",
+      "chapter": "",
+      "eventSource": "relationship",
+      "actionRef": {
+        "action": "",
+        "target": ""
+      },
+      "implementationStatus": {},
+      "refs": [],
+      "x": 1030,
+      "y": 3430,
+      "trigger": {
+        "kind": "conditions",
+        "all": []
+      },
+      "effects": [
+        {
+          "var": "group_size",
+          "op": "subtract",
+          "value": 2
+        },
+        {
+          "var": "group_tension",
+          "op": "set",
+          "value": 20
+        }
+      ],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "choices": [],
+      "ending": ""
+    },
+    {
+      "id": "group.exile",
+      "title": "Изгнание",
+      "text": "✅ Из GDD · GDD §23\nИзгнанный запомнит и может вернуться — один или с другими.",
+      "type": "event",
+      "category": "ai",
+      "tags": [],
+      "samSystem": "",
+      "arc": "",
+      "chapter": "",
+      "eventSource": "player",
+      "actionRef": {
+        "action": "",
+        "target": ""
+      },
+      "implementationStatus": {},
+      "refs": [],
+      "x": 1300,
+      "y": 3170,
+      "trigger": {
+        "kind": "conditions",
+        "all": []
+      },
+      "effects": [
+        {
+          "var": "group_size",
+          "op": "subtract",
+          "value": 1
+        },
+        {
+          "var": "world_danger",
+          "op": "add",
+          "value": 3
+        }
+      ],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "choices": [],
+      "ending": ""
+    },
+    {
+      "id": "group.former_member_returns",
+      "title": "Ушедший вернулся",
+      "text": "✅ Из GDD · GDD §21\n«Возвращать ранее ушедших членов».",
+      "type": "choice",
+      "category": "ai",
+      "tags": [],
+      "samSystem": "",
+      "arc": "",
+      "chapter": "",
+      "eventSource": "npc",
+      "actionRef": {
+        "action": "",
+        "target": ""
+      },
+      "implementationStatus": {},
+      "refs": [],
+      "x": 1030,
+      "y": 3560,
+      "trigger": {
+        "kind": "conditions",
+        "all": []
+      },
+      "effects": [],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "choices": [
+        {
+          "id": "group.former_member_returns#0",
+          "label": "Принять обратно",
+          "target": "group.ok",
+          "requires": [],
+          "effects": [
+            {
+              "var": "group_size",
+              "op": "add",
+              "value": 1
+            },
+            {
+              "var": "group_tension",
+              "op": "add",
+              "value": 5
+            }
+          ],
+          "sim": {}
+        },
+        {
+          "id": "group.former_member_returns#1",
+          "label": "Прогнать",
+          "target": "exploration.ok",
+          "requires": [],
+          "effects": [],
+          "sim": {}
+        }
+      ],
+      "ending": ""
+    },
+    {
+      "id": "combat.ambush_on_road",
+      "title": "Засада на трассе",
+      "text": "✅ Из GDD · GDD §21–22\nБой, бегство или откуп.",
+      "type": "choice",
+      "category": "combat",
+      "tags": [],
+      "samSystem": "",
+      "arc": "",
+      "chapter": "",
+      "eventSource": "faction",
+      "actionRef": {
+        "action": "",
+        "target": ""
+      },
+      "implementationStatus": {},
+      "refs": [
+        "loc_highway",
+        "f_raiders"
+      ],
+      "x": 1730,
+      "y": 3170,
+      "trigger": {
+        "kind": "conditions",
+        "all": []
+      },
+      "effects": [],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "choices": [
+        {
+          "id": "combat.ambush_on_road#0",
+          "label": "Драться",
+          "target": "health.injury_on_raid",
+          "requires": [],
+          "effects": [
+            {
+              "var": "noise_level",
+              "op": "add",
+              "value": 20
+            }
+          ],
+          "sim": {}
+        },
+        {
+          "id": "combat.ambush_on_road#1",
+          "label": "Бежать",
+          "target": "exploration.ok",
+          "requires": [],
+          "effects": [
+            {
+              "var": "shelter_food_days",
+              "op": "subtract",
+              "value": 1
+            }
+          ],
+          "sim": {}
+        },
+        {
+          "id": "combat.ambush_on_road#2",
+          "label": "Откупиться",
+          "target": "exploration.ok",
+          "requires": [],
+          "effects": [
+            {
+              "var": "shelter_water",
+              "op": "subtract",
+              "value": 50
+            }
+          ],
+          "sim": {}
+        },
+        {
+          "id": "combat.ambush_on_road#3",
+          "label": "Сдаться",
+          "target": "capture.player_captured",
+          "requires": [],
+          "effects": [],
+          "sim": {}
+        }
+      ],
+      "ending": ""
+    },
+    {
+      "id": "combat.zombies_drawn_by_noise",
+      "title": "Шум привлёк зомби",
+      "text": "✅ Из GDD · GDD §22\nВзлом, выстрел или генератор — и к месту стягиваются зомби.",
+      "type": "event",
+      "category": "combat",
+      "tags": [],
+      "samSystem": "",
+      "arc": "",
+      "chapter": "",
+      "eventSource": "world",
+      "actionRef": {
+        "action": "",
+        "target": ""
+      },
+      "implementationStatus": {},
+      "refs": [
+        "t_zombies"
+      ],
+      "x": 1730,
+      "y": 3300,
+      "trigger": {
+        "kind": "conditions",
+        "all": [
+          {
+            "var": "noise_level",
+            "op": ">=",
+            "value": 40
+          }
+        ]
+      },
+      "effects": [
+        {
+          "var": "zombie_pressure",
+          "op": "add",
+          "value": 20
+        },
+        {
+          "var": "noise_level",
+          "op": "subtract",
+          "value": 20
+        }
+      ],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "choices": [
+        {
+          "id": "combat.zombies_drawn_by_noise#0",
+          "label": "Ночью у двери толпа",
+          "target": "combat.night_horde",
+          "requires": [],
+          "effects": [],
+          "sim": {}
+        }
+      ],
+      "ending": ""
+    },
+    {
+      "id": "combat.night_horde",
+      "title": "Толпа у убежища",
+      "text": "💡 Предложение\nНочью у входа собирается толпа.",
+      "type": "choice",
+      "category": "combat",
+      "tags": [],
+      "samSystem": "",
+      "arc": "",
+      "chapter": "",
+      "eventSource": "world",
+      "actionRef": {
+        "action": "",
+        "target": ""
+      },
+      "implementationStatus": {},
+      "refs": [],
+      "x": 2000,
+      "y": 3170,
+      "trigger": {
+        "kind": "conditions",
+        "all": [
+          {
+            "var": "zombie_pressure",
+            "op": ">=",
+            "value": 60
+          }
+        ]
+      },
+      "effects": [],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "choices": [
+        {
+          "id": "combat.night_horde#0",
+          "label": "Держать оборону",
+          "target": "health.injury_on_raid",
+          "requires": [],
+          "effects": [
+            {
+              "var": "shelter_condition",
+              "op": "subtract",
+              "value": 10
+            },
+            {
+              "var": "zombie_pressure",
+              "op": "subtract",
+              "value": 30
+            }
+          ],
+          "sim": {}
+        },
+        {
+          "id": "combat.night_horde#1",
+          "label": "Затаиться и ждать",
+          "target": "group.ok",
+          "requires": [],
+          "effects": [
+            {
+              "var": "group_morale",
+              "op": "subtract",
+              "value": 10
+            },
+            {
+              "var": "zombie_pressure",
+              "op": "subtract",
+              "value": 15
+            }
+          ],
+          "sim": {}
+        }
+      ],
+      "ending": ""
+    },
+    {
+      "id": "combat.raid_on_shelter",
+      "title": "Нападение на убежище",
+      "text": "✅ Из GDD · GDD §21\nПотери, украденные запасы, повреждения.",
+      "type": "choice",
+      "category": "combat",
+      "tags": [],
+      "samSystem": "",
+      "arc": "",
+      "chapter": "",
+      "eventSource": "faction",
+      "actionRef": {
+        "action": "",
+        "target": ""
+      },
+      "implementationStatus": {},
+      "refs": [],
+      "x": 1730,
+      "y": 3430,
+      "trigger": {
+        "kind": "conditions",
+        "all": [
+          {
+            "var": "shelter_known",
+            "op": "==",
+            "value": 1
+          },
+          {
+            "var": "rep_raiders",
+            "op": "<=",
+            "value": -60
+          }
+        ]
+      },
+      "effects": [],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "choices": [
+        {
+          "id": "combat.raid_on_shelter#0",
+          "label": "Отбились",
+          "target": "health.injury_on_raid",
+          "requires": [],
+          "effects": [
+            {
+              "var": "shelter_condition",
+              "op": "subtract",
+              "value": 15
+            },
+            {
+              "var": "rep_raiders",
+              "op": "add",
+              "value": -10
+            }
+          ],
+          "sim": {}
+        },
+        {
+          "id": "combat.raid_on_shelter#1",
+          "label": "Не отбились",
+          "target": "capture.member_captured",
+          "requires": [],
+          "effects": [
+            {
+              "var": "shelter_food_days",
+              "op": "subtract",
+              "value": 5
+            },
+            {
+              "var": "shelter_water",
+              "op": "subtract",
+              "value": 150
+            }
+          ],
+          "sim": {}
+        }
+      ],
+      "ending": ""
+    },
+    {
+      "id": "combat.watch_fight",
+      "title": "Чужой бой",
+      "text": "✅ Из GDD · GDD §21\nНаблюдать, вмешаться или воспользоваться последствиями.",
+      "type": "choice",
+      "category": "combat",
+      "tags": [],
+      "samSystem": "",
+      "arc": "",
+      "chapter": "",
+      "eventSource": "faction",
+      "actionRef": {
+        "action": "",
+        "target": ""
+      },
+      "implementationStatus": {},
+      "refs": [],
+      "x": 1730,
+      "y": 3560,
+      "trigger": {
+        "kind": "conditions",
+        "all": []
+      },
+      "effects": [],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "choices": [
+        {
+          "id": "combat.watch_fight#0",
+          "label": "Наблюдать",
+          "target": "exploration.ok",
+          "requires": [],
+          "effects": [],
+          "sim": {}
+        },
+        {
+          "id": "combat.watch_fight#1",
+          "label": "Помочь слабым",
+          "target": "health.injury_on_raid",
+          "requires": [],
+          "effects": [
+            {
+              "var": "rep_community",
+              "op": "add",
+              "value": 15
+            },
+            {
+              "var": "rep_raiders",
+              "op": "subtract",
+              "value": 15
+            }
+          ],
+          "sim": {}
+        },
+        {
+          "id": "combat.watch_fight#2",
+          "label": "Обобрать павших после",
+          "target": "death.stranger_body_found",
+          "requires": [],
+          "effects": [
+            {
+              "var": "rep_community",
+              "op": "subtract",
+              "value": 5
+            }
+          ],
+          "sim": {}
+        }
+      ],
+      "ending": ""
+    },
+    {
+      "id": "repair.equipment_breaks",
+      "title": "Сломалось оборудование",
+      "text": "✅ Из GDD · GDD §15\nНасос, фильтр или верстак. Ведёт к кризису воды или энергии.",
+      "type": "choice",
+      "category": "repair",
+      "tags": [],
+      "samSystem": "",
+      "arc": "",
+      "chapter": "",
+      "eventSource": "system",
+      "actionRef": {
+        "action": "",
+        "target": ""
+      },
+      "implementationStatus": {},
+      "refs": [],
+      "x": 2490,
+      "y": 3170,
+      "trigger": {
+        "kind": "conditions",
+        "all": [
+          {
+            "var": "shelter_condition",
+            "op": "<",
+            "value": 50
+          }
+        ]
+      },
+      "effects": [],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "choices": [
+        {
+          "id": "repair.equipment_breaks#0",
+          "label": "Починить своими силами",
+          "target": "building.ok",
+          "requires": [],
+          "effects": [
+            {
+              "var": "shelter_condition",
+              "op": "add",
+              "value": 15
+            }
+          ],
+          "sim": {}
+        },
+        {
+          "id": "repair.equipment_breaks#1",
+          "label": "Отложить",
+          "target": "water.tank_leak",
+          "requires": [],
+          "effects": [],
+          "sim": {}
+        }
+      ],
+      "ending": ""
+    },
+    {
+      "id": "building.ok",
+      "title": "Работает",
+      "text": "💡 Предложение\nОборудование в порядке.",
+      "type": "event",
+      "category": "building",
+      "tags": [],
+      "samSystem": "",
+      "arc": "",
+      "chapter": "",
+      "eventSource": "system",
+      "actionRef": {
+        "action": "",
+        "target": ""
+      },
+      "implementationStatus": {},
+      "refs": [],
+      "x": 2760,
+      "y": 3170,
+      "trigger": {
+        "kind": "conditions",
+        "all": []
+      },
+      "effects": [],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "choices": [],
+      "ending": ""
+    },
+    {
+      "id": "physics.shelf_collapse",
+      "title": "Рухнула перегруженная полка",
+      "text": "✅ Из GDD · GDD §16\nНагрузка + время → поломка → падение предметов.",
+      "type": "event",
+      "category": "physics",
+      "tags": [],
+      "samSystem": "",
+      "arc": "",
+      "chapter": "",
+      "eventSource": "system",
+      "actionRef": {
+        "action": "",
+        "target": ""
+      },
+      "implementationStatus": {},
+      "refs": [],
+      "x": 2490,
+      "y": 3300,
+      "trigger": {
+        "kind": "scheduled",
+        "afterHours": 384,
+        "sinceNode": "",
+        "repeat": true
+      },
+      "effects": [
+        {
+          "var": "shelter_meds",
+          "op": "subtract",
+          "value": 1
+        },
+        {
+          "var": "shelter_condition",
+          "op": "subtract",
+          "value": 3
+        }
+      ],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "choices": [],
+      "ending": ""
+    },
+    {
+      "id": "building.expansion",
+      "title": "Расширили убежище",
+      "text": "✅ Из GDD · GDD §3.3\nНовая комната (например, оранжерея). Больше места — больше потребление.",
+      "type": "event",
+      "category": "building",
+      "tags": [],
+      "samSystem": "",
+      "arc": "",
+      "chapter": "",
+      "eventSource": "player",
+      "actionRef": {
+        "action": "",
+        "target": ""
+      },
+      "implementationStatus": {},
+      "refs": [],
+      "x": 2490,
+      "y": 3430,
+      "trigger": {
+        "kind": "conditions",
+        "all": []
+      },
+      "effects": [
+        {
+          "var": "shelter_condition",
+          "op": "add",
+          "value": 10
+        },
+        {
+          "var": "shelter_energy",
+          "op": "subtract",
+          "value": 10
+        },
+        {
+          "var": "has_greenhouse",
+          "op": "set",
+          "value": 1
+        }
+      ],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "choices": [],
+      "ending": ""
+    },
+    {
+      "id": "digging.found_cavity",
+      "title": "За стеной пустота",
+      "text": "💡 Предложение\nКопая, наткнулись на старый тоннель или чужой подвал. Новый путь — и для врагов тоже.",
+      "type": "choice",
+      "category": "digging",
+      "tags": [],
+      "samSystem": "",
+      "arc": "",
+      "chapter": "",
+      "eventSource": "location",
+      "actionRef": {
+        "action": "",
+        "target": ""
+      },
+      "implementationStatus": {},
+      "refs": [],
+      "x": 2490,
+      "y": 3560,
+      "trigger": {
+        "kind": "conditions",
+        "all": []
+      },
+      "effects": [],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "choices": [
+        {
+          "id": "digging.found_cavity#0",
+          "label": "Исследовать",
+          "target": "exploration.other_bunker",
+          "requires": [],
+          "effects": [],
+          "sim": {}
+        },
+        {
+          "id": "digging.found_cavity#1",
+          "label": "Замуровать",
+          "target": "building.ok",
+          "requires": [],
+          "effects": [],
+          "sim": {}
+        }
+      ],
+      "ending": ""
+    },
+    {
+      "id": "light.dark_room_fear",
+      "title": "Тревога в темноте",
+      "text": "💡 Предложение\nБез света в убежище растёт тревога.",
+      "type": "event",
+      "category": "light",
+      "tags": [],
+      "samSystem": "",
+      "arc": "",
+      "chapter": "",
+      "eventSource": "system",
+      "actionRef": {
+        "action": "",
+        "target": ""
+      },
+      "implementationStatus": {},
+      "refs": [],
+      "x": 2490,
+      "y": 3690,
+      "trigger": {
+        "kind": "conditions",
+        "all": []
+      },
+      "effects": [
+        {
+          "var": "group_morale",
+          "op": "subtract",
+          "value": 5
+        },
+        {
+          "var": "group_tension",
+          "op": "add",
+          "value": 5
+        }
+      ],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "choices": [],
+      "ending": ""
+    },
+    {
+      "id": "crafting.first_tool",
+      "title": "Первый важный инструмент",
+      "text": "✅ Из GDD · GDD §14\nСделан первый инструмент или оружие — открываются новые действия на вылазках.",
+      "type": "event",
+      "category": "crafting",
+      "tags": [],
+      "samSystem": "",
+      "arc": "",
+      "chapter": "",
+      "eventSource": "player",
+      "actionRef": {
+        "action": "",
+        "target": ""
+      },
+      "implementationStatus": {},
+      "refs": [],
+      "x": 2490,
+      "y": 3820,
+      "trigger": {
+        "kind": "conditions",
+        "all": []
+      },
+      "effects": [],
+      "sim": {
+        "durationHours": 1,
+        "dangerChance": 0,
+        "foodCost": 0,
+        "waterCost": 0,
+        "requiresItems": [],
+        "requiresSkills": [],
+        "resourceEffects": []
+      },
+      "choices": [],
+      "ending": ""
+    }
+  ],
+  "stickyNotes": [
+    {
+      "id": "note_story",
+      "x": 0,
+      "y": 0,
+      "text": "Начало и большие решения — Стартовый узел игры и решения, которые меняют всю партию.",
+      "color": "yellow"
+    },
+    {
+      "id": "note_time",
+      "x": 760,
+      "y": 0,
+      "text": "Время, погода и фазы мира — Единое игровое время (§9). Фазы — предложение: мир «просыпается» постепенно.",
+      "color": "yellow"
+    },
+    {
+      "id": "note_water",
+      "x": 1520,
+      "y": 0,
+      "text": "Вода — Вода — ресурс внутри объектов (резервуар, бочка). Баланс: производство + накопление − потребление (§7, §10.2).",
+      "color": "yellow"
+    },
+    {
+      "id": "note_energy",
+      "x": 2490,
+      "y": 0,
+      "text": "Энергия — Свой энергоконтур у объектов: аккумуляторы, солнечные панели, ветряки, велогенераторы (§8).",
+      "color": "yellow"
+    },
+    {
+      "id": "note_food",
+      "x": 0,
+      "y": 1240,
+      "text": "Еда и ферма — Еда: консервы, сырьё, готовая еда; порча со временем (§10.1). Растения — объекты мира (§10.7).",
+      "color": "yellow"
+    },
+    {
+      "id": "note_health",
+      "x": 970,
+      "y": 1240,
+      "text": "Здоровье и смерть — Единая система здоровья: травмы, болезни, инфекции, лечение через действия (§26). Смерть постоянна и оставляет след (§27).",
+      "color": "yellow"
+    },
+    {
+      "id": "note_exploration",
+      "x": 2210,
+      "y": 1240,
+      "text": "Исследование, лут и переходы — Мир физический: игрок сам идёт, переходы через двери, края, лестницы, указатели (§4). Места меняют состояние (§18).",
+      "color": "yellow"
+    },
+    {
+      "id": "note_factions",
+      "x": 3450,
+      "y": 1240,
+      "text": "Фракции и торговля — Фракции живут без игрока: добывают, торгуют, воюют, раскалываются, меняют лидеров (§21).",
+      "color": "yellow"
+    },
+    {
+      "id": "note_capture",
+      "x": 0,
+      "y": 3000,
+      "text": "Плен и рабство — В GDD это расписано подробно: захват, плен, продажа, обмен, выкуп, побег, рабство (§21).",
+      "color": "yellow"
+    },
+    {
+      "id": "note_ai",
+      "x": 760,
+      "y": 3000,
+      "text": "Группа и отношения — Любой NPC может стать членом группы (§24). Отношения влияют на доверие, лояльность, предательство, раскол (§23).",
+      "color": "yellow"
+    },
+    {
+      "id": "note_combat",
+      "x": 1730,
+      "y": 3000,
+      "text": "Бой, угрозы и шум — Угрозы реагируют на время суток, погоду, шум, следы и нехватку ресурсов (§22).",
+      "color": "yellow"
+    },
+    {
+      "id": "note_building",
+      "x": 2490,
+      "y": 3000,
+      "text": "Убежище как место — Механики (рецепты, прочность, нагрузка) описывают ОС и Object Plan. Здесь только события, которые из них вытекают (§14–16).",
+      "color": "yellow"
+    }
+  ],
+  "entities": [
+    {
+      "id": "loc_bunker",
+      "kind": "location",
+      "name": "Бункер игрока",
+      "ref": null,
+      "note": "✅ Из GDD · §3. Несколько жилых комнат, вода, энергия, хранение, мастерская.",
+      "status": "active",
+      "lifecycle": ""
+    },
+    {
+      "id": "loc_outskirts",
+      "kind": "location",
+      "name": "Окрестности бункера",
+      "ref": null,
+      "note": "💡 Предложение · Буфер между бункером и трассой: вход/шлюз, первые находки, следы чужих.",
+      "status": "active",
+      "lifecycle": ""
+    },
+    {
+      "id": "loc_highway",
+      "kind": "location",
+      "name": "Главная трасса и развилки",
+      "ref": null,
+      "note": "✅ Из GDD · §4.2. Дорога, указатели, брошенные машины.",
+      "status": "active",
+      "lifecycle": ""
+    },
+    {
+      "id": "loc_city",
+      "kind": "location",
+      "name": "Город",
+      "ref": null,
+      "note": "✅ Из GDD · §4.2. Улицы, жилые дома, магазины, офисы, гаражи.",
+      "status": "active",
+      "lifecycle": ""
+    },
+    {
+      "id": "loc_industrial",
+      "kind": "location",
+      "name": "Окраина / промзона",
+      "ref": null,
+      "note": "💡 Предложение · Склады, машинные, водонапорные башни.",
+      "status": "active",
+      "lifecycle": ""
+    },
+    {
+      "id": "loc_foreign",
+      "kind": "location",
+      "name": "Чужие территории",
+      "ref": null,
+      "note": "✅ Из GDD · §3.4, §21. Другие бункеры, поселения, лагеря фракций.",
+      "status": "active",
+      "lifecycle": ""
+    },
+    {
+      "id": "loc_danger",
+      "kind": "location",
+      "name": "Опасные / заражённые зоны",
+      "ref": null,
+      "note": "✅ Из GDD · §22.",
+      "status": "active",
+      "lifecycle": ""
+    },
+    {
+      "id": "loc_other_bunker",
+      "kind": "location",
+      "name": "Чужой бункер",
+      "ref": null,
+      "note": "✅ Из GDD · §3.4: больше / лучше оборудован / с выжившими / заброшен.",
+      "status": "active",
+      "lifecycle": ""
+    },
+    {
+      "id": "loc_raider_camp",
+      "kind": "location",
+      "name": "Лагерь рейдеров",
+      "ref": null,
+      "note": "💡 Предложение",
+      "status": "active",
+      "lifecycle": ""
+    },
+    {
+      "id": "loc_water_tower",
+      "kind": "location",
+      "name": "Водонапорная башня",
+      "ref": null,
+      "note": "✅ Из GDD · §7.2 источник воды.",
+      "status": "active",
+      "lifecycle": ""
+    },
+    {
+      "id": "f_community",
+      "kind": "faction",
+      "name": "Община",
+      "ref": null,
+      "note": "✅ Из GDD · Выжившие в другом бункере/поселении (§3.4). Ферма, вода, ремонт.",
+      "status": "active",
+      "lifecycle": ""
+    },
+    {
+      "id": "f_traders",
+      "kind": "faction",
+      "name": "Торговцы / караван",
+      "ref": null,
+      "note": "✅ Из GDD · Торговля и торговые маршруты (§21).",
+      "status": "active",
+      "lifecycle": ""
+    },
+    {
+      "id": "f_raiders",
+      "kind": "faction",
+      "name": "Рейдеры / банда",
+      "ref": null,
+      "note": "✅ Из GDD · Рейдеры, банды, мародёры (§22).",
+      "status": "active",
+      "lifecycle": ""
+    },
+    {
+      "id": "f_slavers",
+      "kind": "faction",
+      "name": "Работорговцы",
+      "ref": null,
+      "note": "✅ Из GDD · Плен и рабство (§21).",
+      "status": "active",
+      "lifecycle": ""
+    },
+    {
+      "id": "f_remnant",
+      "kind": "faction",
+      "name": "Остатки порядка",
+      "ref": null,
+      "note": "💡 Предложение · Военные/охрана/бывшая власть: оружие, дисциплина, свои правила.",
+      "status": "active",
+      "lifecycle": ""
+    },
+    {
+      "id": "g_loners",
+      "kind": "group",
+      "name": "Одиночки и мародёры",
+      "ref": null,
+      "note": "✅ Из GDD · Независимые NPC (§21) — источник новых членов группы.",
+      "status": "active",
+      "lifecycle": ""
+    },
+    {
+      "id": "g_player",
+      "kind": "group",
+      "name": "Группа игрока",
+      "ref": null,
+      "note": "✅ Из GDD · §6, §24.",
+      "status": "active",
+      "lifecycle": ""
+    },
+    {
+      "id": "t_zombies",
+      "kind": "group",
+      "name": "Зомби",
+      "ref": null,
+      "note": "✅ Из GDD · §22. ❓ Количество типов не определено.",
+      "status": "active",
+      "lifecycle": ""
+    },
+    {
+      "id": "t_animals",
+      "kind": "group",
+      "name": "Опасные животные",
+      "ref": null,
+      "note": "✅ Из GDD · §22.",
+      "status": "active",
+      "lifecycle": ""
+    },
+    {
+      "id": "t_mutants",
+      "kind": "group",
+      "name": "Мутировавшие существа",
+      "ref": null,
+      "note": "✅ Из GDD · §22.",
+      "status": "active",
+      "lifecycle": ""
+    },
+    {
+      "id": "r_water",
+      "kind": "resource",
+      "name": "Вода",
+      "ref": null,
+      "note": "✅ Из GDD",
+      "status": "active",
+      "lifecycle": ""
+    },
+    {
+      "id": "r_energy",
+      "kind": "resource",
+      "name": "Энергия",
+      "ref": null,
+      "note": "✅ Из GDD",
+      "status": "active",
+      "lifecycle": ""
+    },
+    {
+      "id": "r_food",
+      "kind": "resource",
+      "name": "Еда",
+      "ref": null,
+      "note": "✅ Из GDD",
+      "status": "active",
+      "lifecycle": ""
+    },
+    {
+      "id": "r_meds",
+      "kind": "resource",
+      "name": "Медикаменты",
+      "ref": null,
+      "note": "✅ Из GDD",
+      "status": "active",
+      "lifecycle": ""
+    },
+    {
+      "id": "r_fuel",
+      "kind": "resource",
+      "name": "Топливо",
+      "ref": null,
+      "note": "✅ Из GDD",
+      "status": "active",
+      "lifecycle": ""
+    },
+    {
+      "id": "k_catastrophe",
+      "kind": "concept",
+      "name": "Катастрофа (что случилось с миром)",
+      "ref": null,
+      "note": "❓ Не решено · Нигде не описана: что произошло, сколько лет прошло, откуда зомби.",
+      "status": "active",
+      "lifecycle": ""
+    },
+    {
+      "id": "k_slavery",
+      "kind": "concept",
+      "name": "Плен и рабство",
+      "ref": null,
+      "note": "✅ Из GDD · §21.",
+      "status": "active",
+      "lifecycle": ""
+    }
+  ],
+  "relationTypes": [
+    {
+      "id": "rt_состоит_в",
+      "name": "состоит_в",
+      "inverseName": "включает",
+      "symmetric": false
+    },
+    {
+      "id": "rt_находится_в",
+      "name": "находится_в",
+      "inverseName": "",
+      "symmetric": false
+    },
+    {
+      "id": "rt_содержит",
+      "name": "содержит",
+      "inverseName": "часть_от",
+      "symmetric": false
+    },
+    {
+      "id": "rt_владеет",
+      "name": "владеет",
+      "inverseName": "принадлежит",
+      "symmetric": false
+    },
+    {
+      "id": "rt_может_делать",
+      "name": "может_делать",
+      "inverseName": "",
+      "symmetric": false
+    },
+    {
+      "id": "rt_использует",
+      "name": "использует",
+      "inverseName": "",
+      "symmetric": false
+    },
+    {
+      "id": "rt_производит",
+      "name": "производит",
+      "inverseName": "",
+      "symmetric": false
+    },
+    {
+      "id": "rt_удовлетворяет_потребность",
+      "name": "удовлетворяет_потребность",
+      "inverseName": "",
+      "symmetric": false
+    },
+    {
+      "id": "rt_имеет_навык",
+      "name": "имеет_навык",
+      "inverseName": "",
+      "symmetric": false
+    },
+    {
+      "id": "rt_имеет_потребность",
+      "name": "имеет_потребность",
+      "inverseName": "",
+      "symmetric": false
+    },
+    {
+      "id": "rt_является",
+      "name": "является",
+      "inverseName": "",
+      "symmetric": false
+    },
+    {
+      "id": "rt_поддерживает",
+      "name": "поддерживает",
+      "inverseName": "",
+      "symmetric": false
+    },
+    {
+      "id": "rt_друг_с",
+      "name": "друг_с",
+      "inverseName": "",
+      "symmetric": true
+    },
+    {
+      "id": "rt_враг_с",
+      "name": "враг_с",
+      "inverseName": "",
+      "symmetric": true
+    }
+  ],
+  "relations": [
+    {
+      "id": "rel_0",
+      "type": "rt_находится_в",
+      "from": "loc_outskirts",
+      "to": "loc_bunker",
+      "status": "confirmed",
+      "source": "world-data",
+      "comment": "окрестности вокруг бункера",
+      "conditions": [],
+      "effects": []
+    },
+    {
+      "id": "rel_1",
+      "type": "rt_находится_в",
+      "from": "loc_other_bunker",
+      "to": "loc_foreign",
+      "status": "confirmed",
+      "source": "world-data",
+      "comment": "",
+      "conditions": [],
+      "effects": []
+    },
+    {
+      "id": "rel_2",
+      "type": "rt_находится_в",
+      "from": "loc_raider_camp",
+      "to": "loc_foreign",
+      "status": "confirmed",
+      "source": "world-data",
+      "comment": "",
+      "conditions": [],
+      "effects": []
+    },
+    {
+      "id": "rel_3",
+      "type": "rt_находится_в",
+      "from": "loc_water_tower",
+      "to": "loc_industrial",
+      "status": "confirmed",
+      "source": "world-data",
+      "comment": "",
+      "conditions": [],
+      "effects": []
+    },
+    {
+      "id": "rel_4",
+      "type": "rt_находится_в",
+      "from": "g_player",
+      "to": "loc_bunker",
+      "status": "confirmed",
+      "source": "world-data",
+      "comment": "",
+      "conditions": [],
+      "effects": []
+    },
+    {
+      "id": "rel_5",
+      "type": "rt_находится_в",
+      "from": "f_community",
+      "to": "loc_other_bunker",
+      "status": "proposed",
+      "source": "world-data",
+      "comment": "",
+      "conditions": [],
+      "effects": []
+    },
+    {
+      "id": "rel_6",
+      "type": "rt_находится_в",
+      "from": "f_raiders",
+      "to": "loc_raider_camp",
+      "status": "proposed",
+      "source": "world-data",
+      "comment": "",
+      "conditions": [],
+      "effects": []
+    },
+    {
+      "id": "rel_7",
+      "type": "rt_враг_с",
+      "from": "f_raiders",
+      "to": "f_community",
+      "status": "proposed",
+      "source": "world-data",
+      "comment": "",
+      "conditions": [],
+      "effects": []
+    },
+    {
+      "id": "rel_8",
+      "type": "rt_враг_с",
+      "from": "f_raiders",
+      "to": "f_traders",
+      "status": "proposed",
+      "source": "world-data",
+      "comment": "",
+      "conditions": [],
+      "effects": []
+    },
+    {
+      "id": "rel_9",
+      "type": "rt_враг_с",
+      "from": "f_slavers",
+      "to": "f_community",
+      "status": "proposed",
+      "source": "world-data",
+      "comment": "",
+      "conditions": [],
+      "effects": []
+    },
+    {
+      "id": "rel_10",
+      "type": "rt_друг_с",
+      "from": "f_traders",
+      "to": "f_community",
+      "status": "proposed",
+      "source": "world-data",
+      "comment": "",
+      "conditions": [],
+      "effects": []
+    },
+    {
+      "id": "rel_11",
+      "type": "rt_использует",
+      "from": "f_slavers",
+      "to": "k_slavery",
+      "status": "confirmed",
+      "source": "world-data",
+      "comment": "",
+      "conditions": [],
+      "effects": []
+    },
+    {
+      "id": "rel_12",
+      "type": "rt_производит",
+      "from": "f_community",
+      "to": "r_food",
+      "status": "proposed",
+      "source": "world-data",
+      "comment": "ферма",
+      "conditions": [],
+      "effects": []
+    },
+    {
+      "id": "rel_13",
+      "type": "rt_владеет",
+      "from": "f_traders",
+      "to": "r_fuel",
+      "status": "proposed",
+      "source": "world-data",
+      "comment": "",
+      "conditions": [],
+      "effects": []
+    },
+    {
+      "id": "rel_14",
+      "type": "rt_владеет",
+      "from": "f_remnant",
+      "to": "loc_water_tower",
+      "status": "proposed",
+      "source": "world-data",
+      "comment": "держат источник воды",
+      "conditions": [],
+      "effects": []
+    },
+    {
+      "id": "rel_15",
+      "type": "rt_находится_в",
+      "from": "t_zombies",
+      "to": "loc_danger",
+      "status": "confirmed",
+      "source": "world-data",
+      "comment": "",
+      "conditions": [],
+      "effects": []
+    },
+    {
+      "id": "rel_16",
+      "type": "rt_находится_в",
+      "from": "g_loners",
+      "to": "loc_city",
+      "status": "confirmed",
+      "source": "world-data",
+      "comment": "",
+      "conditions": [],
+      "effects": []
+    }
+  ],
+  "proposals": [
+    {
+      "id": "q_0",
+      "title": "❓ История катастрофы",
+      "text": "Что случилось с миром? Сколько лет прошло? Откуда зомби?",
+      "status": "idea",
+      "priority": "high",
+      "source": "world-data",
+      "createdAt": "",
+      "relatedEntities": [],
+      "relatedSystems": [],
+      "relatedNodes": []
+    },
+    {
+      "id": "q_1",
+      "title": "❓ Фракции",
+      "text": "Подтвердить архетипы (община, торговцы, рейдеры, работорговцы, остатки порядка, одиночки) или дать свои. Сколько в первой версии?",
+      "status": "idea",
+      "priority": "high",
+      "source": "world-data",
+      "createdAt": "",
+      "relatedEntities": [],
+      "relatedSystems": [],
+      "relatedNodes": []
+    },
+    {
+      "id": "q_2",
+      "title": "❓ Размер мира на старте",
+      "text": "Предложение: бункер + трасса + город (5–10 домов) + чужой бункер + лагерь фракции.",
+      "status": "idea",
+      "priority": "high",
+      "source": "world-data",
+      "createdAt": "",
+      "relatedEntities": [],
+      "relatedSystems": [],
+      "relatedNodes": []
+    },
+    {
+      "id": "q_3",
+      "title": "❓ Сезоны / зима",
+      "text": "Нужны ли? Сильно влияют на воду, еду и топливо.",
+      "status": "idea",
+      "priority": "high",
+      "source": "world-data",
+      "createdAt": "",
+      "relatedEntities": [],
+      "relatedSystems": [],
+      "relatedNodes": []
+    },
+    {
+      "id": "q_4",
+      "title": "❓ Фазы игры",
+      "text": "Мир «просыпается» постепенно (день 8 / 30 / 60) или живой с первого дня?",
+      "status": "idea",
+      "priority": "high",
+      "source": "world-data",
+      "createdAt": "",
+      "relatedEntities": [],
+      "relatedSystems": [],
+      "relatedNodes": []
+    },
+    {
+      "id": "q_5",
+      "title": "❓ Тон",
+      "text": "Где граница жёсткости: рабство, отравление воды, пытки пленных?",
+      "status": "idea",
+      "priority": "high",
+      "source": "world-data",
+      "createdAt": "",
+      "relatedEntities": [],
+      "relatedSystems": [],
+      "relatedNodes": []
+    },
+    {
+      "id": "q_6",
+      "title": "❓ Финал",
+      "text": "Нужны ли концовки, кроме гибели группы?",
+      "status": "idea",
+      "priority": "high",
+      "source": "world-data",
+      "createdAt": "",
+      "relatedEntities": [],
+      "relatedSystems": [],
+      "relatedNodes": []
+    }
+  ],
+  "worldEvents": [],
+  "decisions": []
+}
