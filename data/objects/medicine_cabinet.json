@@ -1,0 +1,218 @@
+{
+  "schema_version": 4,
+  "id": "medicine_cabinet",
+  "name": "Аптечный шкафчик",
+  "category": "container",
+  "category_name": "Контейнер",
+  "subtype": "medicine",
+  "description": "Настенный контейнер; только медпредметы; открывается; персонаж сам находит нужное по эффекту.",
+  "transform": {
+    "layer": 0
+  },
+  "appearance": {
+    "mode": "IMAGE",
+    "asset": "container/medicine/medicine_cabinet_aptechnyy_shkafchik.png",
+    "imageWidth": 390,
+    "imageHeight": 460,
+    "collision": null
+  },
+  "behavior": {
+    "carryable": false,
+    "placeable": true,
+    "collision": "RECT",
+    "physics": "DYNAMIC",
+    "interactive": true,
+    "hasWeight": true,
+    "weight": 8,
+    "real_width_cm": 50,
+    "real_height_cm": 60,
+    "placement_mode": "ANYWHERE",
+    "variant_group": "med_cabinet",
+    "allowed_room_types": [
+      "bathroom",
+      "medical",
+      "shelter_living"
+    ],
+    "light": null,
+    "shadow": null,
+    "needs": {
+      "food": false,
+      "water": false,
+      "sleep": false,
+      "health": false,
+      "stress": false,
+      "water_params": null
+    },
+    "autonomy": {
+      "enabled": false,
+      "satisfy_needs": false,
+      "search_water": false,
+      "search_food": false,
+      "sleep": false
+    },
+    "perception": {
+      "vision": null,
+      "hearing": null
+    },
+    "movement": {
+      "enabled": false,
+      "speed_mps": 0
+    },
+    "danger": {
+      "reacts": false,
+      "can_flee": false,
+      "can_hide": false
+    },
+    "makes_sounds": false
+  },
+  "actions": [
+    "OPEN",
+    "CLOSE",
+    "SEARCH",
+    "TAKE_FROM",
+    "STORE"
+  ],
+  "action_settings": {
+    "OPEN": {
+      "requirements": "",
+      "time": 1,
+      "tool": "",
+      "consume": {
+        "item": "",
+        "amount": 0
+      },
+      "produce": {
+        "item": "",
+        "amount": 0
+      },
+      "required_skill": null,
+      "effects": []
+    },
+    "CLOSE": {
+      "requirements": "",
+      "time": 1,
+      "tool": "",
+      "consume": {
+        "item": "",
+        "amount": 0
+      },
+      "produce": {
+        "item": "",
+        "amount": 0
+      },
+      "required_skill": null,
+      "effects": []
+    },
+    "SEARCH": {
+      "requirements": "",
+      "time": 4,
+      "tool": "",
+      "consume": {
+        "item": "",
+        "amount": 0
+      },
+      "produce": {
+        "item": "",
+        "amount": 0
+      },
+      "required_skill": null,
+      "effects": []
+    },
+    "TAKE_FROM": {
+      "requirements": "",
+      "time": 1,
+      "tool": "",
+      "consume": {
+        "item": "",
+        "amount": 0
+      },
+      "produce": {
+        "item": "",
+        "amount": 0
+      },
+      "required_skill": null,
+      "effects": []
+    },
+    "STORE": {
+      "requirements": "",
+      "time": 1,
+      "tool": "",
+      "consume": {
+        "item": "",
+        "amount": 0
+      },
+      "produce": {
+        "item": "",
+        "amount": 0
+      },
+      "required_skill": null,
+      "effects": []
+    }
+  },
+  "combat": {
+    "dealsDamage": false,
+    "damageAmount": 0,
+    "providesDefense": false,
+    "defenseAmount": 0,
+    "wearsOut": false,
+    "wearAmount": 0,
+    "wearLifetimeDays": 0
+  },
+  "inventory": {
+    "enabled": true,
+    "slots": 12,
+    "maxWeight": 0,
+    "storage": "GENERAL"
+  },
+  "resource": null,
+  "destruction": {
+    "enabled": true,
+    "hp": 100,
+    "damaged_threshold_percent": 50,
+    "onDestroy": [
+      "REMOVE"
+    ],
+    "damaged": null,
+    "broken": null,
+    "destroyAnimation": null
+  },
+  "block": null,
+  "crafting": {
+    "enabled": true,
+    "recipe": {
+      "id": "MEDICINE_CABINET",
+      "ingredients": [
+        {
+          "item": "mat_sheet_metal",
+          "count": 2
+        },
+        {
+          "item": "mat_nails",
+          "count": 4
+        }
+      ],
+      "result": {
+        "id": "medicine_cabinet",
+        "amount": 1,
+        "label": "Аптечный шкафчик",
+        "category": "container"
+      },
+      "recipeImage": null
+    }
+  },
+  "visuals": {
+    "idle": null,
+    "animations": [],
+    "images": []
+  },
+  "character_ref": null,
+  "animation_enabled": false,
+  "tags": [
+    "health",
+    "storage",
+    "ai",
+    "loot"
+  ],
+  "components": [],
+  "custom": {}
+}

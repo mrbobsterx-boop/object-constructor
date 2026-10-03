@@ -1,0 +1,190 @@
+{
+  "schema_version": 4,
+  "id": "food_canned",
+  "name": "Консервы",
+  "category": "item",
+  "category_name": "Предмет",
+  "subtype": "food",
+  "description": "Съедается (EAT): восстанавливает голод, порча почти нулевая; можно давать другим.",
+  "transform": {
+    "layer": 0
+  },
+  "appearance": {
+    "mode": "IMAGE",
+    "asset": "item/food/food_canned_konservy.png",
+    "imageWidth": 151,
+    "imageHeight": 178,
+    "collision": null
+  },
+  "behavior": {
+    "carryable": true,
+    "placeable": true,
+    "collision": "NONE",
+    "physics": "DYNAMIC",
+    "interactive": true,
+    "hasWeight": true,
+    "weight": 0.4,
+    "real_width_cm": 8,
+    "real_height_cm": 10,
+    "placement_mode": "ANYWHERE",
+    "variant_group": "canned",
+    "allowed_room_types": [
+      "kitchen",
+      "storage",
+      "shop",
+      "house_living",
+      "shelter_living"
+    ],
+    "light": null,
+    "shadow": null,
+    "needs": {
+      "food": false,
+      "water": false,
+      "sleep": false,
+      "health": false,
+      "stress": false,
+      "water_params": null
+    },
+    "autonomy": {
+      "enabled": false,
+      "satisfy_needs": false,
+      "search_water": false,
+      "search_food": false,
+      "sleep": false
+    },
+    "perception": {
+      "vision": null,
+      "hearing": null
+    },
+    "movement": {
+      "enabled": false,
+      "speed_mps": 0
+    },
+    "danger": {
+      "reacts": false,
+      "can_flee": false,
+      "can_hide": false
+    },
+    "makes_sounds": false
+  },
+  "actions": [
+    "EAT",
+    "TAKE",
+    "DROP",
+    "STORE"
+  ],
+  "action_settings": {
+    "EAT": {
+      "requirements": "",
+      "time": 3,
+      "tool": "",
+      "consume": {
+        "item": "",
+        "amount": 0
+      },
+      "produce": {
+        "item": "",
+        "amount": 0
+      },
+      "required_skill": null,
+      "effects": []
+    },
+    "TAKE": {
+      "requirements": "",
+      "time": 0.5,
+      "tool": "",
+      "consume": {
+        "item": "",
+        "amount": 0
+      },
+      "produce": {
+        "item": "",
+        "amount": 0
+      },
+      "required_skill": null,
+      "effects": []
+    },
+    "DROP": {
+      "requirements": "",
+      "time": 0.5,
+      "tool": "",
+      "consume": {
+        "item": "",
+        "amount": 0
+      },
+      "produce": {
+        "item": "",
+        "amount": 0
+      },
+      "required_skill": null,
+      "effects": []
+    },
+    "STORE": {
+      "requirements": "",
+      "time": 1,
+      "tool": "",
+      "consume": {
+        "item": "",
+        "amount": 0
+      },
+      "produce": {
+        "item": "",
+        "amount": 0
+      },
+      "required_skill": null,
+      "effects": []
+    }
+  },
+  "combat": {
+    "dealsDamage": false,
+    "damageAmount": 0,
+    "providesDefense": false,
+    "defenseAmount": 0,
+    "wearsOut": false,
+    "wearAmount": 0,
+    "wearLifetimeDays": 0
+  },
+  "inventory": {
+    "enabled": false,
+    "slots": 0,
+    "maxWeight": 0,
+    "storage": "GENERAL"
+  },
+  "resource": null,
+  "destruction": {
+    "enabled": true,
+    "hp": 100,
+    "damaged_threshold_percent": 50,
+    "onDestroy": [
+      "REMOVE"
+    ],
+    "damaged": null,
+    "broken": null,
+    "destroyAnimation": null
+  },
+  "block": null,
+  "crafting": {
+    "enabled": false,
+    "recipe": null
+  },
+  "visuals": {
+    "idle": null,
+    "animations": [],
+    "images": []
+  },
+  "character_ref": null,
+  "animation_enabled": false,
+  "tags": [
+    "food",
+    "needs",
+    "loot",
+    "trade"
+  ],
+  "components": [],
+  "custom": {
+    "stack_max": 10,
+    "nutrition": 25,
+    "servings": 2,
+    "shelf_life_days": 0
+  }
+}

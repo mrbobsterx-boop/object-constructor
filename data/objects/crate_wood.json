@@ -1,0 +1,240 @@
+{
+  "schema_version": 4,
+  "id": "crate_wood",
+  "name": "Деревянный ящик",
+  "category": "container",
+  "category_name": "Контейнер",
+  "subtype": "crate",
+  "description": "Контейнер с таблицей лута (по типу комнаты, состоянию и вероятностям), ломается на доски; лежит открытым или закрытым.",
+  "transform": {
+    "layer": 0
+  },
+  "appearance": {
+    "mode": "IMAGE",
+    "asset": "container/crate/crate_wood_derevyannyy_yaschik.png",
+    "imageWidth": 396,
+    "imageHeight": 339,
+    "collision": null
+  },
+  "behavior": {
+    "carryable": false,
+    "placeable": true,
+    "collision": "RECT",
+    "physics": "DYNAMIC",
+    "interactive": true,
+    "hasWeight": true,
+    "weight": 12,
+    "real_width_cm": 60,
+    "real_height_cm": 50,
+    "placement_mode": "FLOOR_ONLY",
+    "variant_group": "crate",
+    "allowed_room_types": [
+      "storage",
+      "workshop",
+      "garage",
+      "shop",
+      "house_living",
+      "kitchen"
+    ],
+    "light": null,
+    "shadow": null,
+    "needs": {
+      "food": false,
+      "water": false,
+      "sleep": false,
+      "health": false,
+      "stress": false,
+      "water_params": null
+    },
+    "autonomy": {
+      "enabled": false,
+      "satisfy_needs": false,
+      "search_water": false,
+      "search_food": false,
+      "sleep": false
+    },
+    "perception": {
+      "vision": null,
+      "hearing": null
+    },
+    "movement": {
+      "enabled": false,
+      "speed_mps": 0
+    },
+    "danger": {
+      "reacts": false,
+      "can_flee": false,
+      "can_hide": false
+    },
+    "makes_sounds": false
+  },
+  "actions": [
+    "OPEN",
+    "CLOSE",
+    "SEARCH",
+    "STORE",
+    "TAKE_FROM",
+    "DISMANTLE"
+  ],
+  "action_settings": {
+    "OPEN": {
+      "requirements": "",
+      "time": 1,
+      "tool": "",
+      "consume": {
+        "item": "",
+        "amount": 0
+      },
+      "produce": {
+        "item": "",
+        "amount": 0
+      },
+      "required_skill": null,
+      "effects": []
+    },
+    "CLOSE": {
+      "requirements": "",
+      "time": 1,
+      "tool": "",
+      "consume": {
+        "item": "",
+        "amount": 0
+      },
+      "produce": {
+        "item": "",
+        "amount": 0
+      },
+      "required_skill": null,
+      "effects": []
+    },
+    "SEARCH": {
+      "requirements": "",
+      "time": 4,
+      "tool": "",
+      "consume": {
+        "item": "",
+        "amount": 0
+      },
+      "produce": {
+        "item": "",
+        "amount": 0
+      },
+      "required_skill": null,
+      "effects": []
+    },
+    "STORE": {
+      "requirements": "",
+      "time": 1,
+      "tool": "",
+      "consume": {
+        "item": "",
+        "amount": 0
+      },
+      "produce": {
+        "item": "",
+        "amount": 0
+      },
+      "required_skill": null,
+      "effects": []
+    },
+    "TAKE_FROM": {
+      "requirements": "",
+      "time": 1,
+      "tool": "",
+      "consume": {
+        "item": "",
+        "amount": 0
+      },
+      "produce": {
+        "item": "",
+        "amount": 0
+      },
+      "required_skill": null,
+      "effects": []
+    },
+    "DISMANTLE": {
+      "requirements": "",
+      "time": 8,
+      "tool": "",
+      "consume": {
+        "item": "",
+        "amount": 0
+      },
+      "produce": {
+        "item": "",
+        "amount": 0
+      },
+      "required_skill": null,
+      "effects": []
+    }
+  },
+  "combat": {
+    "dealsDamage": false,
+    "damageAmount": 0,
+    "providesDefense": false,
+    "defenseAmount": 0,
+    "wearsOut": false,
+    "wearAmount": 0,
+    "wearLifetimeDays": 0
+  },
+  "inventory": {
+    "enabled": true,
+    "slots": 16,
+    "maxWeight": 60,
+    "storage": "GENERAL"
+  },
+  "resource": null,
+  "destruction": {
+    "enabled": true,
+    "hp": 50,
+    "damaged_threshold_percent": 50,
+    "onDestroy": [
+      "DROP_ITEMS"
+    ],
+    "damaged": null,
+    "broken": null,
+    "destroyAnimation": null
+  },
+  "block": null,
+  "crafting": {
+    "enabled": true,
+    "recipe": {
+      "id": "CRATE_WOOD",
+      "ingredients": [
+        {
+          "item": "mat_plank",
+          "count": 5
+        },
+        {
+          "item": "mat_nails",
+          "count": 8
+        }
+      ],
+      "result": {
+        "id": "crate_wood",
+        "amount": 1,
+        "label": "Деревянный ящик",
+        "category": "container"
+      },
+      "recipeImage": null
+    }
+  },
+  "visuals": {
+    "idle": null,
+    "animations": [],
+    "images": []
+  },
+  "character_ref": null,
+  "animation_enabled": false,
+  "tags": [
+    "storage",
+    "loot",
+    "physics",
+    "rooms"
+  ],
+  "components": [],
+  "custom": {
+    "stackable_in_room": true,
+    "stack_load_kg": 100
+  }
+}

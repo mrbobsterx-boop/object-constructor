@@ -1,0 +1,201 @@
+{
+  "schema_version": 4,
+  "id": "raider_human",
+  "name": "Рейдер / бандит",
+  "category": "character",
+  "category_name": "Персонаж",
+  "subtype": "hostile",
+  "description": "Принадлежит фракции; патрулирует; засады; берёт в плен; использует оружие и укрытия.",
+  "transform": {
+    "layer": 0
+  },
+  "appearance": {
+    "mode": "IMAGE",
+    "asset": "character/hostile/raider_human_reyder_bandit.png",
+    "imageWidth": 0,
+    "imageHeight": 0,
+    "collision": null
+  },
+  "behavior": {
+    "carryable": false,
+    "placeable": false,
+    "collision": "RECT",
+    "physics": "CHARACTER",
+    "interactive": true,
+    "hasWeight": false,
+    "weight": 0,
+    "real_width_cm": 100,
+    "real_height_cm": 180,
+    "placement_mode": "FLOOR_ONLY",
+    "variant_group": null,
+    "allowed_room_types": [
+      "street",
+      "camp"
+    ],
+    "light": null,
+    "shadow": null,
+    "needs": {
+      "food": true,
+      "water": true,
+      "sleep": true,
+      "health": true,
+      "stress": true,
+      "water_params": {
+        "random_initial": false,
+        "initial": 100,
+        "min_initial": null,
+        "max_initial": null,
+        "decay_rate_per_hour": 2,
+        "want_threshold": 40,
+        "critical_threshold": 15,
+        "drink_amount": 30,
+        "drink_time": 4
+      }
+    },
+    "autonomy": {
+      "enabled": true,
+      "satisfy_needs": true,
+      "search_water": true,
+      "search_food": true,
+      "sleep": true
+    },
+    "perception": {
+      "vision": {
+        "range_m": 8
+      },
+      "hearing": {
+        "range_m": 6
+      }
+    },
+    "movement": {
+      "enabled": true,
+      "speed_mps": 1.4
+    },
+    "danger": {
+      "reacts": true,
+      "can_flee": true,
+      "can_hide": true
+    },
+    "makes_sounds": false
+  },
+  "actions": [
+    "ATTACK",
+    "TALK",
+    "EQUIP",
+    "SEARCH"
+  ],
+  "action_settings": {
+    "ATTACK": {
+      "requirements": "",
+      "time": 1,
+      "tool": "",
+      "consume": {
+        "item": "",
+        "amount": 0
+      },
+      "produce": {
+        "item": "",
+        "amount": 0
+      },
+      "required_skill": null,
+      "effects": []
+    },
+    "TALK": {
+      "requirements": "",
+      "time": 0,
+      "tool": "",
+      "consume": {
+        "item": "",
+        "amount": 0
+      },
+      "produce": {
+        "item": "",
+        "amount": 0
+      },
+      "required_skill": null,
+      "effects": []
+    },
+    "EQUIP": {
+      "requirements": "",
+      "time": 1,
+      "tool": "",
+      "consume": {
+        "item": "",
+        "amount": 0
+      },
+      "produce": {
+        "item": "",
+        "amount": 0
+      },
+      "required_skill": null,
+      "effects": []
+    },
+    "SEARCH": {
+      "requirements": "",
+      "time": 4,
+      "tool": "",
+      "consume": {
+        "item": "",
+        "amount": 0
+      },
+      "produce": {
+        "item": "",
+        "amount": 0
+      },
+      "required_skill": null,
+      "effects": []
+    }
+  },
+  "combat": {
+    "dealsDamage": false,
+    "damageAmount": 0,
+    "providesDefense": false,
+    "defenseAmount": 0,
+    "wearsOut": false,
+    "wearAmount": 0,
+    "wearLifetimeDays": 0
+  },
+  "inventory": {
+    "enabled": true,
+    "slots": 20,
+    "maxWeight": 80,
+    "storage": "GENERAL"
+  },
+  "resource": null,
+  "destruction": {
+    "enabled": true,
+    "hp": 100,
+    "damaged_threshold_percent": 50,
+    "onDestroy": [
+      "REMOVE"
+    ],
+    "damaged": null,
+    "broken": null,
+    "destroyAnimation": null
+  },
+  "block": null,
+  "crafting": {
+    "enabled": false,
+    "recipe": null
+  },
+  "visuals": {
+    "idle": null,
+    "animations": [],
+    "images": []
+  },
+  "character_ref": null,
+  "animation_enabled": true,
+  "tags": [
+    "combat",
+    "ai",
+    "factions"
+  ],
+  "components": [],
+  "custom": {
+    "has_personality": true,
+    "skills_trainable": true,
+    "has_relationships": true,
+    "faction_id": "raiders",
+    "hostile_to_player": true
+  }
+}

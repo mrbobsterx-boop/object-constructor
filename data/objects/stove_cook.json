@@ -1,0 +1,189 @@
+{
+  "schema_version": 4,
+  "id": "stove_cook",
+  "name": "Плита",
+  "category": "machine",
+  "category_name": "Машина",
+  "subtype": "kitchen",
+  "description": "Готовит еду по рецептам (CRAFT/cook): расходует топливо или энергию и время; можно готовить нескольким людям сразу.",
+  "transform": {
+    "layer": 0
+  },
+  "appearance": {
+    "mode": "IMAGE",
+    "asset": "machine/kitchen/stove_cook_plita.png",
+    "imageWidth": 305,
+    "imageHeight": 381,
+    "collision": null
+  },
+  "behavior": {
+    "carryable": false,
+    "placeable": true,
+    "collision": "RECT",
+    "physics": "DYNAMIC",
+    "interactive": true,
+    "hasWeight": true,
+    "weight": 40,
+    "real_width_cm": 70,
+    "real_height_cm": 90,
+    "placement_mode": "FLOOR_ONLY",
+    "variant_group": "stove",
+    "allowed_room_types": [
+      "kitchen",
+      "shelter_living",
+      "house_living"
+    ],
+    "light": null,
+    "shadow": null,
+    "needs": {
+      "food": false,
+      "water": false,
+      "sleep": false,
+      "health": false,
+      "stress": false,
+      "water_params": null
+    },
+    "autonomy": {
+      "enabled": false,
+      "satisfy_needs": false,
+      "search_water": false,
+      "search_food": false,
+      "sleep": false
+    },
+    "perception": {
+      "vision": null,
+      "hearing": null
+    },
+    "movement": {
+      "enabled": false,
+      "speed_mps": 0
+    },
+    "danger": {
+      "reacts": false,
+      "can_flee": false,
+      "can_hide": false
+    },
+    "makes_sounds": false
+  },
+  "actions": [
+    "USE",
+    "CRAFT",
+    "REPAIR"
+  ],
+  "action_settings": {
+    "USE": {
+      "requirements": "",
+      "time": 1,
+      "tool": "",
+      "consume": {
+        "item": "",
+        "amount": 0
+      },
+      "produce": {
+        "item": "",
+        "amount": 0
+      },
+      "required_skill": null,
+      "effects": []
+    },
+    "CRAFT": {
+      "requirements": "",
+      "time": 5,
+      "tool": "",
+      "consume": {
+        "item": "",
+        "amount": 0
+      },
+      "produce": {
+        "item": "",
+        "amount": 0
+      },
+      "required_skill": null,
+      "effects": []
+    },
+    "REPAIR": {
+      "requirements": "",
+      "time": 10,
+      "tool": "",
+      "consume": {
+        "item": "",
+        "amount": 0
+      },
+      "produce": {
+        "item": "",
+        "amount": 0
+      },
+      "required_skill": null,
+      "effects": []
+    }
+  },
+  "combat": {
+    "dealsDamage": false,
+    "damageAmount": 0,
+    "providesDefense": false,
+    "defenseAmount": 0,
+    "wearsOut": false,
+    "wearAmount": 0,
+    "wearLifetimeDays": 0
+  },
+  "inventory": {
+    "enabled": false,
+    "slots": 0,
+    "maxWeight": 0,
+    "storage": "GENERAL"
+  },
+  "resource": null,
+  "destruction": {
+    "enabled": true,
+    "hp": 100,
+    "damaged_threshold_percent": 50,
+    "onDestroy": [
+      "REMOVE"
+    ],
+    "damaged": null,
+    "broken": null,
+    "destroyAnimation": null
+  },
+  "block": null,
+  "crafting": {
+    "enabled": true,
+    "recipe": {
+      "id": "STOVE_COOK",
+      "ingredients": [
+        {
+          "item": "mat_sheet_metal",
+          "count": 4
+        },
+        {
+          "item": "mat_pipe_metal",
+          "count": 2
+        }
+      ],
+      "result": {
+        "id": "stove_cook",
+        "amount": 1,
+        "label": "Плита",
+        "category": "machine"
+      },
+      "recipeImage": null
+    }
+  },
+  "visuals": {
+    "idle": null,
+    "animations": [],
+    "images": []
+  },
+  "character_ref": null,
+  "animation_enabled": false,
+  "tags": [
+    "food",
+    "crafting",
+    "energy",
+    "rooms"
+  ],
+  "components": [],
+  "custom": {
+    "fuel_type": "electricity",
+    "power_w": 1200
+  }
+}

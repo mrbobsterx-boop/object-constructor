@@ -1,0 +1,192 @@
+{
+  "schema_version": 4,
+  "id": "tank_water",
+  "name": "Резервуар воды",
+  "category": "container",
+  "category_name": "Контейнер",
+  "subtype": "water",
+  "description": "Хранилище воды 1000–5000 л; подключается к насосу и трубам; можно отравить, для этого нужно количество яда пропорционально объёму.",
+  "transform": {
+    "layer": 0
+  },
+  "appearance": {
+    "mode": "IMAGE",
+    "asset": "container/water/tank_water_rezervuar_vody.png",
+    "imageWidth": 207,
+    "imageHeight": 240,
+    "collision": null
+  },
+  "behavior": {
+    "carryable": false,
+    "placeable": true,
+    "collision": "RECT",
+    "physics": "DYNAMIC",
+    "interactive": true,
+    "hasWeight": true,
+    "weight": 120,
+    "real_width_cm": 160,
+    "real_height_cm": 190,
+    "placement_mode": "FLOOR_ONLY",
+    "variant_group": "water_storage",
+    "allowed_room_types": [
+      "water_room",
+      "machine_room",
+      "camp"
+    ],
+    "light": null,
+    "shadow": null,
+    "needs": {
+      "food": false,
+      "water": false,
+      "sleep": false,
+      "health": false,
+      "stress": false,
+      "water_params": null
+    },
+    "autonomy": {
+      "enabled": false,
+      "satisfy_needs": false,
+      "search_water": false,
+      "search_food": false,
+      "sleep": false
+    },
+    "perception": {
+      "vision": null,
+      "hearing": null
+    },
+    "movement": {
+      "enabled": false,
+      "speed_mps": 0
+    },
+    "danger": {
+      "reacts": false,
+      "can_flee": false,
+      "can_hide": false
+    },
+    "makes_sounds": false
+  },
+  "actions": [
+    "DRINK",
+    "USE",
+    "REPAIR"
+  ],
+  "action_settings": {
+    "DRINK": {
+      "requirements": "",
+      "time": 2,
+      "tool": "",
+      "consume": {
+        "item": "",
+        "amount": 0
+      },
+      "produce": {
+        "item": "",
+        "amount": 0
+      },
+      "required_skill": null,
+      "effects": []
+    },
+    "USE": {
+      "requirements": "",
+      "time": 1,
+      "tool": "",
+      "consume": {
+        "item": "",
+        "amount": 0
+      },
+      "produce": {
+        "item": "",
+        "amount": 0
+      },
+      "required_skill": null,
+      "effects": []
+    },
+    "REPAIR": {
+      "requirements": "",
+      "time": 10,
+      "tool": "",
+      "consume": {
+        "item": "",
+        "amount": 0
+      },
+      "produce": {
+        "item": "",
+        "amount": 0
+      },
+      "required_skill": null,
+      "effects": []
+    }
+  },
+  "combat": {
+    "dealsDamage": false,
+    "damageAmount": 0,
+    "providesDefense": false,
+    "defenseAmount": 0,
+    "wearsOut": false,
+    "wearAmount": 0,
+    "wearLifetimeDays": 0
+  },
+  "inventory": {
+    "enabled": false,
+    "slots": 0,
+    "maxWeight": 0,
+    "storage": "RESOURCE"
+  },
+  "resource": {
+    "type": "water",
+    "max_amount": 1000,
+    "initial_amount": 0,
+    "initial_state": "clean",
+    "source": "без пополнения",
+    "self_recovery_hours": 0
+  },
+  "destruction": {
+    "enabled": true,
+    "hp": 200,
+    "damaged_threshold_percent": 50,
+    "onDestroy": [
+      "REMOVE"
+    ],
+    "damaged": null,
+    "broken": null,
+    "destroyAnimation": null
+  },
+  "block": null,
+  "crafting": {
+    "enabled": true,
+    "recipe": {
+      "id": "TANK_WATER",
+      "ingredients": [
+        {
+          "item": "mat_sheet_metal",
+          "count": 12
+        },
+        {
+          "item": "mat_pipe_metal",
+          "count": 4
+        }
+      ],
+      "result": {
+        "id": "tank_water",
+        "amount": 1,
+        "label": "Резервуар воды",
+        "category": "container"
+      },
+      "recipeImage": null
+    }
+  },
+  "visuals": {
+    "idle": null,
+    "animations": [],
+    "images": []
+  },
+  "character_ref": null,
+  "animation_enabled": false,
+  "tags": [
+    "water",
+    "physics",
+    "death"
+  ],
+  "components": [],
+  "custom": {}
+}

@@ -1,0 +1,163 @@
+{
+  "schema_version": 4,
+  "id": "cooking_pot",
+  "name": "Кастрюля / котелок",
+  "category": "tool",
+  "category_name": "Инструмент",
+  "subtype": "kitchen",
+  "description": "Требуется в рецептах приготовления; определяет размер порции.",
+  "transform": {
+    "layer": 0
+  },
+  "appearance": {
+    "mode": "IMAGE",
+    "asset": "tool/kitchen/cooking_pot_kastryulya_kotelok.png",
+    "imageWidth": 477,
+    "imageHeight": 315,
+    "collision": null
+  },
+  "behavior": {
+    "carryable": true,
+    "placeable": true,
+    "collision": "NONE",
+    "physics": "DYNAMIC",
+    "interactive": true,
+    "hasWeight": true,
+    "weight": 1,
+    "real_width_cm": 25,
+    "real_height_cm": 20,
+    "placement_mode": "ANYWHERE",
+    "variant_group": null,
+    "allowed_room_types": [
+      "kitchen",
+      "camp"
+    ],
+    "light": null,
+    "shadow": null,
+    "needs": {
+      "food": false,
+      "water": false,
+      "sleep": false,
+      "health": false,
+      "stress": false,
+      "water_params": null
+    },
+    "autonomy": {
+      "enabled": false,
+      "satisfy_needs": false,
+      "search_water": false,
+      "search_food": false,
+      "sleep": false
+    },
+    "perception": {
+      "vision": null,
+      "hearing": null
+    },
+    "movement": {
+      "enabled": false,
+      "speed_mps": 0
+    },
+    "danger": {
+      "reacts": false,
+      "can_flee": false,
+      "can_hide": false
+    },
+    "makes_sounds": false
+  },
+  "actions": [
+    "USE",
+    "CRAFT"
+  ],
+  "action_settings": {
+    "USE": {
+      "requirements": "",
+      "time": 1,
+      "tool": "",
+      "consume": {
+        "item": "",
+        "amount": 0
+      },
+      "produce": {
+        "item": "",
+        "amount": 0
+      },
+      "required_skill": null,
+      "effects": []
+    },
+    "CRAFT": {
+      "requirements": "",
+      "time": 5,
+      "tool": "",
+      "consume": {
+        "item": "",
+        "amount": 0
+      },
+      "produce": {
+        "item": "",
+        "amount": 0
+      },
+      "required_skill": null,
+      "effects": []
+    }
+  },
+  "combat": {
+    "dealsDamage": false,
+    "damageAmount": 0,
+    "providesDefense": false,
+    "defenseAmount": 0,
+    "wearsOut": true,
+    "wearAmount": 1,
+    "wearLifetimeDays": 0
+  },
+  "inventory": {
+    "enabled": false,
+    "slots": 0,
+    "maxWeight": 0,
+    "storage": "GENERAL"
+  },
+  "resource": null,
+  "destruction": {
+    "enabled": true,
+    "hp": 100,
+    "damaged_threshold_percent": 50,
+    "onDestroy": [
+      "REMOVE"
+    ],
+    "damaged": null,
+    "broken": null,
+    "destroyAnimation": null
+  },
+  "block": null,
+  "crafting": {
+    "enabled": true,
+    "recipe": {
+      "id": "COOKING_POT",
+      "ingredients": [
+        {
+          "item": "mat_sheet_metal",
+          "count": 1
+        }
+      ],
+      "result": {
+        "id": "cooking_pot",
+        "amount": 1,
+        "label": "Кастрюля / котелок",
+        "category": "tool"
+      },
+      "recipeImage": null
+    }
+  },
+  "visuals": {
+    "idle": null,
+    "animations": [],
+    "images": []
+  },
+  "character_ref": null,
+  "animation_enabled": false,
+  "tags": [
+    "food",
+    "crafting"
+  ],
+  "components": [],
+  "custom": {}
+}

@@ -1,0 +1,134 @@
+{
+  "schema_version": 4,
+  "id": "rabbit_wild",
+  "name": "Кролик",
+  "category": "creature",
+  "category_name": "Существо",
+  "subtype": "animal",
+  "description": "Пугливо убегает; убитый даёт сырое мясо.",
+  "transform": {
+    "layer": 0
+  },
+  "appearance": {
+    "mode": "IMAGE",
+    "asset": "creature/animal/rabbit_wild_krolik.png",
+    "imageWidth": 0,
+    "imageHeight": 0,
+    "collision": null
+  },
+  "behavior": {
+    "carryable": false,
+    "placeable": false,
+    "collision": "RECT",
+    "physics": "CHARACTER",
+    "interactive": true,
+    "hasWeight": false,
+    "weight": 0,
+    "real_width_cm": 35,
+    "real_height_cm": 25,
+    "placement_mode": "FLOOR_ONLY",
+    "variant_group": null,
+    "allowed_room_types": [
+      "street",
+      "camp"
+    ],
+    "light": null,
+    "shadow": null,
+    "needs": {
+      "food": false,
+      "water": false,
+      "sleep": false,
+      "health": false,
+      "stress": false,
+      "water_params": null
+    },
+    "autonomy": {
+      "enabled": false,
+      "satisfy_needs": false,
+      "search_water": false,
+      "search_food": false,
+      "sleep": false
+    },
+    "perception": {
+      "vision": null,
+      "hearing": {
+        "range_m": 10
+      }
+    },
+    "movement": {
+      "enabled": true,
+      "speed_mps": 5
+    },
+    "danger": {
+      "reacts": true,
+      "can_flee": true,
+      "can_hide": false
+    },
+    "makes_sounds": false
+  },
+  "actions": [
+    "ATTACK"
+  ],
+  "action_settings": {
+    "ATTACK": {
+      "requirements": "",
+      "time": 1,
+      "tool": "",
+      "consume": {
+        "item": "",
+        "amount": 0
+      },
+      "produce": {
+        "item": "",
+        "amount": 0
+      },
+      "required_skill": null,
+      "effects": []
+    }
+  },
+  "combat": {
+    "dealsDamage": false,
+    "damageAmount": 0,
+    "providesDefense": false,
+    "defenseAmount": 0,
+    "wearsOut": false,
+    "wearAmount": 0,
+    "wearLifetimeDays": 0
+  },
+  "inventory": {
+    "enabled": false,
+    "slots": 0,
+    "maxWeight": 0,
+    "storage": "GENERAL"
+  },
+  "resource": null,
+  "destruction": {
+    "enabled": true,
+    "hp": 5,
+    "damaged_threshold_percent": 50,
+    "onDestroy": [
+      "REMOVE"
+    ],
+    "damaged": null,
+    "broken": null,
+    "destroyAnimation": null
+  },
+  "block": null,
+  "crafting": {
+    "enabled": false,
+    "recipe": null
+  },
+  "visuals": {
+    "idle": null,
+    "animations": [],
+    "images": []
+  },
+  "character_ref": null,
+  "animation_enabled": true,
+  "tags": [
+    "food",
+    "ai"
+  ],
+  "components": [],
+  "custom": {}
+}

@@ -1,0 +1,154 @@
+{
+  "schema_version": 4,
+  "id": "radio_desk",
+  "name": "Радиоприёмник",
+  "category": "machine",
+  "category_name": "Машина",
+  "subtype": "radio",
+  "description": "Принимает сообщения при наличии энергии; издаёт звук (радиус слышимости), привлекает внимание при громком включении.",
+  "transform": {
+    "layer": 0
+  },
+  "appearance": {
+    "mode": "IMAGE",
+    "asset": "machine/radio/radio_desk_radiopriemnik.png",
+    "imageWidth": 370,
+    "imageHeight": 196,
+    "collision": null
+  },
+  "behavior": {
+    "carryable": false,
+    "placeable": true,
+    "collision": "RECT",
+    "physics": "DYNAMIC",
+    "interactive": true,
+    "hasWeight": true,
+    "weight": 2,
+    "real_width_cm": 35,
+    "real_height_cm": 25,
+    "placement_mode": "FLOOR_ONLY",
+    "variant_group": null,
+    "allowed_room_types": [
+      "shelter_living",
+      "office",
+      "workshop"
+    ],
+    "light": null,
+    "shadow": null,
+    "needs": {
+      "food": false,
+      "water": false,
+      "sleep": false,
+      "health": false,
+      "stress": false,
+      "water_params": null
+    },
+    "autonomy": {
+      "enabled": false,
+      "satisfy_needs": false,
+      "search_water": false,
+      "search_food": false,
+      "sleep": false
+    },
+    "perception": {
+      "vision": null,
+      "hearing": null
+    },
+    "movement": {
+      "enabled": false,
+      "speed_mps": 0
+    },
+    "danger": {
+      "reacts": false,
+      "can_flee": false,
+      "can_hide": false
+    },
+    "makes_sounds": true
+  },
+  "actions": [
+    "USE",
+    "REPAIR"
+  ],
+  "action_settings": {
+    "USE": {
+      "requirements": "",
+      "time": 1,
+      "tool": "",
+      "consume": {
+        "item": "",
+        "amount": 0
+      },
+      "produce": {
+        "item": "",
+        "amount": 0
+      },
+      "required_skill": null,
+      "effects": []
+    },
+    "REPAIR": {
+      "requirements": "",
+      "time": 10,
+      "tool": "",
+      "consume": {
+        "item": "",
+        "amount": 0
+      },
+      "produce": {
+        "item": "",
+        "amount": 0
+      },
+      "required_skill": null,
+      "effects": []
+    }
+  },
+  "combat": {
+    "dealsDamage": false,
+    "damageAmount": 0,
+    "providesDefense": false,
+    "defenseAmount": 0,
+    "wearsOut": false,
+    "wearAmount": 0,
+    "wearLifetimeDays": 0
+  },
+  "inventory": {
+    "enabled": false,
+    "slots": 0,
+    "maxWeight": 0,
+    "storage": "GENERAL"
+  },
+  "resource": null,
+  "destruction": {
+    "enabled": true,
+    "hp": 100,
+    "damaged_threshold_percent": 50,
+    "onDestroy": [
+      "REMOVE"
+    ],
+    "damaged": null,
+    "broken": null,
+    "destroyAnimation": null
+  },
+  "block": null,
+  "crafting": {
+    "enabled": false,
+    "recipe": null
+  },
+  "visuals": {
+    "idle": null,
+    "animations": [],
+    "images": []
+  },
+  "character_ref": null,
+  "animation_enabled": false,
+  "tags": [
+    "energy",
+    "sound",
+    "factions",
+    "story"
+  ],
+  "components": [],
+  "custom": {
+    "power_w": 5,
+    "stations_source": "events"
+  }
+}

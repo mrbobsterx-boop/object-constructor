@@ -1,0 +1,188 @@
+{
+  "schema_version": 4,
+  "id": "shelf_wood",
+  "name": "Полка",
+  "category": "container",
+  "category_name": "Контейнер",
+  "subtype": "shelf",
+  "description": "Настенное хранилище и поверхность; несущая способность ограничена.",
+  "transform": {
+    "layer": 0
+  },
+  "appearance": {
+    "mode": "IMAGE",
+    "asset": "container/shelf/shelf_wood_polka.png",
+    "imageWidth": 736,
+    "imageHeight": 171,
+    "collision": null
+  },
+  "behavior": {
+    "carryable": false,
+    "placeable": true,
+    "collision": "RECT",
+    "physics": "DYNAMIC",
+    "interactive": true,
+    "hasWeight": true,
+    "weight": 8,
+    "real_width_cm": 100,
+    "real_height_cm": 30,
+    "placement_mode": "ANYWHERE",
+    "variant_group": "shelf",
+    "allowed_room_types": [
+      "kitchen",
+      "workshop",
+      "storage",
+      "bedroom"
+    ],
+    "light": null,
+    "shadow": null,
+    "needs": {
+      "food": false,
+      "water": false,
+      "sleep": false,
+      "health": false,
+      "stress": false,
+      "water_params": null
+    },
+    "autonomy": {
+      "enabled": false,
+      "satisfy_needs": false,
+      "search_water": false,
+      "search_food": false,
+      "sleep": false
+    },
+    "perception": {
+      "vision": null,
+      "hearing": null
+    },
+    "movement": {
+      "enabled": false,
+      "speed_mps": 0
+    },
+    "danger": {
+      "reacts": false,
+      "can_flee": false,
+      "can_hide": false
+    },
+    "makes_sounds": false
+  },
+  "actions": [
+    "STORE",
+    "TAKE_FROM",
+    "SEARCH"
+  ],
+  "action_settings": {
+    "STORE": {
+      "requirements": "",
+      "time": 1,
+      "tool": "",
+      "consume": {
+        "item": "",
+        "amount": 0
+      },
+      "produce": {
+        "item": "",
+        "amount": 0
+      },
+      "required_skill": null,
+      "effects": []
+    },
+    "TAKE_FROM": {
+      "requirements": "",
+      "time": 1,
+      "tool": "",
+      "consume": {
+        "item": "",
+        "amount": 0
+      },
+      "produce": {
+        "item": "",
+        "amount": 0
+      },
+      "required_skill": null,
+      "effects": []
+    },
+    "SEARCH": {
+      "requirements": "",
+      "time": 4,
+      "tool": "",
+      "consume": {
+        "item": "",
+        "amount": 0
+      },
+      "produce": {
+        "item": "",
+        "amount": 0
+      },
+      "required_skill": null,
+      "effects": []
+    }
+  },
+  "combat": {
+    "dealsDamage": false,
+    "damageAmount": 0,
+    "providesDefense": false,
+    "defenseAmount": 0,
+    "wearsOut": false,
+    "wearAmount": 0,
+    "wearLifetimeDays": 0
+  },
+  "inventory": {
+    "enabled": true,
+    "slots": 6,
+    "maxWeight": 15,
+    "storage": "GENERAL"
+  },
+  "resource": null,
+  "destruction": {
+    "enabled": true,
+    "hp": 100,
+    "damaged_threshold_percent": 50,
+    "onDestroy": [
+      "REMOVE"
+    ],
+    "damaged": null,
+    "broken": null,
+    "destroyAnimation": null
+  },
+  "block": null,
+  "crafting": {
+    "enabled": true,
+    "recipe": {
+      "id": "SHELF_WOOD",
+      "ingredients": [
+        {
+          "item": "mat_plank",
+          "count": 2
+        },
+        {
+          "item": "mat_nails",
+          "count": 4
+        }
+      ],
+      "result": {
+        "id": "shelf_wood",
+        "amount": 1,
+        "label": "Полка",
+        "category": "container"
+      },
+      "recipeImage": null
+    }
+  },
+  "visuals": {
+    "idle": null,
+    "animations": [],
+    "images": []
+  },
+  "character_ref": null,
+  "animation_enabled": false,
+  "tags": [
+    "storage",
+    "physics",
+    "rooms"
+  ],
+  "components": [],
+  "custom": {
+    "load_capacity_kg": 30
+  }
+}

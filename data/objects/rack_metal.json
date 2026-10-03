@@ -1,0 +1,205 @@
+{
+  "schema_version": 4,
+  "id": "rack_metal",
+  "name": "Стеллаж металлический",
+  "category": "container",
+  "category_name": "Контейнер",
+  "subtype": "rack",
+  "description": "Контейнер с несколькими полками; ставит ящики и предметы на полки (нагрузка).",
+  "transform": {
+    "layer": 0
+  },
+  "appearance": {
+    "mode": "IMAGE",
+    "asset": "container/rack/rack_metal_stellazh_metallicheskiy.png",
+    "imageWidth": 457,
+    "imageHeight": 354,
+    "collision": null
+  },
+  "behavior": {
+    "carryable": false,
+    "placeable": true,
+    "collision": "RECT",
+    "physics": "DYNAMIC",
+    "interactive": true,
+    "hasWeight": true,
+    "weight": 40,
+    "real_width_cm": 120,
+    "real_height_cm": 200,
+    "placement_mode": "FLOOR_ONLY",
+    "variant_group": "rack",
+    "allowed_room_types": [
+      "storage",
+      "garage",
+      "shop",
+      "workshop"
+    ],
+    "light": null,
+    "shadow": null,
+    "needs": {
+      "food": false,
+      "water": false,
+      "sleep": false,
+      "health": false,
+      "stress": false,
+      "water_params": null
+    },
+    "autonomy": {
+      "enabled": false,
+      "satisfy_needs": false,
+      "search_water": false,
+      "search_food": false,
+      "sleep": false
+    },
+    "perception": {
+      "vision": null,
+      "hearing": null
+    },
+    "movement": {
+      "enabled": false,
+      "speed_mps": 0
+    },
+    "danger": {
+      "reacts": false,
+      "can_flee": false,
+      "can_hide": false
+    },
+    "makes_sounds": false
+  },
+  "actions": [
+    "SEARCH",
+    "STORE",
+    "TAKE_FROM",
+    "DISMANTLE"
+  ],
+  "action_settings": {
+    "SEARCH": {
+      "requirements": "",
+      "time": 4,
+      "tool": "",
+      "consume": {
+        "item": "",
+        "amount": 0
+      },
+      "produce": {
+        "item": "",
+        "amount": 0
+      },
+      "required_skill": null,
+      "effects": []
+    },
+    "STORE": {
+      "requirements": "",
+      "time": 1,
+      "tool": "",
+      "consume": {
+        "item": "",
+        "amount": 0
+      },
+      "produce": {
+        "item": "",
+        "amount": 0
+      },
+      "required_skill": null,
+      "effects": []
+    },
+    "TAKE_FROM": {
+      "requirements": "",
+      "time": 1,
+      "tool": "",
+      "consume": {
+        "item": "",
+        "amount": 0
+      },
+      "produce": {
+        "item": "",
+        "amount": 0
+      },
+      "required_skill": null,
+      "effects": []
+    },
+    "DISMANTLE": {
+      "requirements": "",
+      "time": 8,
+      "tool": "",
+      "consume": {
+        "item": "",
+        "amount": 0
+      },
+      "produce": {
+        "item": "",
+        "amount": 0
+      },
+      "required_skill": null,
+      "effects": []
+    }
+  },
+  "combat": {
+    "dealsDamage": false,
+    "damageAmount": 0,
+    "providesDefense": false,
+    "defenseAmount": 0,
+    "wearsOut": false,
+    "wearAmount": 0,
+    "wearLifetimeDays": 0
+  },
+  "inventory": {
+    "enabled": true,
+    "slots": 30,
+    "maxWeight": 120,
+    "storage": "GENERAL"
+  },
+  "resource": null,
+  "destruction": {
+    "enabled": true,
+    "hp": 100,
+    "damaged_threshold_percent": 50,
+    "onDestroy": [
+      "REMOVE"
+    ],
+    "damaged": null,
+    "broken": null,
+    "destroyAnimation": null
+  },
+  "block": null,
+  "crafting": {
+    "enabled": true,
+    "recipe": {
+      "id": "RACK_METAL",
+      "ingredients": [
+        {
+          "item": "mat_sheet_metal",
+          "count": 4
+        },
+        {
+          "item": "mat_pipe_metal",
+          "count": 4
+        }
+      ],
+      "result": {
+        "id": "rack_metal",
+        "amount": 1,
+        "label": "Стеллаж металлический",
+        "category": "container"
+      },
+      "recipeImage": null
+    }
+  },
+  "visuals": {
+    "idle": null,
+    "animations": [],
+    "images": []
+  },
+  "character_ref": null,
+  "animation_enabled": false,
+  "tags": [
+    "storage",
+    "loot",
+    "physics",
+    "rooms"
+  ],
+  "components": [],
+  "custom": {
+    "load_capacity_kg": 300
+  }
+}

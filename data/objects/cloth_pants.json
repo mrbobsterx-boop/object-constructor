@@ -1,0 +1,165 @@
+{
+  "schema_version": 4,
+  "id": "cloth_pants",
+  "name": "Штаны",
+  "category": "clothing",
+  "category_name": "Одежда",
+  "subtype": "legs",
+  "description": "Слот legs; защита от травм.",
+  "transform": {
+    "layer": 0
+  },
+  "appearance": {
+    "mode": "IMAGE",
+    "asset": "clothing/legs/cloth_pants_shtany.png",
+    "imageWidth": 0,
+    "imageHeight": 0,
+    "collision": null
+  },
+  "behavior": {
+    "carryable": true,
+    "placeable": true,
+    "collision": "NONE",
+    "physics": "DYNAMIC",
+    "interactive": true,
+    "hasWeight": true,
+    "weight": 0.6,
+    "real_width_cm": 40,
+    "real_height_cm": 80,
+    "placement_mode": "ANYWHERE",
+    "variant_group": null,
+    "allowed_room_types": [
+      "bedroom",
+      "shop"
+    ],
+    "light": null,
+    "shadow": null,
+    "needs": {
+      "food": false,
+      "water": false,
+      "sleep": false,
+      "health": false,
+      "stress": false,
+      "water_params": null
+    },
+    "autonomy": {
+      "enabled": false,
+      "satisfy_needs": false,
+      "search_water": false,
+      "search_food": false,
+      "sleep": false
+    },
+    "perception": {
+      "vision": null,
+      "hearing": null
+    },
+    "movement": {
+      "enabled": false,
+      "speed_mps": 0
+    },
+    "danger": {
+      "reacts": false,
+      "can_flee": false,
+      "can_hide": false
+    },
+    "makes_sounds": false
+  },
+  "actions": [
+    "EQUIP",
+    "UNEQUIP"
+  ],
+  "action_settings": {
+    "EQUIP": {
+      "requirements": "",
+      "time": 1,
+      "tool": "",
+      "consume": {
+        "item": "",
+        "amount": 0
+      },
+      "produce": {
+        "item": "",
+        "amount": 0
+      },
+      "required_skill": null,
+      "effects": []
+    },
+    "UNEQUIP": {
+      "requirements": "",
+      "time": 1,
+      "tool": "",
+      "consume": {
+        "item": "",
+        "amount": 0
+      },
+      "produce": {
+        "item": "",
+        "amount": 0
+      },
+      "required_skill": null,
+      "effects": []
+    }
+  },
+  "combat": {
+    "dealsDamage": false,
+    "damageAmount": 0,
+    "providesDefense": true,
+    "defenseAmount": 2,
+    "wearsOut": false,
+    "wearAmount": 0,
+    "wearLifetimeDays": 0
+  },
+  "inventory": {
+    "enabled": false,
+    "slots": 0,
+    "maxWeight": 0,
+    "storage": "GENERAL"
+  },
+  "resource": null,
+  "destruction": {
+    "enabled": true,
+    "hp": 100,
+    "damaged_threshold_percent": 50,
+    "onDestroy": [
+      "REMOVE"
+    ],
+    "damaged": null,
+    "broken": null,
+    "destroyAnimation": null
+  },
+  "block": null,
+  "crafting": {
+    "enabled": true,
+    "recipe": {
+      "id": "CLOTH_PANTS",
+      "ingredients": [
+        {
+          "item": "mat_cloth",
+          "count": 4
+        }
+      ],
+      "result": {
+        "id": "cloth_pants",
+        "amount": 1,
+        "label": "Штаны",
+        "category": "clothing"
+      },
+      "recipeImage": null
+    }
+  },
+  "visuals": {
+    "idle": null,
+    "animations": [],
+    "images": []
+  },
+  "character_ref": null,
+  "animation_enabled": false,
+  "tags": [
+    "equipment",
+    "loot"
+  ],
+  "components": [],
+  "custom": {
+    "equip_slot": "legs"
+  }
+}

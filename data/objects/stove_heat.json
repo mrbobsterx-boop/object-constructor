@@ -1,0 +1,181 @@
+{
+  "schema_version": 4,
+  "id": "stove_heat",
+  "name": "Печь-буржуйка",
+  "category": "machine",
+  "category_name": "Машина",
+  "subtype": "stove",
+  "description": "Горит на топливе (дрова, уголь), греет комнату, на ней можно готовить; дымит (заметность).",
+  "transform": {
+    "layer": 0
+  },
+  "appearance": {
+    "mode": "IMAGE",
+    "asset": "machine/stove/stove_heat_pech_burzhuyka.png",
+    "imageWidth": 314,
+    "imageHeight": 463,
+    "collision": null
+  },
+  "behavior": {
+    "carryable": false,
+    "placeable": true,
+    "collision": "RECT",
+    "physics": "DYNAMIC",
+    "interactive": true,
+    "hasWeight": true,
+    "weight": 35,
+    "real_width_cm": 60,
+    "real_height_cm": 90,
+    "placement_mode": "FLOOR_ONLY",
+    "variant_group": null,
+    "allowed_room_types": [
+      "shelter_living",
+      "kitchen",
+      "camp"
+    ],
+    "light": {
+      "radius_m": 1.5,
+      "color": "#ff8a2a",
+      "intensity": 1,
+      "shape": "CIRCLE",
+      "angle": null,
+      "spread": null,
+      "softness": null
+    },
+    "shadow": null,
+    "needs": {
+      "food": false,
+      "water": false,
+      "sleep": false,
+      "health": false,
+      "stress": false,
+      "water_params": null
+    },
+    "autonomy": {
+      "enabled": false,
+      "satisfy_needs": false,
+      "search_water": false,
+      "search_food": false,
+      "sleep": false
+    },
+    "perception": {
+      "vision": null,
+      "hearing": null
+    },
+    "movement": {
+      "enabled": false,
+      "speed_mps": 0
+    },
+    "danger": {
+      "reacts": false,
+      "can_flee": false,
+      "can_hide": false
+    },
+    "makes_sounds": false
+  },
+  "actions": [
+    "USE",
+    "CRAFT"
+  ],
+  "action_settings": {
+    "USE": {
+      "requirements": "",
+      "time": 1,
+      "tool": "",
+      "consume": {
+        "item": "",
+        "amount": 0
+      },
+      "produce": {
+        "item": "",
+        "amount": 0
+      },
+      "required_skill": null,
+      "effects": []
+    },
+    "CRAFT": {
+      "requirements": "",
+      "time": 5,
+      "tool": "",
+      "consume": {
+        "item": "",
+        "amount": 0
+      },
+      "produce": {
+        "item": "",
+        "amount": 0
+      },
+      "required_skill": null,
+      "effects": []
+    }
+  },
+  "combat": {
+    "dealsDamage": false,
+    "damageAmount": 0,
+    "providesDefense": false,
+    "defenseAmount": 0,
+    "wearsOut": false,
+    "wearAmount": 0,
+    "wearLifetimeDays": 0
+  },
+  "inventory": {
+    "enabled": false,
+    "slots": 0,
+    "maxWeight": 0,
+    "storage": "GENERAL"
+  },
+  "resource": null,
+  "destruction": {
+    "enabled": true,
+    "hp": 100,
+    "damaged_threshold_percent": 50,
+    "onDestroy": [
+      "REMOVE"
+    ],
+    "damaged": null,
+    "broken": null,
+    "destroyAnimation": null
+  },
+  "block": null,
+  "crafting": {
+    "enabled": true,
+    "recipe": {
+      "id": "STOVE_HEAT",
+      "ingredients": [
+        {
+          "item": "mat_sheet_metal",
+          "count": 4
+        },
+        {
+          "item": "mat_pipe_metal",
+          "count": 2
+        }
+      ],
+      "result": {
+        "id": "stove_heat",
+        "amount": 1,
+        "label": "Печь-буржуйка",
+        "category": "machine"
+      },
+      "recipeImage": null
+    }
+  },
+  "visuals": {
+    "idle": null,
+    "animations": [],
+    "images": []
+  },
+  "character_ref": null,
+  "animation_enabled": false,
+  "tags": [
+    "food",
+    "light",
+    "crafting"
+  ],
+  "components": [],
+  "custom": {
+    "fuel_use_per_h": 1,
+    "heat_radius_m": 4,
+    "smoke": true
+  }
+}

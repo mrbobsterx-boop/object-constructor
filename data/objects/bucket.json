@@ -1,0 +1,199 @@
+{
+  "schema_version": 4,
+  "id": "bucket",
+  "name": "Ведро",
+  "category": "tool",
+  "category_name": "Инструмент",
+  "subtype": "container",
+  "description": "Наполняется из источника, переливается в бочку; может использоваться как инструмент HARVEST для воды.",
+  "transform": {
+    "layer": 0
+  },
+  "appearance": {
+    "mode": "IMAGE",
+    "asset": "tool/container/bucket_vedro.png",
+    "imageWidth": 367,
+    "imageHeight": 429,
+    "collision": null
+  },
+  "behavior": {
+    "carryable": true,
+    "placeable": true,
+    "collision": "NONE",
+    "physics": "DYNAMIC",
+    "interactive": true,
+    "hasWeight": true,
+    "weight": 1,
+    "real_width_cm": 30,
+    "real_height_cm": 30,
+    "placement_mode": "ANYWHERE",
+    "variant_group": null,
+    "allowed_room_types": [
+      "storage",
+      "house_living",
+      "street"
+    ],
+    "light": null,
+    "shadow": null,
+    "needs": {
+      "food": false,
+      "water": false,
+      "sleep": false,
+      "health": false,
+      "stress": false,
+      "water_params": null
+    },
+    "autonomy": {
+      "enabled": false,
+      "satisfy_needs": false,
+      "search_water": false,
+      "search_food": false,
+      "sleep": false
+    },
+    "perception": {
+      "vision": null,
+      "hearing": null
+    },
+    "movement": {
+      "enabled": false,
+      "speed_mps": 0
+    },
+    "danger": {
+      "reacts": false,
+      "can_flee": false,
+      "can_hide": false
+    },
+    "makes_sounds": false
+  },
+  "actions": [
+    "USE",
+    "HARVEST",
+    "TAKE",
+    "DROP"
+  ],
+  "action_settings": {
+    "USE": {
+      "requirements": "",
+      "time": 1,
+      "tool": "",
+      "consume": {
+        "item": "",
+        "amount": 0
+      },
+      "produce": {
+        "item": "",
+        "amount": 0
+      },
+      "required_skill": null,
+      "effects": []
+    },
+    "HARVEST": {
+      "requirements": "",
+      "time": 3,
+      "tool": "",
+      "consume": {
+        "item": "",
+        "amount": 0
+      },
+      "produce": {
+        "item": "",
+        "amount": 0
+      },
+      "required_skill": null,
+      "effects": []
+    },
+    "TAKE": {
+      "requirements": "",
+      "time": 0.5,
+      "tool": "",
+      "consume": {
+        "item": "",
+        "amount": 0
+      },
+      "produce": {
+        "item": "",
+        "amount": 0
+      },
+      "required_skill": null,
+      "effects": []
+    },
+    "DROP": {
+      "requirements": "",
+      "time": 0.5,
+      "tool": "",
+      "consume": {
+        "item": "",
+        "amount": 0
+      },
+      "produce": {
+        "item": "",
+        "amount": 0
+      },
+      "required_skill": null,
+      "effects": []
+    }
+  },
+  "combat": {
+    "dealsDamage": false,
+    "damageAmount": 0,
+    "providesDefense": false,
+    "defenseAmount": 0,
+    "wearsOut": true,
+    "wearAmount": 1,
+    "wearLifetimeDays": 0
+  },
+  "inventory": {
+    "enabled": false,
+    "slots": 0,
+    "maxWeight": 0,
+    "storage": "GENERAL"
+  },
+  "resource": null,
+  "destruction": {
+    "enabled": true,
+    "hp": 100,
+    "damaged_threshold_percent": 50,
+    "onDestroy": [
+      "REMOVE"
+    ],
+    "damaged": null,
+    "broken": null,
+    "destroyAnimation": null
+  },
+  "block": null,
+  "crafting": {
+    "enabled": true,
+    "recipe": {
+      "id": "BUCKET",
+      "ingredients": [
+        {
+          "item": "mat_sheet_metal",
+          "count": 1
+        }
+      ],
+      "result": {
+        "id": "bucket",
+        "amount": 1,
+        "label": "Ведро",
+        "category": "tool"
+      },
+      "recipeImage": null
+    }
+  },
+  "visuals": {
+    "idle": null,
+    "animations": [],
+    "images": []
+  },
+  "character_ref": null,
+  "animation_enabled": false,
+  "tags": [
+    "water",
+    "repair"
+  ],
+  "components": [],
+  "custom": {
+    "resource_type": "water",
+    "resource_max": 10
+  }
+}

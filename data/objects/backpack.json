@@ -1,0 +1,221 @@
+{
+  "schema_version": 4,
+  "id": "backpack",
+  "name": "Рюкзак",
+  "category": "clothing",
+  "category_name": "Одежда",
+  "subtype": "back",
+  "description": "Надевается в слот «спина»; добавляет слоты и грузоподъёмность; выпадает при смерти вместе с содержимым.",
+  "transform": {
+    "layer": 0
+  },
+  "appearance": {
+    "mode": "IMAGE",
+    "asset": "clothing/back/backpack_ryukzak.png",
+    "imageWidth": 305,
+    "imageHeight": 254,
+    "collision": null
+  },
+  "behavior": {
+    "carryable": true,
+    "placeable": true,
+    "collision": "NONE",
+    "physics": "DYNAMIC",
+    "interactive": true,
+    "hasWeight": true,
+    "weight": 1.2,
+    "real_width_cm": 35,
+    "real_height_cm": 45,
+    "placement_mode": "ANYWHERE",
+    "variant_group": "backpack",
+    "allowed_room_types": [
+      "bedroom",
+      "storage",
+      "garage",
+      "house_living"
+    ],
+    "light": null,
+    "shadow": null,
+    "needs": {
+      "food": false,
+      "water": false,
+      "sleep": false,
+      "health": false,
+      "stress": false,
+      "water_params": null
+    },
+    "autonomy": {
+      "enabled": false,
+      "satisfy_needs": false,
+      "search_water": false,
+      "search_food": false,
+      "sleep": false
+    },
+    "perception": {
+      "vision": null,
+      "hearing": null
+    },
+    "movement": {
+      "enabled": false,
+      "speed_mps": 0
+    },
+    "danger": {
+      "reacts": false,
+      "can_flee": false,
+      "can_hide": false
+    },
+    "makes_sounds": false
+  },
+  "actions": [
+    "EQUIP",
+    "UNEQUIP",
+    "OPEN",
+    "STORE",
+    "TAKE_FROM"
+  ],
+  "action_settings": {
+    "EQUIP": {
+      "requirements": "",
+      "time": 1,
+      "tool": "",
+      "consume": {
+        "item": "",
+        "amount": 0
+      },
+      "produce": {
+        "item": "",
+        "amount": 0
+      },
+      "required_skill": null,
+      "effects": []
+    },
+    "UNEQUIP": {
+      "requirements": "",
+      "time": 1,
+      "tool": "",
+      "consume": {
+        "item": "",
+        "amount": 0
+      },
+      "produce": {
+        "item": "",
+        "amount": 0
+      },
+      "required_skill": null,
+      "effects": []
+    },
+    "OPEN": {
+      "requirements": "",
+      "time": 1,
+      "tool": "",
+      "consume": {
+        "item": "",
+        "amount": 0
+      },
+      "produce": {
+        "item": "",
+        "amount": 0
+      },
+      "required_skill": null,
+      "effects": []
+    },
+    "STORE": {
+      "requirements": "",
+      "time": 1,
+      "tool": "",
+      "consume": {
+        "item": "",
+        "amount": 0
+      },
+      "produce": {
+        "item": "",
+        "amount": 0
+      },
+      "required_skill": null,
+      "effects": []
+    },
+    "TAKE_FROM": {
+      "requirements": "",
+      "time": 1,
+      "tool": "",
+      "consume": {
+        "item": "",
+        "amount": 0
+      },
+      "produce": {
+        "item": "",
+        "amount": 0
+      },
+      "required_skill": null,
+      "effects": []
+    }
+  },
+  "combat": {
+    "dealsDamage": false,
+    "damageAmount": 0,
+    "providesDefense": false,
+    "defenseAmount": 0,
+    "wearsOut": true,
+    "wearAmount": 1,
+    "wearLifetimeDays": 0
+  },
+  "inventory": {
+    "enabled": true,
+    "slots": 12,
+    "maxWeight": 20,
+    "storage": "GENERAL"
+  },
+  "resource": null,
+  "destruction": {
+    "enabled": true,
+    "hp": 100,
+    "damaged_threshold_percent": 50,
+    "onDestroy": [
+      "REMOVE"
+    ],
+    "damaged": null,
+    "broken": null,
+    "destroyAnimation": null
+  },
+  "block": null,
+  "crafting": {
+    "enabled": true,
+    "recipe": {
+      "id": "BACKPACK",
+      "ingredients": [
+        {
+          "item": "mat_cloth",
+          "count": 4
+        },
+        {
+          "item": "mat_rope",
+          "count": 2
+        }
+      ],
+      "result": {
+        "id": "backpack",
+        "amount": 1,
+        "label": "Рюкзак",
+        "category": "clothing"
+      },
+      "recipeImage": null
+    }
+  },
+  "visuals": {
+    "idle": null,
+    "animations": [],
+    "images": []
+  },
+  "character_ref": null,
+  "animation_enabled": false,
+  "tags": [
+    "storage",
+    "equipment",
+    "loot",
+    "death"
+  ],
+  "components": [],
+  "custom": {
+    "equip_slot": "back"
+  }
+}

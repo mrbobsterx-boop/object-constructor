@@ -1,0 +1,204 @@
+{
+  "schema_version": 4,
+  "id": "door_metal",
+  "name": "Дверь металлическая",
+  "category": "door",
+  "category_name": "Дверь",
+  "subtype": "secure",
+  "description": "Высокая прочность, шум при взломе; замок.",
+  "transform": {
+    "layer": 0
+  },
+  "appearance": {
+    "mode": "IMAGE",
+    "asset": "door/secure/door_metal_dver_metallicheskaya.png",
+    "imageWidth": 0,
+    "imageHeight": 0,
+    "collision": null
+  },
+  "behavior": {
+    "carryable": false,
+    "placeable": true,
+    "collision": "RECT",
+    "physics": "STATIC",
+    "interactive": true,
+    "hasWeight": false,
+    "weight": 0,
+    "real_width_cm": 100,
+    "real_height_cm": 200,
+    "placement_mode": "ANYWHERE",
+    "variant_group": "door",
+    "allowed_room_types": [
+      "entrance",
+      "shelter_living",
+      "garage"
+    ],
+    "light": null,
+    "shadow": null,
+    "needs": {
+      "food": false,
+      "water": false,
+      "sleep": false,
+      "health": false,
+      "stress": false,
+      "water_params": null
+    },
+    "autonomy": {
+      "enabled": false,
+      "satisfy_needs": false,
+      "search_water": false,
+      "search_food": false,
+      "sleep": false
+    },
+    "perception": {
+      "vision": null,
+      "hearing": null
+    },
+    "movement": {
+      "enabled": false,
+      "speed_mps": 0
+    },
+    "danger": {
+      "reacts": false,
+      "can_flee": false,
+      "can_hide": false
+    },
+    "makes_sounds": false
+  },
+  "actions": [
+    "OPEN",
+    "CLOSE",
+    "USE",
+    "DISMANTLE"
+  ],
+  "action_settings": {
+    "OPEN": {
+      "requirements": "",
+      "time": 1,
+      "tool": "",
+      "consume": {
+        "item": "",
+        "amount": 0
+      },
+      "produce": {
+        "item": "",
+        "amount": 0
+      },
+      "required_skill": null,
+      "effects": []
+    },
+    "CLOSE": {
+      "requirements": "",
+      "time": 1,
+      "tool": "",
+      "consume": {
+        "item": "",
+        "amount": 0
+      },
+      "produce": {
+        "item": "",
+        "amount": 0
+      },
+      "required_skill": null,
+      "effects": []
+    },
+    "USE": {
+      "requirements": "",
+      "time": 1,
+      "tool": "",
+      "consume": {
+        "item": "",
+        "amount": 0
+      },
+      "produce": {
+        "item": "",
+        "amount": 0
+      },
+      "required_skill": null,
+      "effects": []
+    },
+    "DISMANTLE": {
+      "requirements": "",
+      "time": 8,
+      "tool": "",
+      "consume": {
+        "item": "",
+        "amount": 0
+      },
+      "produce": {
+        "item": "",
+        "amount": 0
+      },
+      "required_skill": null,
+      "effects": []
+    }
+  },
+  "combat": {
+    "dealsDamage": false,
+    "damageAmount": 0,
+    "providesDefense": false,
+    "defenseAmount": 0,
+    "wearsOut": false,
+    "wearAmount": 0,
+    "wearLifetimeDays": 0
+  },
+  "inventory": {
+    "enabled": false,
+    "slots": 0,
+    "maxWeight": 0,
+    "storage": "GENERAL"
+  },
+  "resource": null,
+  "destruction": {
+    "enabled": true,
+    "hp": 400,
+    "damaged_threshold_percent": 50,
+    "onDestroy": [
+      "REMOVE"
+    ],
+    "damaged": null,
+    "broken": null,
+    "destroyAnimation": null
+  },
+  "block": null,
+  "crafting": {
+    "enabled": true,
+    "recipe": {
+      "id": "DOOR_METAL",
+      "ingredients": [
+        {
+          "item": "mat_sheet_metal",
+          "count": 6
+        },
+        {
+          "item": "part_mech",
+          "count": 2
+        }
+      ],
+      "result": {
+        "id": "door_metal",
+        "amount": 1,
+        "label": "Дверь металлическая",
+        "category": "door"
+      },
+      "recipeImage": null
+    }
+  },
+  "visuals": {
+    "idle": null,
+    "animations": [],
+    "images": []
+  },
+  "character_ref": null,
+  "animation_enabled": false,
+  "tags": [
+    "transitions",
+    "building",
+    "combat"
+  ],
+  "components": [],
+  "custom": {
+    "lockable": true,
+    "lock_level": 2
+  }
+}

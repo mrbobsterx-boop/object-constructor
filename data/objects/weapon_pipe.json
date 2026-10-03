@@ -1,0 +1,169 @@
+{
+  "schema_version": 4,
+  "id": "weapon_pipe",
+  "name": "Труба-дубинка",
+  "category": "weapon",
+  "category_name": "Оружие",
+  "subtype": "melee",
+  "description": "Мощный ближний удар; медленнее биты.",
+  "transform": {
+    "layer": 0
+  },
+  "appearance": {
+    "mode": "IMAGE",
+    "asset": "weapon/melee/weapon_pipe_truba_dubinka.png",
+    "imageWidth": 0,
+    "imageHeight": 0,
+    "collision": null
+  },
+  "behavior": {
+    "carryable": true,
+    "placeable": true,
+    "collision": "NONE",
+    "physics": "DYNAMIC",
+    "interactive": true,
+    "hasWeight": true,
+    "weight": 2,
+    "real_width_cm": 80,
+    "real_height_cm": 8,
+    "placement_mode": "ANYWHERE",
+    "variant_group": null,
+    "allowed_room_types": [
+      "workshop",
+      "garage"
+    ],
+    "light": null,
+    "shadow": null,
+    "needs": {
+      "food": false,
+      "water": false,
+      "sleep": false,
+      "health": false,
+      "stress": false,
+      "water_params": null
+    },
+    "autonomy": {
+      "enabled": false,
+      "satisfy_needs": false,
+      "search_water": false,
+      "search_food": false,
+      "sleep": false
+    },
+    "perception": {
+      "vision": null,
+      "hearing": null
+    },
+    "movement": {
+      "enabled": false,
+      "speed_mps": 0
+    },
+    "danger": {
+      "reacts": false,
+      "can_flee": false,
+      "can_hide": false
+    },
+    "makes_sounds": false
+  },
+  "actions": [
+    "ATTACK",
+    "EQUIP"
+  ],
+  "action_settings": {
+    "ATTACK": {
+      "requirements": "",
+      "time": 1,
+      "tool": "",
+      "consume": {
+        "item": "",
+        "amount": 0
+      },
+      "produce": {
+        "item": "",
+        "amount": 0
+      },
+      "required_skill": null,
+      "effects": []
+    },
+    "EQUIP": {
+      "requirements": "",
+      "time": 1,
+      "tool": "",
+      "consume": {
+        "item": "",
+        "amount": 0
+      },
+      "produce": {
+        "item": "",
+        "amount": 0
+      },
+      "required_skill": null,
+      "effects": []
+    }
+  },
+  "combat": {
+    "dealsDamage": true,
+    "damageAmount": 18,
+    "providesDefense": false,
+    "defenseAmount": 0,
+    "wearsOut": true,
+    "wearAmount": 1,
+    "wearLifetimeDays": 0
+  },
+  "inventory": {
+    "enabled": false,
+    "slots": 0,
+    "maxWeight": 0,
+    "storage": "GENERAL"
+  },
+  "resource": null,
+  "destruction": {
+    "enabled": true,
+    "hp": 100,
+    "damaged_threshold_percent": 50,
+    "onDestroy": [
+      "REMOVE"
+    ],
+    "damaged": null,
+    "broken": null,
+    "destroyAnimation": null
+  },
+  "block": null,
+  "crafting": {
+    "enabled": true,
+    "recipe": {
+      "id": "WEAPON_PIPE",
+      "ingredients": [
+        {
+          "item": "mat_pipe_metal",
+          "count": 1
+        },
+        {
+          "item": "mat_cloth",
+          "count": 1
+        }
+      ],
+      "result": {
+        "id": "weapon_pipe",
+        "amount": 1,
+        "label": "Труба-дубинка",
+        "category": "weapon"
+      },
+      "recipeImage": null
+    }
+  },
+  "visuals": {
+    "idle": null,
+    "animations": [],
+    "images": []
+  },
+  "character_ref": null,
+  "animation_enabled": false,
+  "tags": [
+    "combat",
+    "crafting"
+  ],
+  "components": [],
+  "custom": {
+    "durability_uses": 250
+  }
+}
