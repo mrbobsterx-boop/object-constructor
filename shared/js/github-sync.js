@@ -165,6 +165,22 @@ async function writeFileToGithub(relPath,bytesOrText,message){
   return true;
 }
 
+// Удаляет файл (коммит в указанную ветку). Нужен sha текущей версии — читаем его тем же способом,
+// что и перед обновлением в writeFileToGithub.
+async function deleteFileFromGithub(relPath,message){
+  if(!ghIsConnected()) return false;
+  const existing=await ghReadFileRaw(relPath);
+  if(!existing) return false; // уже нет — нечего удалять
+  const s=ghLoad();
+  const res=await fetch(ghApiUrl(`contents/${ghEncPath(relPath)}`),{
+    method:'DELETE',headers:Object.assign(ghHeaders(),{'Content-Type':'application/json'}),
+    body:JSON.stringify({message:message||('Delete '+relPath),sha:existing.sha,branch:s.branch})
+  });
+  if(!res.ok){ const err=await res.text().catch(()=>''); throw new Error('HTTP '+res.status+' '+err.slice(0,300)); }
+  ghTreeCache=null;
+  return true;
+}
+
 // ---- общий UI-хелпер: кнопка "GitHub" + статус-строка (вызвать после того как в DOM уже есть
 // #githubStatus/#btnConnectGithub/#btnGithubDisconnect, обычно из 11-init.js аналога приложения) ----
 function wireGithubButtons(){

@@ -7,6 +7,13 @@ document.getElementById('btnConnectSource').onclick=connectSourceFolder;
 document.getElementById('btnRegrantSource').onclick=regrantSourceFolder;
 document.getElementById('btnConnectDest').onclick=connectDestFolder;
 document.getElementById('btnRegrantDest').onclick=regrantDestFolder;
+document.getElementById('chkSourceGithub').addEventListener('change',e=>{
+  localStorage.setItem(AR_LS_SOURCE,e.target.checked?'1':'0'); scanSource();
+});
+document.getElementById('chkDestGithub').addEventListener('change',e=>{
+  localStorage.setItem(AR_LS_DEST,e.target.checked?'1':'0');
+  setDestStatus(destIsGithub()?'Назначение: GitHub ('+AR_GITHUB_DEST_PATH+')':(destDirHandle?'Назначение: '+destDirHandle.name+' ✓':'Назначение не подключено'));
+});
 
 document.getElementById('sourceList').addEventListener('click',e=>{
   const chip=e.target.closest('.file-chip'); if(!chip) return;
@@ -58,4 +65,7 @@ window.addEventListener('keydown',e=>{
 
 tryRestoreSourceFolder();
 tryRestoreDestFolder();
+wireGithubButtons();
+updateGithubModeUI();
+if(sourceIsGithub()) scanSource();
 render();
