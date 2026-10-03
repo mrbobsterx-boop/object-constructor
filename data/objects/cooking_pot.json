@@ -124,7 +124,11 @@
       "REMOVE"
     ],
     "damaged": null,
-    "broken": null,
+    "broken": {
+      "nativeWidth": 440,
+      "nativeHeight": 299,
+      "image": "tool/kitchen/cooking_pot_kastryulya_kotelok_broken.png"
+    },
     "destroyAnimation": null
   },
   "block": null,

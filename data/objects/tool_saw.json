@@ -124,7 +124,11 @@
       "REMOVE"
     ],
     "damaged": null,
-    "broken": null,
+    "broken": {
+      "nativeWidth": 621,
+      "nativeHeight": 325,
+      "image": "tool/craft/tool_saw_pila_broken.png"
+    },
     "destroyAnimation": null
   },
   "block": null,

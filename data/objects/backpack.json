@@ -174,7 +174,11 @@
       "REMOVE"
     ],
     "damaged": null,
-    "broken": null,
+    "broken": {
+      "nativeWidth": 361,
+      "nativeHeight": 245,
+      "image": "clothing/back/backpack_ryukzak_broken.png"
+    },
     "destroyAnimation": null
   },
   "block": null,

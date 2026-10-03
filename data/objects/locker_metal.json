@@ -174,7 +174,11 @@
       "REMOVE"
     ],
     "damaged": null,
-    "broken": null,
+    "broken": {
+      "nativeWidth": 266,
+      "nativeHeight": 320,
+      "image": "container/locker/locker_metal_shkafchik_metallicheskiy_broken.png"
+    },
     "destroyAnimation": null
   },
   "block": null,

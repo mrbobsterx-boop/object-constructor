@@ -124,7 +124,11 @@
       "REMOVE"
     ],
     "damaged": null,
-    "broken": null,
+    "broken": {
+      "nativeWidth": 539,
+      "nativeHeight": 319,
+      "image": "machine/energy/bike_generator_velogenerator_broken.png"
+    },
     "destroyAnimation": null
   },
   "block": null,

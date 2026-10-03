@@ -189,7 +189,11 @@
       "REMOVE"
     ],
     "damaged": null,
-    "broken": null,
+    "broken": {
+      "nativeWidth": 359,
+      "nativeHeight": 347,
+      "image": "container/wardrobe/wardrobe_shkaf_broken.png"
+    },
     "destroyAnimation": null
   },
   "block": null,

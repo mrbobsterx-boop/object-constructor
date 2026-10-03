@@ -124,7 +124,11 @@
       "REMOVE"
     ],
     "damaged": null,
-    "broken": null,
+    "broken": {
+      "nativeWidth": 326,
+      "nativeHeight": 343,
+      "image": "furniture/sink/sink_tap_rakovina_s_kranom_broken.png"
+    },
     "destroyAnimation": null
   },
   "block": null,

@@ -158,7 +158,11 @@
       "REMOVE"
     ],
     "damaged": null,
-    "broken": null,
+    "broken": {
+      "nativeWidth": 500,
+      "nativeHeight": 360,
+      "image": "container/rack/rack_metal_stellazh_metallicheskiy_broken.png"
+    },
     "destroyAnimation": null
   },
   "block": null,

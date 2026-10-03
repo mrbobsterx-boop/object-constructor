@@ -125,7 +125,11 @@
       "REMOVE"
     ],
     "damaged": null,
-    "broken": null,
+    "broken": {
+      "nativeWidth": 372,
+      "nativeHeight": 204,
+      "image": "machine/radio/radio_desk_radiopriemnik_broken.png"
+    },
     "destroyAnimation": null
   },
   "block": null,

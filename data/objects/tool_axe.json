@@ -173,7 +173,11 @@
       "REMOVE"
     ],
     "damaged": null,
-    "broken": null,
+    "broken": {
+      "nativeWidth": 644,
+      "nativeHeight": 333,
+      "image": "tool/harvest/tool_axe_topor_broken.png"
+    },
     "destroyAnimation": null
   },
   "block": null,

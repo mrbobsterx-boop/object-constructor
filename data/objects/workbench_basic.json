@@ -157,7 +157,11 @@
       "REMOVE"
     ],
     "damaged": null,
-    "broken": null,
+    "broken": {
+      "nativeWidth": 450,
+      "nativeHeight": 249,
+      "image": "workbench/basic/workbench_basic_verstak_broken.png"
+    },
     "destroyAnimation": null
   },
   "block": null,

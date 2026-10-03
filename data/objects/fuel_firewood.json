@@ -142,7 +142,11 @@
       "REMOVE"
     ],
     "damaged": null,
-    "broken": null,
+    "broken": {
+      "nativeWidth": 555,
+      "nativeHeight": 196,
+      "image": "item/fuel/fuel_firewood_drova_broken.png"
+    },
     "destroyAnimation": null
   },
   "block": null,

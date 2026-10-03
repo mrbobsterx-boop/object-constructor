@@ -141,7 +141,11 @@
       "REMOVE"
     ],
     "damaged": null,
-    "broken": null,
+    "broken": {
+      "nativeWidth": 374,
+      "nativeHeight": 269,
+      "image": "item/food/veg_potato_ovoschi_kartofel_morkov_broken.png"
+    },
     "destroyAnimation": null
   },
   "block": null,

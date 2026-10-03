@@ -123,7 +123,11 @@
       "REMOVE"
     ],
     "damaged": null,
-    "broken": null,
+    "broken": {
+      "nativeWidth": 381,
+      "nativeHeight": 989,
+      "image": "building/water/water_tower_vodonapornaya_bashnya_broken.png"
+    },
     "destroyAnimation": null
   },
   "block": null,

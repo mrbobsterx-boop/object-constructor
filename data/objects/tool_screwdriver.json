@@ -123,7 +123,11 @@
       "REMOVE"
     ],
     "damaged": null,
-    "broken": null,
+    "broken": {
+      "nativeWidth": 585,
+      "nativeHeight": 153,
+      "image": "tool/craft/tool_screwdriver_otvertka_broken.png"
+    },
     "destroyAnimation": null
   },
   "block": null,

@@ -127,7 +127,11 @@
       "DROP_ITEMS"
     ],
     "damaged": null,
-    "broken": null,
+    "broken": {
+      "nativeWidth": 534,
+      "nativeHeight": 196,
+      "image": "furniture/table/table_wood_stol_broken.png"
+    },
     "destroyAnimation": null
   },
   "block": null,

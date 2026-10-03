@@ -156,7 +156,11 @@
       "REMOVE"
     ],
     "damaged": null,
-    "broken": null,
+    "broken": {
+      "nativeWidth": 481,
+      "nativeHeight": 409,
+      "image": "container/tools/toolbox_yaschik_s_instrumentami_broken.png"
+    },
     "destroyAnimation": null
   },
   "block": null,

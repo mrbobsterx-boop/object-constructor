@@ -140,7 +140,11 @@
       "REMOVE"
     ],
     "damaged": null,
-    "broken": null,
+    "broken": {
+      "nativeWidth": 560,
+      "nativeHeight": 367,
+      "image": "machine/energy/solar_panel_solnechnaya_panel_broken.png"
+    },
     "destroyAnimation": null
   },
   "block": null,

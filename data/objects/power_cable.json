@@ -109,7 +109,11 @@
       "REMOVE"
     ],
     "damaged": null,
-    "broken": null,
+    "broken": {
+      "nativeWidth": 358,
+      "nativeHeight": 341,
+      "image": "item/component/power_cable_provod_kabel_broken.png"
+    },
     "destroyAnimation": null
   },
   "block": null,
