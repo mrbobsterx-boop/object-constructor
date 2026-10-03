@@ -25,7 +25,9 @@ function ghLoad(){
   return ghSettings;
 }
 function ghIsConnected(){ const s=ghLoad(); return !!(s&&s.owner&&s.repo&&s.branch&&s.token); }
-function ghApiUrl(path){ const s=ghLoad(); return `https://api.github.com/repos/${s.owner}/${s.repo}/${path}`; }
+// path='' (проверка подключения) НЕ должен давать URL с хвостовым слэшем — на него GitHub отвечает
+// 400 БЕЗ CORS-заголовков, и браузер вместо понятной ошибки показывает голое "Failed to fetch".
+function ghApiUrl(path){ const s=ghLoad(); const base=`https://api.github.com/repos/${s.owner}/${s.repo}`; return path?`${base}/${path}`:base; }
 function ghHeaders(extra){
   const s=ghLoad();
   return Object.assign({'Authorization':'Bearer '+s.token,'Accept':'application/vnd.github+json','X-GitHub-Api-Version':'2022-11-28'},extra||{});
