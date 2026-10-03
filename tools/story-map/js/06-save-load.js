@@ -187,7 +187,7 @@ async function applyStoryData(raw){
 // Онлайн-режим (сайт на Vercel): папки проекта нет, данные лежат в репозитории рядом с приложением —
 // по умолчанию story-map-world/story.json, другой файл можно задать ?data=<путь>. Правки в браузере
 // в репозиторий не попадают — для этого «⬇ Скачать JSON».
-const STORY_ONLINE_DEFAULT_URL='../story-map-world/story.json';
+const STORY_ONLINE_DEFAULT_URL='../../story-map-world/story.json';
 function storyOnlineUrl(){
   const q=new URLSearchParams(location.search).get('data');
   if(q) return q;
