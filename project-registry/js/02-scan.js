@@ -134,22 +134,36 @@ async function scanAssembler(R){
     const g={ kind:'rig', id, name:d.name||id, file:f.name, raw:d };
     g.search=[g.id,g.name].join(' ').toLowerCase(); R.rigs.push(g);
   }
-  try{
-    const root=await getSubdir(projectDirHandle,'data/parts',false);
-    for await(const [rigName,rigH] of root.entries()){
-      if(rigH.kind!=='directory') continue;
-      for await(const [slotName,slotH] of rigH.entries()){
-        if(slotH.kind!=='directory') continue;
-        const names=[];
-        for await(const [fname,fh] of slotH.entries()){
-          if(fh.kind!=='file'||!/\.json$/i.test(fname)) continue;
-          names.push(fname.replace(/\.json$/i,''));
-          const r=await readJsonFile(slotH,fname); if(r.data) collectStrings(r.data,R.refs);
-        }
-        R.parts[rigName+'/'+slotName]=names;
+  if(ghIsConnected()){
+    try{
+      const files=await listPartsTreeGithub();
+      const bySlot=new Map();
+      for(const f of files){
+        const key=f.rig+'/'+f.slot;
+        if(!bySlot.has(key)) bySlot.set(key,[]);
+        bySlot.get(key).push(f.name);
+        const r=await readJsonFromGithub(f.path); if(r.data) collectStrings(r.data,R.refs);
       }
-    }
-  }catch(e){ /* data/parts может отсутствовать */ }
+      for(const [key,names] of bySlot) R.parts[key]=names;
+    }catch(e){ /* data/parts может отсутствовать */ }
+  }else{
+    try{
+      const root=await getSubdir(projectDirHandle,'data/parts',false);
+      for await(const [rigName,rigH] of root.entries()){
+        if(rigH.kind!=='directory') continue;
+        for await(const [slotName,slotH] of rigH.entries()){
+          if(slotH.kind!=='directory') continue;
+          const names=[];
+          for await(const [fname,fh] of slotH.entries()){
+            if(fh.kind!=='file'||!/\.json$/i.test(fname)) continue;
+            names.push(fname.replace(/\.json$/i,''));
+            const r=await readJsonFile(slotH,fname); if(r.data) collectStrings(r.data,R.refs);
+          }
+          R.parts[rigName+'/'+slotName]=names;
+        }
+      }
+    }catch(e){ /* data/parts может отсутствовать */ }
+  }
 }
 async function scanFiles(R){
   const sp=await listFilesRecursive('assets/sprites',SPRITE_EXT), sn=await listFilesRecursive('assets/sounds',SOUND_EXT);
@@ -157,6 +171,12 @@ async function scanFiles(R){
   if(sp.missing) R.missing.sprites=true; if(sn.missing) R.missing.sounds=true;
 }
 async function scanSettings(R){
+  if(ghIsConnected()){
+    R.settings=(await readSingleJsonFromProject('data/project_settings.json')).data;
+    R.categoriesFile=(await readSingleJsonFromProject('data/categories.json')).data;
+    R.recipes=(await readSingleJsonFromProject('data/room_recipes.json')).data;
+    return;
+  }
   let dir=null; try{ dir=await getSubdir(projectDirHandle,'data',false); }catch(e){ R.missing.data=true; return; }
   const s=await readJsonFile(dir,'project_settings.json'); R.settings=s.data;
   const c=await readJsonFile(dir,'categories.json'); R.categoriesFile=c.data;
@@ -164,7 +184,7 @@ async function scanSettings(R){
 }
 
 async function scanProject(){
-  if(!projectDirHandle){ alert('Сначала подключи папку проекта.'); return; }
+  if(!projectDirHandle&&!ghIsConnected()){ alert('Сначала подключи папку проекта или GitHub.'); return; }
   setScanStatus('Сканирование…');
   const R=emptyRegistry();
   try{

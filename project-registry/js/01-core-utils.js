@@ -56,7 +56,9 @@ async function readJsonFile(dir,name){
   catch(e){ return {data:null,broken:true}; }
 }
 // Все *.json папки: {items:[{name,data,broken}], missing:bool}
+// GitHub в приоритете, если подключён (реестр работает через GitHub, а не через папку) — иначе папка.
 async function listJsonDir(path){
+  if(ghIsConnected()) return listJsonDirGithub(path);
   const out={items:[],missing:false};
   try{
     const dir=await getSubdir(projectDirHandle,path,false);
@@ -70,6 +72,7 @@ async function listJsonDir(path){
 }
 // Все файлы папки рекурсивно (относительные пути); скрытые (.sessions и т.п.) пропускаются
 async function listFilesRecursive(path,re){
+  if(ghIsConnected()) return listFilesRecursiveGithub(path,re);
   const out={files:[],missing:false};
   let root; try{ root=await getSubdir(projectDirHandle,path,false); }catch(e){ out.missing=true; return out; }
   async function walk(dir,prefix){
@@ -83,6 +86,7 @@ async function listFilesRecursive(path,re){
   return out;
 }
 async function readFileBlobUrl(path){
+  if(ghIsConnected()) return readBinaryObjectUrlFromGithub(path);
   try{
     const parts=String(path).split('/').filter(Boolean); const name=parts.pop();
     const dir=await getSubdir(projectDirHandle,parts.join('/'),false);
@@ -113,6 +117,28 @@ async function tryRestoreProjectFolder(){
     updateFolderStatus(p!=='granted');
     if(p==='granted') await scanProject(); else render();
   }catch(e){ console.warn('Не удалось восстановить папку проекта:',e); }
+}
+// Вызывается shared/js/github-sync.js после успешного подключения GitHub.
+async function onGithubConnected(){ await scanProject(); }
+// Разовое чтение одного файла вне listJsonDir — тоже GitHub-приоритетно.
+async function readSingleJsonFromProject(relPath){
+  if(ghIsConnected()) return readJsonFromGithub(relPath);
+  try{
+    const parts=relPath.split('/'); const fileName=parts.pop();
+    const dir=parts.length?await getSubdir(projectDirHandle,parts.join('/'),false):projectDirHandle;
+    return await readJsonFile(dir,fileName);
+  }catch(e){ return {data:null,broken:false,missing:true}; }
+}
+// data/parts/<rig>/<slot>/*.json — вложенная структура, не ложится на listJsonDir/listFilesRecursive.
+async function listPartsTreeGithub(){
+  const out={}; // 'rig/slot' -> [name,...], плюс сайд-эффект сбора строк для R.refs делает вызывающий код
+  const tree=await ghFetchTree();
+  const files=[];
+  tree.forEach(t=>{
+    const m=t.type==='blob'&&t.path.match(/^data\/parts\/([^/]+)\/([^/]+)\/([^/]+)\.json$/);
+    if(m) files.push({rig:m[1],slot:m[2],name:m[3],path:t.path});
+  });
+  return files;
 }
 async function regrantProjectFolder(){
   if(!projectDirHandle) return;
