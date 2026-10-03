@@ -12,8 +12,8 @@
   "appearance": {
     "mode": "IMAGE",
     "asset": "weapon/ranged/weapon_pistol_pistolet.png",
-    "imageWidth": 0,
-    "imageHeight": 0,
+    "imageWidth": 390,
+    "imageHeight": 264,
     "collision": null
   },
   "behavior": {

@@ -12,8 +12,8 @@
   "appearance": {
     "mode": "IMAGE",
     "asset": "tool/harvest/tool_sledge_kuvalda.png",
-    "imageWidth": 0,
-    "imageHeight": 0,
+    "imageWidth": 426,
+    "imageHeight": 425,
     "collision": null
   },
   "behavior": {

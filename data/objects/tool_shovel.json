@@ -12,8 +12,8 @@
   "appearance": {
     "mode": "IMAGE",
     "asset": "tool/harvest/tool_shovel_lopata.png",
-    "imageWidth": 0,
-    "imageHeight": 0,
+    "imageWidth": 224,
+    "imageHeight": 640,
     "collision": null
   },
   "behavior": {
