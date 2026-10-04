@@ -8,7 +8,7 @@ const SPRITE_EXT=/\.(png|jpe?g|webp|gif)$/i;
 function esc(s){ return String(s===undefined||s===null?'':s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
 
 // Та же транслитерация, что в остальных приложениях — переименование фото пишет английский слаг,
-// даже если имя ввели по-русски (см. renameMatchedPhoto/renameUnmatchedPhoto в 05-actions.js).
+// даже если имя ввели по-русски (см. reassignPhoto в 05-actions.js).
 function translit(str){
   const map={а:'a',б:'b',в:'v',г:'g',д:'d',е:'e',ё:'e',ж:'zh',з:'z',и:'i',й:'y',к:'k',л:'l',м:'m',н:'n',о:'o',п:'p',р:'r',с:'s',т:'t',у:'u',ф:'f',х:'h',ц:'ts',ч:'ch',ш:'sh',щ:'sch',ъ:'',ы:'y',ь:'',э:'e',ю:'yu',я:'ya'};
   return (str||'').toLowerCase().split('').map(c=>map[c]!==undefined?map[c]:(/[a-z0-9]/.test(c)?c:'_')).join('').replace(/_+/g,'_').replace(/^_|_$/g,'');

@@ -2,12 +2,15 @@
    MODULE 05 — ПЕРЕИМЕНОВАНИЕ ФАЙЛА + ПРАВКА ИМЕНИ ОБЪЕКТА
    ============================================================ */
 
-// Переименовывает ОДИН файл внутри assets/refs/ (та же папка-категория, меняется только базовое
-// имя). newStem — полное новое имя без расширения (id или id_суффикс).
-async function doRename(oldPath,newStem){
+// Переименовывает/переносит ОДИН файл внутри assets/refs/. newStem — полное новое имя без
+// расширения (id или id_суффикс). newDir — папка назначения (категория); если не задана, остаётся
+// та же папка, где файл лежал. См. reassignPhoto ниже — он ВСЕГДА передаёт папку нужной категории,
+// так что при смене id файл физически переезжает в правильную подпапку, а не просто переименовывается
+// на месте (иначе assets/refs/block/ копил бы файлы объектов из других категорий).
+async function doRename(oldPath,newStem,newDir){
   const dot=oldPath.lastIndexOf('.'); const ext=dot>=0?oldPath.slice(dot+1):'png';
   const lastSlash=oldPath.lastIndexOf('/');
-  const dir=lastSlash>=0?oldPath.slice(0,lastSlash+1):'';
+  const dir=newDir!==undefined?newDir:(lastSlash>=0?oldPath.slice(0,lastSlash+1):'');
   const newPath=dir+newStem+'.'+ext;
   if(newPath===oldPath) return {ok:true,path:oldPath,unchanged:true};
   if(allFiles.includes(newPath)) return {ok:false,error:'Файл с таким именем уже есть: '+newPath};
@@ -29,17 +32,17 @@ async function doRename(oldPath,newStem){
   logEvent({from:oldPath,to:newPath,ok:true});
   return {ok:true,path:newPath};
 }
-// Фото УЖЕ привязано к id — меняем только суффикс-вариацию, id-префикс остаётся как есть.
-async function renameMatchedPhoto(oldPath,newSuffixSlug){
-  const id=fileMatch[oldPath];
-  if(!id) return {ok:false,error:'У этого фото нет id.'};
-  return doRename(oldPath,newSuffixSlug?id+'_'+newSuffixSlug:id);
-}
-// Фото НЕ привязано — присваиваем id вручную (плюс необязательную вариацию), чтобы оно начало
-// матчиться как обычное фото объекта (JSON при этом не создаём — см. Калибровщик размеров).
-async function renameUnmatchedPhoto(oldPath,newId,newSuffixSlug){
+// Один и тот же путь для трёх случаев: поправить только вариацию (newId === текущему), привязать
+// ранее непривязанное фото (fileMatch[oldPath] был null), и — то, из-за чего это вообще
+// понадобилось — переподвесить НЕПРАВИЛЬНО привязанное фото на другой, правильный id (файл
+// совпал по префиксу имени случайно, а по содержимому — это другой предмет). newId всегда задаёт
+// пользователь явно (из каталога), не берём молча угаданный match.
+async function reassignPhoto(oldPath,newId,newSuffixSlug){
   if(!newId) return {ok:false,error:'Укажи id объекта.'};
-  return doRename(oldPath,newSuffixSlug?newId+'_'+newSuffixSlug:newId);
+  const item=planItemById(newId);
+  if(!item) return {ok:false,error:'Такого id нет в каталоге.'};
+  const newDir=item.c+'/'; // папка-категория целевого id — файл переезжает туда, а не остаётся в старой
+  return doRename(oldPath,newSuffixSlug?newId+'_'+newSuffixSlug:newId,newDir);
 }
 // Правит ОБЩЕЕ имя объекта (data/objects/<id>.json → name) — читает актуальный файл целиком,
 // меняет только name, пишет обратно, остальные поля не трогает.

@@ -38,84 +38,81 @@ function renderLeft(){
   });
 }
 
+// ID редактируется ВСЕГДА — не только у непривязанных фото. Автоматическое сопоставление по
+// префиксу имени файла может совпасть случайно/ошибочно (файл реально не про то, что в его
+// имени) — тогда нужно явно указать правильный id, а не только поправить суффикс внутри
+// неправильного. См. скриншот: block_ore_iron_bednaya_5.png на самом деле деревянный указатель.
 async function renderCenter(){
   const root=document.getElementById('editPanel');
   if(!selectedPath){ root.innerHTML='<div class="hint">Выбери фото слева, чтобы начать редактирование.</div>'; return; }
-  const path=selectedPath, id=fileMatch[path];
+  const path=selectedPath, detectedId=fileMatch[path];
   const url=await getFileUrl(path);
   if(selectedPath!==path) return; // успели выбрать другое, пока грузилась картинка
-  let html=`<div class="group"><div class="preview-row" style="align-items:flex-start">
+  const suffix=detectedId?variationSuffix(path,detectedId):'';
+  root.innerHTML=`
+    <div class="group"><div class="preview-row" style="align-items:flex-start">
       <img src="${esc(url||'')}" style="width:96px;height:96px">
       <div class="preview-names"><div>${esc(path)}</div></div>
-    </div></div>`;
+    </div></div>
+    <div class="group">
+      <h3>ID объекта <span class="muted small">(если он здесь неправильный — поправь, это переименует файл)</span></h3>
+      <div class="row"><input type="text" id="fTargetId" list="idList" value="${esc(detectedId||'')}" placeholder="id объекта, напр. tank_water" style="flex:1"></div>
+      <datalist id="idList">${PLAN_ITEMS.map(i=>`<option value="${esc(i.id)}">${esc(i.n)}</option>`).join('')}</datalist>
+      <div class="hint" id="idMatchHint"></div>
+    </div>
+    <div class="group">
+      <h3>Название ЭТОГО фото <span class="muted small">(остальные фото этого id не трогает)</span></h3>
+      <div class="row"><input type="text" id="fVarName" value="${esc(humanizeSuffix(suffix)==='основная'?'':humanizeSuffix(suffix))}" placeholder="основная (без суффикса)" style="flex:1"></div>
+      <button id="btnRenamePhoto" class="primary">Сохранить (переименовать файл)</button>
+      <div class="hint" id="renameStatus">Можно по-русски — сохранится в имени файла английским словом.</div>
+    </div>
+    <div class="group" id="objNameGroup"></div>
+  `;
 
-  if(id){
-    const item=planItemById(id);
-    const json=await getObjectJson(id);
-    if(selectedPath!==path) return;
-    const currentName=(json&&json.name)||(item?item.n:id);
-    const suffix=variationSuffix(path,id);
-    html+=`
-      <div class="group">
-        <h3>Объект</h3>
-        <div class="hint">id: <code>${esc(id)}</code> · ${esc((item&&CATEGORY_NAME_BY_ID[item.c])||'')}${json?'':' · ⚠ data/objects/'+esc(id)+'.json не найден'}</div>
-      </div>
-      <div class="group">
-        <h3>Название объекта <span class="muted small">(общее для всех фото этого id)</span></h3>
-        <div class="row"><input type="text" id="fObjName" value="${esc(currentName)}" style="flex:1"><button id="btnSaveObjName" class="primary">Сохранить имя</button></div>
-        <div class="hint" id="objNameStatus">id не меняется — только отображаемое имя. Затронет все фото этого объекта.</div>
-      </div>
-      <div class="group">
-        <h3>Название ЭТОГО фото <span class="muted small">(id и другие фото не трогает)</span></h3>
-        <div class="row"><input type="text" id="fVarName" value="${esc(humanizeSuffix(suffix)==='основная'?'':humanizeSuffix(suffix))}" placeholder="основная (без суффикса)" style="flex:1"><button id="btnRenamePhoto">Переименовать файл</button></div>
-        <div class="hint" id="renameStatus">Можно по-русски — сохранится в имени файла английским словом.</div>
-      </div>`;
-  } else {
-    html+=`
-      <div class="group">
-        <h3>⚠ У этого фото нет JSON</h3>
-        <div class="hint">Укажи id существующего объекта — файл начнёт матчиться как его фото (как в Калибровщике размеров). Новый объект/JSON это не создаёт.</div>
-        <div class="row"><input type="text" id="fTargetId" list="idList" placeholder="id объекта, напр. tank_water" style="flex:1"></div>
-        <datalist id="idList">${PLAN_ITEMS.map(i=>`<option value="${esc(i.id)}">${esc(i.n)}</option>`).join('')}</datalist>
-        <div class="row"><input type="text" id="fVarName" placeholder="вариация (необязательно), можно по-русски" style="flex:1"></div>
-        <button id="btnAssignId" class="primary">Привязать и переименовать</button>
-        <div class="hint" id="renameStatus"></div>
-      </div>`;
-  }
-  root.innerHTML=html;
-
-  if(id){
+  const idInput=document.getElementById('fTargetId');
+  async function refreshObjNameGroup(){
+    const curId=idInput.value.trim();
+    const item=curId?planItemById(curId):null;
+    const hintEl=document.getElementById('idMatchHint');
+    const group=document.getElementById('objNameGroup');
+    if(!curId){ hintEl.textContent=''; group.innerHTML=''; return; }
+    if(!item){ hintEl.textContent='⚠ такого id нет в каталоге — выбери из списка.'; hintEl.className='hint save-status err'; group.innerHTML=''; return; }
+    hintEl.textContent=item.n+' · '+(CATEGORY_NAME_BY_ID[item.c]||item.c);
+    hintEl.className='hint';
+    const json=await getObjectJson(curId);
+    if(idInput.value.trim()!==curId) return; // id успели поменять, пока грузился JSON
+    const currentName=(json&&json.name)||item.n;
+    group.innerHTML=`
+      <h3>Название объекта <span class="muted small">(общее для всех фото этого id)</span></h3>
+      <div class="row"><input type="text" id="fObjName" value="${esc(currentName)}" style="flex:1"><button id="btnSaveObjName" class="primary">Сохранить имя</button></div>
+      <div class="hint" id="objNameStatus">${json?'id не меняется — только отображаемое имя. Затронет все фото этого id.':'⚠ data/objects/'+esc(curId)+'.json не найден.'}</div>
+    `;
     document.getElementById('btnSaveObjName').onclick=async()=>{
       const statusEl=document.getElementById('objNameStatus');
       const name=document.getElementById('fObjName').value.trim();
       if(!name){ statusEl.textContent='Имя не может быть пустым.'; statusEl.className='save-status err'; return; }
       statusEl.textContent='Сохранение…'; statusEl.className='hint';
-      const res=await saveObjectName(id,name);
+      const res=await saveObjectName(curId,name);
       statusEl.textContent=res.ok?'Сохранено ✓':'Ошибка: '+res.error;
       statusEl.className=res.ok?'save-status ok':'save-status err';
       if(res.ok) renderLeft();
     };
-    document.getElementById('btnRenamePhoto').onclick=async()=>{
-      const statusEl=document.getElementById('renameStatus');
-      const raw=document.getElementById('fVarName').value.trim();
-      const slug=raw?sanitizeSlug(translit(raw)):'';
-      statusEl.textContent='Переименование…'; statusEl.className='hint';
-      const res=await renameMatchedPhoto(path,slug);
-      if(res.ok){ renderLeft(); renderCenter(); }
-      else { statusEl.textContent='Ошибка: '+res.error; statusEl.className='save-status err'; }
-    };
-  } else {
-    document.getElementById('btnAssignId').onclick=async()=>{
-      const statusEl=document.getElementById('renameStatus');
-      const newId=document.getElementById('fTargetId').value.trim();
-      const raw=document.getElementById('fVarName').value.trim();
-      const slug=raw?sanitizeSlug(translit(raw)):'';
-      statusEl.textContent='Переименование…'; statusEl.className='hint';
-      const res=await renameUnmatchedPhoto(path,newId,slug);
-      if(res.ok){ renderLeft(); renderCenter(); }
-      else { statusEl.textContent='Ошибка: '+res.error; statusEl.className='save-status err'; }
-    };
   }
+  idInput.addEventListener('change',refreshObjNameGroup);
+  await refreshObjNameGroup();
+
+  document.getElementById('btnRenamePhoto').onclick=async()=>{
+    const statusEl=document.getElementById('renameStatus');
+    const newId=idInput.value.trim();
+    if(!newId){ statusEl.textContent='Укажи id объекта.'; statusEl.className='save-status err'; return; }
+    if(!planItemById(newId)){ statusEl.textContent='Такого id нет в каталоге — выбери из списка.'; statusEl.className='save-status err'; return; }
+    const raw=document.getElementById('fVarName').value.trim();
+    const slug=raw?sanitizeSlug(translit(raw)):'';
+    statusEl.textContent='Сохранение…'; statusEl.className='hint';
+    const res=await reassignPhoto(path,newId,slug);
+    if(res.ok){ renderLeft(); renderCenter(); }
+    else { statusEl.textContent='Ошибка: '+res.error; statusEl.className='save-status err'; }
+  };
 }
 
 function renderRight(){
