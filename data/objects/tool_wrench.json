@@ -12,8 +12,8 @@
   "appearance": {
     "mode": "IMAGE",
     "asset": "tool/craft/tool_wrench_gaechnyy_klyuch.png",
-    "imageWidth": 554,
-    "imageHeight": 449,
+    "imageWidth": 615,
+    "imageHeight": 180,
     "collision": null
   },
   "behavior": {
@@ -141,8 +141,8 @@
     ],
     "damaged": null,
     "broken": {
-      "nativeWidth": 530,
-      "nativeHeight": 452,
+      "nativeWidth": 612,
+      "nativeHeight": 181,
       "image": "tool/craft/tool_wrench_gaechnyy_klyuch_broken.png"
     },
     "destroyAnimation": null

@@ -12,8 +12,8 @@
   "appearance": {
     "mode": "IMAGE",
     "asset": "furniture/farm/planter_box_gryadka.png",
-    "imageWidth": 520,
-    "imageHeight": 177,
+    "imageWidth": 534,
+    "imageHeight": 175,
     "collision": null
   },
   "behavior": {
@@ -142,8 +142,8 @@
     ],
     "damaged": null,
     "broken": {
-      "nativeWidth": 555,
-      "nativeHeight": 196,
+      "nativeWidth": 575,
+      "nativeHeight": 195,
       "image": "furniture/farm/planter_box_gryadka_broken.png"
     },
     "destroyAnimation": null

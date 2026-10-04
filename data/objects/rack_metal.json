@@ -12,8 +12,8 @@
   "appearance": {
     "mode": "IMAGE",
     "asset": "container/rack/rack_metal_stellazh_metallicheskiy.png",
-    "imageWidth": 457,
-    "imageHeight": 354,
+    "imageWidth": 285,
+    "imageHeight": 366,
     "collision": null
   },
   "behavior": {
@@ -159,8 +159,8 @@
     ],
     "damaged": null,
     "broken": {
-      "nativeWidth": 500,
-      "nativeHeight": 360,
+      "nativeWidth": 373,
+      "nativeHeight": 382,
       "image": "container/rack/rack_metal_stellazh_metallicheskiy_broken.png"
     },
     "destroyAnimation": null

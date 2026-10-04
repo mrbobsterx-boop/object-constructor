@@ -12,8 +12,8 @@
   "appearance": {
     "mode": "IMAGE",
     "asset": "item/fuel/fuel_firewood_drova.png",
-    "imageWidth": 491,
-    "imageHeight": 197,
+    "imageWidth": 440,
+    "imageHeight": 160,
     "collision": null
   },
   "behavior": {
@@ -143,8 +143,8 @@
     ],
     "damaged": null,
     "broken": {
-      "nativeWidth": 555,
-      "nativeHeight": 196,
+      "nativeWidth": 468,
+      "nativeHeight": 166,
       "image": "item/fuel/fuel_firewood_drova_broken.png"
     },
     "destroyAnimation": null

@@ -12,8 +12,8 @@
   "appearance": {
     "mode": "IMAGE",
     "asset": "tool/container/bucket_vedro.png",
-    "imageWidth": 367,
-    "imageHeight": 429,
+    "imageWidth": 373,
+    "imageHeight": 363,
     "collision": null
   },
   "behavior": {
@@ -158,8 +158,8 @@
     ],
     "damaged": null,
     "broken": {
-      "nativeWidth": 355,
-      "nativeHeight": 432,
+      "nativeWidth": 376,
+      "nativeHeight": 365,
       "image": "tool/container/bucket_vedro_broken.png"
     },
     "destroyAnimation": null

@@ -12,8 +12,8 @@
   "appearance": {
     "mode": "IMAGE",
     "asset": "machine/water/water_pump_nasos.png",
-    "imageWidth": 647,
-    "imageHeight": 584,
+    "imageWidth": 588,
+    "imageHeight": 807,
     "collision": null
   },
   "behavior": {

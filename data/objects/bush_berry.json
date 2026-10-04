@@ -12,8 +12,8 @@
   "appearance": {
     "mode": "IMAGE",
     "asset": "plant/wild/bush_berry_yagodnyy_kust.png",
-    "imageWidth": 400,
-    "imageHeight": 331,
+    "imageWidth": 383,
+    "imageHeight": 334,
     "collision": null
   },
   "behavior": {
@@ -124,7 +124,11 @@
       "REMOVE"
     ],
     "damaged": null,
-    "broken": null,
+    "broken": {
+      "nativeWidth": 379,
+      "nativeHeight": 336,
+      "image": "plant/wild/bush_berry_yagodnyy_kust_broken.png"
+    },
     "destroyAnimation": null
   },
   "block": null,

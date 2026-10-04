@@ -148,11 +148,7 @@
       "REMOVE"
     ],
     "damaged": null,
-    "broken": {
-      "nativeWidth": 288,
-      "nativeHeight": 238,
-      "image": "container/water/tank_water_rezervuar_vody_broken.png"
-    },
+    "broken": null,
     "destroyAnimation": null
   },
   "block": null,

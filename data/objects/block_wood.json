@@ -13,7 +13,7 @@
     "mode": "IMAGE",
     "asset": "block/wall/block_wood_derevyannaya_stena_pol.png",
     "imageWidth": 625,
-    "imageHeight": 627,
+    "imageHeight": 625,
     "collision": null
   },
   "behavior": {

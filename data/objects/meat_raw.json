@@ -12,8 +12,8 @@
   "appearance": {
     "mode": "IMAGE",
     "asset": "item/food/meat_raw_syroe_myaso.png",
-    "imageWidth": 387,
-    "imageHeight": 258,
+    "imageWidth": 403,
+    "imageHeight": 238,
     "collision": null
   },
   "behavior": {
@@ -140,11 +140,7 @@
       "REMOVE"
     ],
     "damaged": null,
-    "broken": {
-      "nativeWidth": 409,
-      "nativeHeight": 247,
-      "image": "item/food/meat_raw_syroe_myaso_broken.png"
-    },
+    "broken": null,
     "destroyAnimation": null
   },
   "block": null,

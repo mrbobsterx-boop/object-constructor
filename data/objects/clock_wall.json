@@ -12,8 +12,8 @@
   "appearance": {
     "mode": "IMAGE",
     "asset": "decor/clock/clock_wall_chasy_nastennye.png",
-    "imageWidth": 493,
-    "imageHeight": 294,
+    "imageWidth": 451,
+    "imageHeight": 451,
     "collision": null
   },
   "behavior": {

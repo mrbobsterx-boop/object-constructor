@@ -12,8 +12,8 @@
   "appearance": {
     "mode": "IMAGE",
     "asset": "container/shelf/shelf_wood_polka.png",
-    "imageWidth": 736,
-    "imageHeight": 171,
+    "imageWidth": 673,
+    "imageHeight": 186,
     "collision": null
   },
   "behavior": {
@@ -111,8 +111,8 @@
     ],
     "damaged": null,
     "broken": {
-      "nativeWidth": 673,
-      "nativeHeight": 140,
+      "nativeWidth": 733,
+      "nativeHeight": 175,
       "image": "container/shelf/shelf_wood_polka_broken.png"
     },
     "destroyAnimation": null

@@ -12,8 +12,8 @@
   "appearance": {
     "mode": "IMAGE",
     "asset": "item/food/ration_dry_suhpaek.png",
-    "imageWidth": 501,
-    "imageHeight": 318,
+    "imageWidth": 524,
+    "imageHeight": 344,
     "collision": null
   },
   "behavior": {

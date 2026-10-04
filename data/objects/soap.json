@@ -12,8 +12,8 @@
   "appearance": {
     "mode": "IMAGE",
     "asset": "item/hygiene/soap_mylo.png",
-    "imageWidth": 423,
-    "imageHeight": 932,
+    "imageWidth": 636,
+    "imageHeight": 551,
     "collision": null
   },
   "behavior": {

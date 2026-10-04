@@ -13,7 +13,7 @@
     "mode": "IMAGE",
     "asset": "item/food/food_canned_konservy.png",
     "imageWidth": 151,
-    "imageHeight": 178,
+    "imageHeight": 187,
     "collision": null
   },
   "behavior": {
@@ -159,7 +159,11 @@
       "REMOVE"
     ],
     "damaged": null,
-    "broken": null,
+    "broken": {
+      "nativeWidth": 152,
+      "nativeHeight": 187,
+      "image": "item/food/food_canned_konservy_broken.png"
+    },
     "destroyAnimation": null
   },
   "block": null,

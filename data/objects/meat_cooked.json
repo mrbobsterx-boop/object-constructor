@@ -12,8 +12,8 @@
   "appearance": {
     "mode": "IMAGE",
     "asset": "item/food/meat_cooked_prigotovlennoe_myaso.png",
-    "imageWidth": 373,
-    "imageHeight": 257,
+    "imageWidth": 473,
+    "imageHeight": 262,
     "collision": null
   },
   "behavior": {

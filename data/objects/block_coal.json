@@ -12,8 +12,8 @@
   "appearance": {
     "mode": "IMAGE",
     "asset": "block/ore/block_coal_ugolnyy_plast.png",
-    "imageWidth": 627,
-    "imageHeight": 624,
+    "imageWidth": 625,
+    "imageHeight": 625,
     "collision": null
   },
   "behavior": {

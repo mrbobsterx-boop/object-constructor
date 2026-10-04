@@ -12,8 +12,8 @@
   "appearance": {
     "mode": "IMAGE",
     "asset": "machine/switch/light_switch_vyklyuchatel.png",
-    "imageWidth": 223,
-    "imageHeight": 313,
+    "imageWidth": 216,
+    "imageHeight": 321,
     "collision": null
   },
   "behavior": {
@@ -145,8 +145,8 @@
     ],
     "damaged": null,
     "broken": {
-      "nativeWidth": 244,
-      "nativeHeight": 331,
+      "nativeWidth": 220,
+      "nativeHeight": 322,
       "image": "machine/switch/light_switch_vyklyuchatel_broken.png"
     },
     "destroyAnimation": null

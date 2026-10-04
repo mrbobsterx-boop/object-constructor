@@ -12,8 +12,8 @@
   "appearance": {
     "mode": "IMAGE",
     "asset": "container/kitchen/kitchen_counter_kuhonnaya_tumba.png",
-    "imageWidth": 1735,
-    "imageHeight": 772,
+    "imageWidth": 335,
+    "imageHeight": 241,
     "collision": null
   },
   "behavior": {

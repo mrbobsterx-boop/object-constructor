@@ -12,8 +12,8 @@
   "appearance": {
     "mode": "IMAGE",
     "asset": "furniture/table/table_wood_stol.png",
-    "imageWidth": 440,
-    "imageHeight": 232,
+    "imageWidth": 437,
+    "imageHeight": 241,
     "collision": null
   },
   "behavior": {
@@ -128,8 +128,8 @@
     ],
     "damaged": null,
     "broken": {
-      "nativeWidth": 534,
-      "nativeHeight": 196,
+      "nativeWidth": 541,
+      "nativeHeight": 218,
       "image": "furniture/table/table_wood_stol_broken.png"
     },
     "destroyAnimation": null

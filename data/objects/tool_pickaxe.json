@@ -12,8 +12,8 @@
   "appearance": {
     "mode": "IMAGE",
     "asset": "tool/harvest/tool_pickaxe_kirka.png",
-    "imageWidth": 574,
-    "imageHeight": 326,
+    "imageWidth": 291,
+    "imageHeight": 344,
     "collision": null
   },
   "behavior": {

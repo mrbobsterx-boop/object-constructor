@@ -12,8 +12,8 @@
   "appearance": {
     "mode": "IMAGE",
     "asset": "block/wall/block_concrete_beton.png",
-    "imageWidth": 629,
-    "imageHeight": 627,
+    "imageWidth": 624,
+    "imageHeight": 624,
     "collision": null
   },
   "behavior": {

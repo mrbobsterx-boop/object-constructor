@@ -12,8 +12,8 @@
   "appearance": {
     "mode": "IMAGE",
     "asset": "machine/energy/solar_panel_solnechnaya_panel.png",
-    "imageWidth": 578,
-    "imageHeight": 338,
+    "imageWidth": 521,
+    "imageHeight": 308,
     "collision": null
   },
   "behavior": {
@@ -141,8 +141,8 @@
     ],
     "damaged": null,
     "broken": {
-      "nativeWidth": 560,
-      "nativeHeight": 367,
+      "nativeWidth": 483,
+      "nativeHeight": 314,
       "image": "machine/energy/solar_panel_solnechnaya_panel_broken.png"
     },
     "destroyAnimation": null

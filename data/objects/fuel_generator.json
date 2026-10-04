@@ -12,8 +12,8 @@
   "appearance": {
     "mode": "IMAGE",
     "asset": "machine/energy/fuel_generator_generator_na_toplive.png",
-    "imageWidth": 433,
-    "imageHeight": 280,
+    "imageWidth": 507,
+    "imageHeight": 374,
     "collision": null
   },
   "behavior": {
@@ -125,8 +125,8 @@
     ],
     "damaged": null,
     "broken": {
-      "nativeWidth": 423,
-      "nativeHeight": 298,
+      "nativeWidth": 527,
+      "nativeHeight": 374,
       "image": "machine/energy/fuel_generator_generator_na_toplive_broken.png"
     },
     "destroyAnimation": null

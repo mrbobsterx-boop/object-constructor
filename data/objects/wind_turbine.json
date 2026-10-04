@@ -12,8 +12,8 @@
   "appearance": {
     "mode": "IMAGE",
     "asset": "machine/energy/wind_turbine_vetrogenerator.png",
-    "imageWidth": 347,
-    "imageHeight": 343,
+    "imageWidth": 214,
+    "imageHeight": 320,
     "collision": null
   },
   "behavior": {
@@ -125,8 +125,8 @@
     ],
     "damaged": null,
     "broken": {
-      "nativeWidth": 312,
-      "nativeHeight": 338,
+      "nativeWidth": 208,
+      "nativeHeight": 318,
       "image": "machine/energy/wind_turbine_vetrogenerator_broken.png"
     },
     "destroyAnimation": null

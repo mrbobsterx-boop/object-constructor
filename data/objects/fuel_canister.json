@@ -12,8 +12,8 @@
   "appearance": {
     "mode": "IMAGE",
     "asset": "container/fuel/fuel_canister_kanistra_s_toplivom.png",
-    "imageWidth": 271,
-    "imageHeight": 321,
+    "imageWidth": 316,
+    "imageHeight": 412,
     "collision": null
   },
   "behavior": {
@@ -165,8 +165,8 @@
     ],
     "damaged": null,
     "broken": {
-      "nativeWidth": 281,
-      "nativeHeight": 319,
+      "nativeWidth": 329,
+      "nativeHeight": 406,
       "image": "container/fuel/fuel_canister_kanistra_s_toplivom_broken.png"
     },
     "destroyAnimation": null

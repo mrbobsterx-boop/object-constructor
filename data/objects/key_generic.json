@@ -12,8 +12,8 @@
   "appearance": {
     "mode": "IMAGE",
     "asset": "item/key/key_generic_klyuch.png",
-    "imageWidth": 486,
-    "imageHeight": 404,
+    "imageWidth": 281,
+    "imageHeight": 409,
     "collision": null
   },
   "behavior": {

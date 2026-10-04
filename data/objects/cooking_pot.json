@@ -12,8 +12,8 @@
   "appearance": {
     "mode": "IMAGE",
     "asset": "tool/kitchen/cooking_pot_kastryulya_kotelok.png",
-    "imageWidth": 477,
-    "imageHeight": 315,
+    "imageWidth": 372,
+    "imageHeight": 307,
     "collision": null
   },
   "behavior": {
@@ -125,8 +125,8 @@
     ],
     "damaged": null,
     "broken": {
-      "nativeWidth": 440,
-      "nativeHeight": 299,
+      "nativeWidth": 361,
+      "nativeHeight": 304,
       "image": "tool/kitchen/cooking_pot_kastryulya_kotelok_broken.png"
     },
     "destroyAnimation": null

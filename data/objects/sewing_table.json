@@ -12,8 +12,8 @@
   "appearance": {
     "mode": "IMAGE",
     "asset": "workbench/sewing/sewing_table_shveynyy_stol.png",
-    "imageWidth": 588,
-    "imageHeight": 559,
+    "imageWidth": 582,
+    "imageHeight": 430,
     "collision": null
   },
   "behavior": {
@@ -125,8 +125,8 @@
     ],
     "damaged": null,
     "broken": {
-      "nativeWidth": 568,
-      "nativeHeight": 552,
+      "nativeWidth": 565,
+      "nativeHeight": 425,
       "image": "workbench/sewing/sewing_table_shveynyy_stol_broken.png"
     },
     "destroyAnimation": null

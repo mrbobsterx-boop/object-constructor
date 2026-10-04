@@ -12,8 +12,8 @@
   "appearance": {
     "mode": "IMAGE",
     "asset": "weapon/melee/weapon_bat_beysbolnaya_bita.png",
-    "imageWidth": 523,
-    "imageHeight": 326,
+    "imageWidth": 641,
+    "imageHeight": 254,
     "collision": null
   },
   "behavior": {

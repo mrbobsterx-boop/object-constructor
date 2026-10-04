@@ -12,8 +12,8 @@
   "appearance": {
     "mode": "IMAGE",
     "asset": "furniture/sink/sink_tap_rakovina_s_kranom.png",
-    "imageWidth": 348,
-    "imageHeight": 342,
+    "imageWidth": 281,
+    "imageHeight": 306,
     "collision": null
   },
   "behavior": {
@@ -125,8 +125,8 @@
     ],
     "damaged": null,
     "broken": {
-      "nativeWidth": 326,
-      "nativeHeight": 343,
+      "nativeWidth": 263,
+      "nativeHeight": 308,
       "image": "furniture/sink/sink_tap_rakovina_s_kranom_broken.png"
     },
     "destroyAnimation": null

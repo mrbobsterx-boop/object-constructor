@@ -12,8 +12,8 @@
   "appearance": {
     "mode": "IMAGE",
     "asset": "resource/water/well_hand_kolodets_skvazhina.png",
-    "imageWidth": 504,
-    "imageHeight": 494,
+    "imageWidth": 451,
+    "imageHeight": 491,
     "collision": null
   },
   "behavior": {

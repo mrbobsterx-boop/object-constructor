@@ -12,8 +12,8 @@
   "appearance": {
     "mode": "IMAGE",
     "asset": "item/water/bottle_water_butylka_s_vodoy.png",
-    "imageWidth": 176,
-    "imageHeight": 236,
+    "imageWidth": 96,
+    "imageHeight": 272,
     "collision": null
   },
   "behavior": {

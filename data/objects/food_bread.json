@@ -12,8 +12,8 @@
   "appearance": {
     "mode": "IMAGE",
     "asset": "item/food/food_bread_hleb_suhari.png",
-    "imageWidth": 353,
-    "imageHeight": 200,
+    "imageWidth": 415,
+    "imageHeight": 194,
     "collision": null
   },
   "behavior": {

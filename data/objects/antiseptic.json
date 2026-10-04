@@ -13,7 +13,7 @@
     "mode": "IMAGE",
     "asset": "item/medicine/antiseptic_antiseptik.png",
     "imageWidth": 348,
-    "imageHeight": 938,
+    "imageHeight": 804,
     "collision": null
   },
   "behavior": {

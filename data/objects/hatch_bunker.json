@@ -12,8 +12,8 @@
   "appearance": {
     "mode": "IMAGE",
     "asset": "door/entrance/hatch_bunker_lyuk_bunkera.png",
-    "imageWidth": 230,
-    "imageHeight": 300,
+    "imageWidth": 555,
+    "imageHeight": 321,
     "collision": null
   },
   "behavior": {

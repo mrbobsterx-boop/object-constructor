@@ -12,8 +12,8 @@
   "appearance": {
     "mode": "IMAGE",
     "asset": "machine/ui/shelter_panel_panel_ubezhischa.png",
-    "imageWidth": 545,
-    "imageHeight": 496,
+    "imageWidth": 400,
+    "imageHeight": 466,
     "collision": null
   },
   "behavior": {
@@ -109,8 +109,8 @@
     ],
     "damaged": null,
     "broken": {
-      "nativeWidth": 532,
-      "nativeHeight": 496,
+      "nativeWidth": 434,
+      "nativeHeight": 467,
       "image": "machine/ui/shelter_panel_panel_ubezhischa_broken.png"
     },
     "destroyAnimation": null

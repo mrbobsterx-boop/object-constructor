@@ -12,8 +12,8 @@
   "appearance": {
     "mode": "IMAGE",
     "asset": "weapon/ranged/weapon_shotgun_drobovik.png",
-    "imageWidth": 1483,
-    "imageHeight": 300,
+    "imageWidth": 1482,
+    "imageHeight": 293,
     "collision": null
   },
   "behavior": {

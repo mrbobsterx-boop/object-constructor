@@ -12,8 +12,8 @@
   "appearance": {
     "mode": "IMAGE",
     "asset": "plant/crop/plant_potato_kartofel_rastenie.png",
-    "imageWidth": 374,
-    "imageHeight": 448,
+    "imageWidth": 359,
+    "imageHeight": 371,
     "collision": null
   },
   "behavior": {
@@ -126,8 +126,8 @@
     ],
     "damaged": null,
     "broken": {
-      "nativeWidth": 371,
-      "nativeHeight": 428,
+      "nativeWidth": 357,
+      "nativeHeight": 376,
       "image": "plant/crop/plant_potato_kartofel_rastenie_broken.png"
     },
     "destroyAnimation": null

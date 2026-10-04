@@ -12,8 +12,8 @@
   "appearance": {
     "mode": "IMAGE",
     "asset": "item/special/poison_vial_yad.png",
-    "imageWidth": 323,
-    "imageHeight": 851,
+    "imageWidth": 361,
+    "imageHeight": 870,
     "collision": null
   },
   "behavior": {

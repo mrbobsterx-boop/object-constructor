@@ -12,8 +12,8 @@
   "appearance": {
     "mode": "IMAGE",
     "asset": "building/ladder/ladder_metal_metallicheskaya_lestnitsa.png",
-    "imageWidth": 402,
-    "imageHeight": 496,
+    "imageWidth": 253,
+    "imageHeight": 993,
     "collision": null
   },
   "behavior": {

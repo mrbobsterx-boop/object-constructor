@@ -12,8 +12,8 @@
   "appearance": {
     "mode": "IMAGE",
     "asset": "machine/farm/grow_lamp_lampa_dlya_urozhaya.png",
-    "imageWidth": 595,
-    "imageHeight": 239,
+    "imageWidth": 586,
+    "imageHeight": 230,
     "collision": null
   },
   "behavior": {
@@ -133,8 +133,8 @@
     ],
     "damaged": null,
     "broken": {
-      "nativeWidth": 521,
-      "nativeHeight": 253,
+      "nativeWidth": 522,
+      "nativeHeight": 247,
       "image": "machine/farm/grow_lamp_lampa_dlya_urozhaya_broken.png"
     },
     "destroyAnimation": null

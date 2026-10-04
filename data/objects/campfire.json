@@ -12,8 +12,8 @@
   "appearance": {
     "mode": "IMAGE",
     "asset": "machine/fire/campfire_koster.png",
-    "imageWidth": 484,
-    "imageHeight": 487,
+    "imageWidth": 496,
+    "imageHeight": 291,
     "collision": null
   },
   "behavior": {

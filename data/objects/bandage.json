@@ -12,8 +12,8 @@
   "appearance": {
     "mode": "IMAGE",
     "asset": "item/medicine/bandage_bint.png",
-    "imageWidth": 248,
-    "imageHeight": 347,
+    "imageWidth": 378,
+    "imageHeight": 270,
     "collision": null
   },
   "behavior": {

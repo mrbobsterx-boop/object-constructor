@@ -12,8 +12,8 @@
   "appearance": {
     "mode": "IMAGE",
     "asset": "tool/craft/tool_saw_pila.png",
-    "imageWidth": 601,
-    "imageHeight": 274,
+    "imageWidth": 588,
+    "imageHeight": 222,
     "collision": null
   },
   "behavior": {
@@ -125,8 +125,8 @@
     ],
     "damaged": null,
     "broken": {
-      "nativeWidth": 621,
-      "nativeHeight": 325,
+      "nativeWidth": 602,
+      "nativeHeight": 232,
       "image": "tool/craft/tool_saw_pila_broken.png"
     },
     "destroyAnimation": null

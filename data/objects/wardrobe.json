@@ -12,8 +12,8 @@
   "appearance": {
     "mode": "IMAGE",
     "asset": "container/wardrobe/wardrobe_shkaf.png",
-    "imageWidth": 333,
-    "imageHeight": 380,
+    "imageWidth": 220,
+    "imageHeight": 381,
     "collision": null
   },
   "behavior": {
@@ -190,8 +190,8 @@
     ],
     "damaged": null,
     "broken": {
-      "nativeWidth": 359,
-      "nativeHeight": 347,
+      "nativeWidth": 332,
+      "nativeHeight": 345,
       "image": "container/wardrobe/wardrobe_shkaf_broken.png"
     },
     "destroyAnimation": null

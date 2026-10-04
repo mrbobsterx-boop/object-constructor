@@ -12,8 +12,8 @@
   "appearance": {
     "mode": "IMAGE",
     "asset": "building/stairs/stairs_wood_lestnitsa.png",
-    "imageWidth": 170,
-    "imageHeight": 795,
+    "imageWidth": 262,
+    "imageHeight": 513,
     "collision": null
   },
   "behavior": {

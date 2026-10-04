@@ -12,8 +12,8 @@
   "appearance": {
     "mode": "IMAGE",
     "asset": "furniture/bed/bunk_bed_dvuhyarusnaya_koyka.png",
-    "imageWidth": 568,
-    "imageHeight": 463,
+    "imageWidth": 565,
+    "imageHeight": 482,
     "collision": null
   },
   "behavior": {
@@ -125,8 +125,8 @@
     ],
     "damaged": null,
     "broken": {
-      "nativeWidth": 637,
-      "nativeHeight": 478,
+      "nativeWidth": 583,
+      "nativeHeight": 498,
       "image": "furniture/bed/bunk_bed_dvuhyarusnaya_koyka_broken.png"
     },
     "destroyAnimation": null

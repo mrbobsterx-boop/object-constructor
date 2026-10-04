@@ -12,8 +12,8 @@
   "appearance": {
     "mode": "IMAGE",
     "asset": "furniture/bath/bathtub_vanna.png",
-    "imageWidth": 542,
-    "imageHeight": 249,
+    "imageWidth": 539,
+    "imageHeight": 217,
     "collision": null
   },
   "behavior": {
@@ -125,8 +125,8 @@
     ],
     "damaged": null,
     "broken": {
-      "nativeWidth": 530,
-      "nativeHeight": 250,
+      "nativeWidth": 536,
+      "nativeHeight": 224,
       "image": "furniture/bath/bathtub_vanna_broken.png"
     },
     "destroyAnimation": null

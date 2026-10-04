@@ -12,8 +12,8 @@
   "appearance": {
     "mode": "IMAGE",
     "asset": "tool/craft/tool_screwdriver_otvertka.png",
-    "imageWidth": 593,
-    "imageHeight": 131,
+    "imageWidth": 596,
+    "imageHeight": 123,
     "collision": null
   },
   "behavior": {
@@ -124,8 +124,8 @@
     ],
     "damaged": null,
     "broken": {
-      "nativeWidth": 585,
-      "nativeHeight": 153,
+      "nativeWidth": 593,
+      "nativeHeight": 142,
       "image": "tool/craft/tool_screwdriver_otvertka_broken.png"
     },
     "destroyAnimation": null

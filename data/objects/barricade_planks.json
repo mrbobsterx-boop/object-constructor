@@ -12,8 +12,8 @@
   "appearance": {
     "mode": "IMAGE",
     "asset": "building/defense/barricade_planks_barrikada.png",
-    "imageWidth": 339,
-    "imageHeight": 358,
+    "imageWidth": 126,
+    "imageHeight": 215,
     "collision": null
   },
   "behavior": {
