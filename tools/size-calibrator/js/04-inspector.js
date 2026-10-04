@@ -1,42 +1,46 @@
 /* ============================================================
    MODULE 04 — INSPECTOR
-   Форма размеров/физики/характеристик выбранного объекта. Любое изменение
-   сразу правит рабочую копию в objectsById и перерисовывает сцену (живое
-   превью); "Сохранить" пишет data/objects/<id>.json целиком (остальные поля
-   объекта — actions, crafting, combat и т.п. — не трогаются).
+   Форма размеров/физики/характеристик выбранного объекта (плюс универсальный
+   редактор остальных полей JSON — "всё, что есть в json" целиком, по
+   просьбе). Любое изменение сразу правит рабочую копию в objectsById и
+   перерисовывает сцену (живое превью); "Сохранить" пишет
+   data/objects/<id>.json целиком. Фото без привязанного id — пустая панель
+   (нечего редактировать, пока у него нет JSON).
    ============================================================ */
 /* ============================================================
    "Сохранить пропорции" — тот же механизм, что в Object Constructor
    (см. tools/os/js/07-object-io.js fitSizeFrom/updateAspectUI): игра
    растягивает картинку ровно под real_width_cm×real_height_cm (не наоборот),
    так что размер, не совпадающий с реальными пропорциями PNG, даёт видимое
-   сплющивание/растяжение — как у кирки/кувалды/топора на скриншотах.
+   сплющивание/растяжение. Пропорции берутся из КОНКРЕТНОГО выбранного фото
+   (selectedPath), а не обязательно из официально привязанной картинки —
+   так видно каждый скин по отдельности.
    ============================================================ */
 let keepAspectEnabled=(function(){ try{ const v=localStorage.getItem('size_calibrator_keep_aspect'); return v===null?true:v==='1'; }catch(e){ return true; } })();
 
 // changed: 'w' — только что поправили ширину (пересчитать высоту), 'h' — наоборот. force — игнорировать тумблер (кнопка "Подогнать").
-function fitSizeFrom(o,changed,force){
-  if(!force && !keepAspectEnabled){ updateAspectUI(o); return; }
-  const dims=imageDimsCache[o.id];
-  if(!dims||!dims.w||!dims.h){ updateAspectUI(o); return; }
+function fitSizeFrom(o,path,changed,force){
+  if(!force && !keepAspectEnabled){ updateAspectUI(o,path); return; }
+  const dims=refImageDimsCache[path];
+  if(!dims||!dims.w||!dims.h){ updateAspectUI(o,path); return; }
   if(changed==='w'){ const w=o.behavior.real_width_cm||0; if(w) o.behavior.real_height_cm=Math.max(0,Math.round(w*dims.h/dims.w)); }
   else if(changed==='h'){ const h=o.behavior.real_height_cm||0; if(h) o.behavior.real_width_cm=Math.max(0,Math.round(h*dims.w/dims.h)); }
   const wEl=document.getElementById('fRealWidth'), hEl=document.getElementById('fRealHeight');
   if(wEl) wEl.value=o.behavior.real_width_cm; if(hEl) hEl.value=o.behavior.real_height_cm;
-  updateAspectUI(o);
+  updateAspectUI(o,path);
 }
-function updateAspectUI(o){
+function updateAspectUI(o,path){
   const btn=document.getElementById('btnKeepAspect'); if(!btn) return;
   btn.classList.toggle('armed',keepAspectEnabled);
   const statusEl=document.getElementById('aspectStatus'), fitBtn=document.getElementById('btnFitAspect');
-  const dims=imageDimsCache[o.id];
+  const dims=refImageDimsCache[path];
   if(!dims||!dims.w||!dims.h){
-    statusEl.textContent=(o.id in imageDimsCache)?'У объекта нет картинки — пропорции сверить не с чем.':'Загрузка картинки…';
+    statusEl.textContent=(path in refImageDimsCache)?'У этого фото не удалось прочитать картинку — пропорции сверить не с чем.':'Загрузка картинки…';
     fitBtn.style.display='none';
     return;
   }
   const imgRatio=dims.w/dims.h;
-  let txt=`Пропорции картинки: ${dims.w}×${dims.h} px`;
+  let txt=`Пропорции этого фото: ${dims.w}×${dims.h} px`;
   const w=o.behavior.real_width_cm||0, h=o.behavior.real_height_cm||0;
   if(w&&h){
     const mismatch=Math.abs((w/h)-imgRatio)/imgRatio>0.02;
@@ -53,8 +57,8 @@ const COLLISION_OPTS=['NONE','RECT','HULL_PIXELS','CIRCLE'];
 function fieldChanged(){
   const o=objectsById[selectedId];
   if(!o) return;
-  updateListRowBadge(o.id); // обновить бейдж размера/точку "есть правки" — без перестройки всего списка
-  renderScene(o,true); // keepView — не дёргать зум/пан на каждый ввод
+  updateListRowBadge(o.id); // обновить бейджи размера/точку "есть правки" у всех строк этого id — без перестройки всего списка
+  renderScene(o,true,refImageUrlCache[selectedPath]); // keepView — не дёргать зум/пан на каждый ввод
   updateSaveStatus();
 }
 
@@ -78,7 +82,100 @@ function cfRowHtml(key,val,idx){
   </div>`;
 }
 
-function renderInspector(o){
+/* ============================================================
+   УНИВЕРСАЛЬНЫЙ РЕДАКТОР ОСТАЛЬНЫХ ПОЛЕЙ JSON
+   Всё, что не попало в специальные секции выше (Размер/Физика/custom) —
+   description, tags, actions, action_settings, combat, inventory,
+   destruction, crafting, visuals и т.д. — рендерится рекурсивно по
+   значению (строка/число/булево/массив/объект), без ручного перечисления
+   полей, поэтому новые поля схемы тоже сразу становятся видимыми и
+   редактируемыми здесь.
+   ============================================================ */
+const GENERIC_SKIP_TOP=new Set(['id','category','category_name','appearance','custom','behavior','schema_version']);
+const GENERIC_SKIP_BEHAVIOR=new Set(['real_width_cm','real_height_cm','physics','collision','placement_mode','carryable','weight','hasWeight']);
+
+function pathSet(obj,path,val){
+  let cur=obj;
+  for(let i=0;i<path.length-1;i++) cur=cur[path[i]];
+  cur[path[path.length-1]]=val;
+}
+function renderGenericValue(path,value){
+  const keyPath=path.join('.');
+  const label=String(path[path.length-1]);
+  if(value===null||value===undefined){
+    return `<div class="gfield"><label>${esc(label)}</label><div class="muted hint">null</div></div>`;
+  }
+  const t=typeof value;
+  if(t==='string'){
+    return `<div class="gfield"><label>${esc(label)}</label><input type="text" data-gpath="${esc(keyPath)}" data-gkind="str" value="${esc(value)}"></div>`;
+  }
+  if(t==='number'){
+    return `<div class="gfield"><label>${esc(label)}</label><input type="number" data-gpath="${esc(keyPath)}" data-gkind="num" value="${value}"></div>`;
+  }
+  if(t==='boolean'){
+    return `<label class="check gfield"><input type="checkbox" data-gpath="${esc(keyPath)}" data-gkind="bool" ${value?'checked':''}> ${esc(label)}</label>`;
+  }
+  if(Array.isArray(value)){
+    const allScalar=value.every(v=>v===null||typeof v!=='object');
+    if(allScalar){
+      return `<div class="gfield"><label>${esc(label)} (через запятую)</label><input type="text" data-gpath="${esc(keyPath)}" data-gkind="arr" value="${esc(value.join(', '))}"></div>`;
+    }
+    let html=`<div class="gfield"><label>${esc(label)} [${value.length}]</label>`;
+    value.forEach((item,i)=>{ html+=`<div class="gnest"><div class="gnest-head">#${i}</div>${renderGenericObjectFields([...path,i],item)}</div>`; });
+    html+='</div>';
+    return html;
+  }
+  // объект
+  return `<div class="gfield"><label>${esc(label)}</label><div class="gnest">${renderGenericObjectFields(path,value)}</div></div>`;
+}
+function renderGenericObjectFields(path,obj){
+  if(!obj||typeof obj!=='object') return '';
+  return Object.entries(obj).map(([k,v])=>renderGenericValue([...path,k],v)).join('');
+}
+function isComplexValue(v){
+  // Простой массив скаляров — это ОДНО поле ввода (через запятую), прятать его за клик незачем —
+  // раскрывать стоит только настоящую вложенность (объект или массив объектов).
+  if(v===null||typeof v!=='object') return false;
+  if(Array.isArray(v)) return !v.every(x=>x===null||typeof x!=='object');
+  return true;
+}
+function renderGenericSection(o){
+  let html='';
+  Object.entries(o).forEach(([k,v])=>{
+    if(GENERIC_SKIP_TOP.has(k)) return;
+    if(isComplexValue(v)){
+      html+=`<details class="gtop"><summary>${esc(k)}</summary>${renderGenericValue([k],v)}</details>`;
+    } else {
+      html+=renderGenericValue([k],v);
+    }
+  });
+  const beh=o.behavior||{};
+  let behHtml='';
+  Object.entries(beh).forEach(([k,v])=>{
+    if(GENERIC_SKIP_BEHAVIOR.has(k)) return;
+    behHtml+=renderGenericValue(['behavior',k],v);
+  });
+  if(behHtml) html=`<details class="gtop"><summary>behavior — остальное</summary>${behHtml}</details>`+html;
+  return html;
+}
+function wireGenericFields(o){
+  document.querySelectorAll('[data-gpath]').forEach(inp=>{
+    const handler=e=>{
+      const gpath=e.target.dataset.gpath.split('.');
+      const kind=e.target.dataset.gkind;
+      let v;
+      if(kind==='bool') v=e.target.checked;
+      else if(kind==='num') v=Number(e.target.value)||0;
+      else if(kind==='arr') v=e.target.value.split(',').map(s=>s.trim()).filter(s=>s!=='');
+      else v=e.target.value;
+      pathSet(o,gpath,v);
+      fieldChanged();
+    };
+    inp.addEventListener(inp.type==='checkbox'?'change':'input',handler);
+  });
+}
+
+function renderInspector(o,path){
   const root=document.getElementById('inspector');
   const b=o.behavior||{};
   const cfEntries=Object.entries(o.custom||{});
@@ -86,6 +183,7 @@ function renderInspector(o){
     <div class="insp-head">
       <div class="id">${esc(o.id)} · ${esc(o.category_name||o.category||'')}</div>
       <div class="name">${esc(o.name||o.id)}</div>
+      ${path?`<div class="muted hint" style="margin-top:4px">Показано фото: ${esc(path)}</div>`:''}
     </div>
     <div class="section">
       <h3>Размер (игровой, см)</h3>
@@ -111,6 +209,11 @@ function renderInspector(o){
       <div class="field" style="margin-top:8px"><label>Вес (кг)</label><input id="fWeight" type="number" min="0" step="0.1" value="${b.weight||0}"></div>
     </div>
     <div class="section">
+      <h3>Остальные поля JSON</h3>
+      <div class="muted hint" style="margin-bottom:6px">Всё, что есть в объекте, кроме уже показанного выше — названия/описание, действия, крафт, бой, инвентарь и т.д. Разворачивай нужный раздел и редактируй прямо здесь.</div>
+      ${renderGenericSection(o)}
+    </div>
+    <div class="section">
       <h3>Доп. характеристики (custom)</h3>
       <div id="cfList">${cfEntries.map(([k,v],i)=>cfRowHtml(k,v,i)).join('')}</div>
       <button type="button" id="btnCfAdd" style="margin-top:4px">+ добавить поле</button>
@@ -124,27 +227,36 @@ function renderInspector(o){
     </div>
   `;
 
-  document.getElementById('fRealWidth').oninput=e=>{ o.behavior.real_width_cm=Number(e.target.value)||0; fitSizeFrom(o,'w'); fieldChanged(); };
-  document.getElementById('fRealHeight').oninput=e=>{ o.behavior.real_height_cm=Number(e.target.value)||0; fitSizeFrom(o,'h'); fieldChanged(); };
+  document.getElementById('fRealWidth').oninput=e=>{ o.behavior.real_width_cm=Number(e.target.value)||0; fitSizeFrom(o,path,'w'); fieldChanged(); };
+  document.getElementById('fRealHeight').oninput=e=>{ o.behavior.real_height_cm=Number(e.target.value)||0; fitSizeFrom(o,path,'h'); fieldChanged(); };
   document.getElementById('btnKeepAspect').onclick=()=>{
     keepAspectEnabled=!keepAspectEnabled;
     try{ localStorage.setItem('size_calibrator_keep_aspect',keepAspectEnabled?'1':'0'); }catch(e){}
-    updateAspectUI(o);
+    updateAspectUI(o,path);
   };
-  document.getElementById('btnFitAspect').onclick=()=>{ fitSizeFrom(o,'w',true); fieldChanged(); };
-  updateAspectUI(o);
-  getObjectImageNaturalDims(o.id).then(()=>{ if(selectedId===o.id) updateAspectUI(o); });
+  document.getElementById('btnFitAspect').onclick=()=>{ fitSizeFrom(o,path,'w',true); fieldChanged(); };
+  updateAspectUI(o,path);
+  if(path) getRefImageNaturalDims(path).then(()=>{ if(selectedPath===path) updateAspectUI(o,path); });
   document.getElementById('fPhysics').onchange=e=>{ o.behavior.physics=e.target.value; fieldChanged(); };
   document.getElementById('fCollision').onchange=e=>{ o.behavior.collision=e.target.value; fieldChanged(); };
   document.getElementById('fPlacement').onchange=e=>{ o.behavior.placement_mode=e.target.value; fieldChanged(); };
   document.getElementById('fCarryable').onchange=e=>{ o.behavior.carryable=e.target.checked; fieldChanged(); };
   document.getElementById('fWeight').oninput=e=>{ const v=Number(e.target.value)||0; o.behavior.weight=v; o.behavior.hasWeight=v>0; fieldChanged(); };
 
+  wireGenericFields(o);
+
   wireCfRows(o);
-  document.getElementById('btnCfAdd').onclick=()=>{ o.custom=o.custom||{}; let k='new_field',n=1; while(k in o.custom) k='new_field_'+(++n); o.custom[k]=''; renderInspector(o); fieldChanged(); };
+  document.getElementById('btnCfAdd').onclick=()=>{ o.custom=o.custom||{}; let k='new_field',n=1; while(k in o.custom) k='new_field_'+(++n); o.custom[k]=''; renderInspector(o,path); fieldChanged(); };
   document.getElementById('btnSave').onclick=()=>saveObject(o.id);
   document.getElementById('btnRevert').onclick=()=>revertObject(o.id);
   updateSaveStatus();
+}
+
+// Фото без привязанного объекта — нечего редактировать, пока у него нет JSON.
+function renderNoJsonInspector(path){
+  const root=document.getElementById('inspector');
+  if(!path){ root.innerHTML='<div class="empty-hint">Выбери фото слева, чтобы задать его объекту реальный размер и характеристики.</div>'; return; }
+  root.innerHTML=`<div class="empty-hint">Файл <code>${esc(path)}</code> не привязан ни к одному объекту — для него нет data/objects/*.json. Переименуй файл так, чтобы он начинался с id существующего объекта (как в Image Prep Tool/Asset Renamer), чтобы он здесь привязался.</div>`;
 }
 
 function wireCfRows(o){
@@ -156,7 +268,7 @@ function wireCfRows(o){
       const newKey=e.target.value.trim();
       if(!newKey||newKey===oldKey) { e.target.value=oldKey; return; }
       delete o.custom[oldKey]; o.custom[newKey]=val;
-      renderInspector(o); fieldChanged();
+      renderInspector(o,selectedPath); fieldChanged();
     };
   });
   document.querySelectorAll('[data-cf-idx]').forEach(inp=>{
@@ -176,7 +288,7 @@ function wireCfRows(o){
       const idx=Number(e.target.dataset.cfDel);
       const [key]=entries[idx];
       delete o.custom[key];
-      renderInspector(o); fieldChanged();
+      renderInspector(o,selectedPath); fieldChanged();
     };
   });
 }
@@ -211,19 +323,19 @@ function revertObjectSilent(id){
 function revertObject(id){
   revertObjectSilent(id);
   renderObjectList();
-  selectObject(id);
+  selectPhoto(selectedPath);
 }
 
 /* ============================================================
    МАССОВОЕ РЕДАКТИРОВАНИЕ — несколько объектов выбраны в списке слева
-   (Shift/Ctrl+клик, см. 02-state.js). Один и тот же размер ставится сразу
-   всем выбранным — без привязки к пропорциям конкретной картинки (это
+   (Shift/Ctrl+клик по фото, см. 02-state.js). Один и тот же размер ставится
+   сразу всем выбранным — без привязки к пропорциям конкретной картинки (это
    противоречило бы самой цели: сделать несколько РАЗНЫХ картинок одного
    игрового размера, напр. несколько скинов верстака).
    ============================================================ */
 function renderBulkInspector(){
   const root=document.getElementById('inspector');
-  const ids=getVisibleOrderedIds().filter(id=>multiSelectedIds.has(id));
+  const ids=[...multiSelectedIds].sort((a,b)=>((objectsById[a]&&objectsById[a].name)||a).localeCompare((objectsById[b]&&objectsById[b].name)||b,'ru'));
   const names=ids.map(id=>(objectsById[id]&&objectsById[id].name)||id);
   root.innerHTML=`
     <div class="insp-head">
@@ -266,7 +378,8 @@ function renderBulkInspector(){
     renderObjectList(); renderBulkInspector(); renderSceneMulti(ids);
   };
   document.getElementById('btnBulkClear').onclick=()=>{
-    multiSelectedIds=new Set(); selectedId=null; renderObjectList(); clearInspectorAndScene();
+    multiSelectedPaths=new Set(); multiSelectedIds=new Set(); selectedId=null; selectedPath=null;
+    renderObjectList(); clearInspectorAndScene();
   };
   updateBulkSaveStatus(ids);
   renderSceneMulti(ids);

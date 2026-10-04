@@ -50,7 +50,9 @@ function renderStaticSceneChrome(){
   return html;
 }
 
-async function renderScene(obj,keepView){
+// overrideUrl — показать КОНКРЕТНУЮ картинку (напр. выбранное в списке фото из assets/refs/, а не
+// обязательно официально привязанную в assets/sprites/) — undefined значит "подтянуть официальную".
+async function renderScene(obj,keepView,overrideUrl){
   const stage=document.getElementById('stage');
   stage.style.width=STAGE_W+'px'; stage.style.height=STAGE_H+'px';
   const ch=characterSize();
@@ -63,7 +65,7 @@ async function renderScene(obj,keepView){
     const b=obj.behavior||{};
     const w=Math.max(1,Number(b.real_width_cm)||0), h=Math.max(1,Number(b.real_height_cm)||0);
     const objX=charX+ch.w+GAP_CM, objTop=FLOOR_Y-h;
-    const url=await getObjectImageUrl(obj.id);
+    const url=overrideUrl!==undefined?overrideUrl:await getObjectImageUrl(obj.id);
     if(url){
       html+=`<img class="sc-obj" src="${url}" style="left:${objX}px;top:${objTop}px;width:${w}px;height:${h}px">`;
     } else {
@@ -144,6 +146,9 @@ window.addEventListener('pointerup',()=>{ panning=false; canvasWrap.classList.re
 document.getElementById('btnZoomIn').onclick=()=>setZoom(zoom*1.25);
 document.getElementById('btnZoomOut').onclick=()=>setZoom(zoom*0.8);
 document.getElementById('btnZoomReset').onclick=()=>{
-  if(multiSelectedIds.size>1) renderSceneMulti(getVisibleOrderedIds().filter(id=>multiSelectedIds.has(id)));
-  else if(objectsById[selectedId]) renderScene(objectsById[selectedId]);
+  if(multiSelectedIds.size>1){
+    const ids=[...multiSelectedIds].sort((a,b)=>((objectsById[a]&&objectsById[a].name)||a).localeCompare((objectsById[b]&&objectsById[b].name)||b,'ru'));
+    renderSceneMulti(ids);
+  }
+  else if(objectsById[selectedId]) renderScene(objectsById[selectedId],false,refImageUrlCache[selectedPath]);
 };

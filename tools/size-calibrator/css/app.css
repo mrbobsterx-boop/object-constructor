@@ -33,6 +33,7 @@ label{font-size:11px;color:#98a4b2;display:block;margin-bottom:3px}
 .obj-row .thumb-empty{color:#e7c65b;font-size:11px}
 .obj-row .n{flex:1;min-width:0}
 .obj-row .n .t{font-size:12px;color:#dde3ea;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.obj-row .n .sub{display:block;font-size:10px;color:#5d6773;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .obj-row .n .sz{font-size:10px;color:#7f8b99}
 .obj-row .n .sz.warn{color:#e7c65b}
 
@@ -66,3 +67,15 @@ main{position:relative;overflow:hidden;display:flex;flex-direction:column}
 .insp-head{padding:12px 12px 8px;border-bottom:1px solid #232932}
 .insp-head .id{font-size:11px;color:#7f8b99;font-family:monospace}
 .insp-head .name{font-size:15px;margin:2px 0 0}
+.insp-head code{background:#10141a;border:1px solid #2a313b;border-radius:4px;padding:1px 4px;font-size:11px}
+
+/* ---- универсальный JSON-редактор (остальные поля) ---- */
+details.gtop{margin-bottom:6px}
+details.gtop>summary{cursor:pointer;color:#b9c4cf;font-size:11.5px;padding:4px 0;list-style:none}
+details.gtop>summary::-webkit-details-marker{display:none}
+details.gtop>summary::before{content:'▸ ';color:#5d6773}
+details.gtop[open]>summary::before{content:'▾ '}
+.gfield{margin-bottom:7px}
+.gfield label{font-size:10.5px}
+.gnest{border-left:2px solid #232932;padding:4px 0 4px 10px;margin:4px 0 4px 2px}
+.gnest-head{font-size:10px;color:#5d6773;margin-bottom:3px}

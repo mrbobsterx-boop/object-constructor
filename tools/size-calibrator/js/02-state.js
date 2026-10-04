@@ -1,96 +1,177 @@
 /* ============================================================
    MODULE 02 — STATE
-   Загружает все data/objects/*.json, хранит рабочую копию каждого (правки живут
-   в памяти до нажатия "Сохранить"), строит список слева, подгружает картинки
-   из assets/sprites/ по appearance.asset лениво (по выбору объекта).
+   Список слева строится по КАЖДОЙ картинке в assets/refs/ (не только по 180
+   уже привязанным объектам) — у каждого id может быть несколько картинок-скинов,
+   плюс могут быть фото, которые ни к какому id ещё не привязаны (нет JSON).
+   objectsById хранит рабочие (редактируемые) копии data/objects/*.json; правки
+   живут в памяти до нажатия "Сохранить".
    ============================================================ */
-let objectsById={};      // id -> рабочая (редактируемая) копия JSON
-let objectsSavedJSON={};  // id -> JSON.stringify последней сохранённой/загруженной версии (для revert + badge "есть правки")
-let imageUrlCache={};    // id -> object URL картинки (или null, если не найдена/битая)
-let imageDimsCache={};   // id -> {w,h} реальные пиксели картинки (или null) — для "сохранить пропорции"
-let selectedId=null;
-let multiSelectedIds=new Set(); // текущее выделение в списке (для одиночного режима совпадает с {selectedId})
-let lastClickedIndex=null;      // якорь для Shift+клик (индекс в getVisibleOrderedIds())
+let objectsById={};       // id -> рабочая (редактируемая) копия JSON
+let objectsSavedJSON={};  // id -> JSON.stringify последней сохранённой/загруженной версии (для revert + "есть правки")
+let allRefFiles=[];       // все relPath (от assets/refs/) с картинками .png
+let refFileMatch={};      // relPath -> id (по тому же правилу, что генератор: basename===id или начинается с id+'_') или null
+let refImageUrlCache={};  // relPath -> object URL (или null, если не найдена/битая) — сама картинка, как она есть в assets/refs/
+let refImageDimsCache={}; // relPath -> {w,h} реальные пиксели (или null) — для "сохранить пропорции"
+let imageUrlCache={};     // id -> object URL ОФИЦИАЛЬНОЙ (привязанной) картинки из assets/sprites/ — нужна только для сцены массового режима
+let selectedPath=null;    // relPath выбранного сейчас фото (одиночный режим)
+let selectedId=null;      // производное: refFileMatch[selectedPath], или null для фото без JSON
+let multiSelectedPaths=new Set(); // текущее выделение в списке (путей)
+let multiSelectedIds=new Set();   // производное: уникальные id выделенных путей (без null) — для массового режима
+let lastClickedIndex=null;        // якорь для Shift+клик (индекс в getVisibleOrderedPaths())
 let searchQuery='';
 
 async function loadAllObjects(){
-  document.getElementById('objectList').innerHTML='<div class="empty-hint">Загрузка data/objects/…</div>';
-  const r=await listJsonDir('data/objects');
+  document.getElementById('objectList').innerHTML='<div class="empty-hint">Загрузка data/objects/ и assets/refs/…</div>';
+  const [objRes,refRes]=await Promise.all([
+    listJsonDir('data/objects'),
+    listFilesRecursive('assets/refs',/\.png$/i)
+  ]);
   objectsById={}; objectsSavedJSON={};
-  (r.items||[]).forEach(({name,data,broken})=>{
+  (objRes.items||[]).forEach(({name,data,broken})=>{
     if(broken||!data||!data.id) return;
     objectsById[data.id]=data;
     objectsSavedJSON[data.id]=JSON.stringify(data);
   });
+  allRefFiles=(refRes.files||[]).slice().sort();
+  computeRefFileMatches();
   renderObjectList();
-  const ids=Object.keys(objectsById);
-  if(selectedId&&objectsById[selectedId]) selectObject(selectedId);
-  else if(ids.length) selectObject(ids.find(id=>id!=='survivor_base')||ids[0]);
+  const paths=getVisibleOrderedPaths();
+  if(selectedPath&&allRefFiles.includes(selectedPath)) selectPhoto(selectedPath);
+  else if(paths.length) selectPhoto(paths[0]);
+}
+
+// Та же логика, что generate_objects.js использует при сборке data/objects/*.json: самый длинный id,
+// под который подходит имя файла (целиком или как префикс до "_"), побеждает — иначе 'tank' схватил бы
+// файл для 'tank_water'.
+function computeRefFileMatches(){
+  const idsDesc=Object.keys(objectsById).sort((a,b)=>b.length-a.length);
+  refFileMatch={};
+  allRefFiles.forEach(relPath=>{
+    const base=relPath.split('/').pop().replace(/\.png$/i,'');
+    const match=idsDesc.find(id=>base===id||base.startsWith(id+'_'));
+    refFileMatch[relPath]=match||null;
+  });
 }
 
 function isDirty(id){ const o=objectsById[id]; return !!o && JSON.stringify(o)!==objectsSavedJSON[id]; }
 
-function matchesSearch(o,q){
+function matchesSearchPhoto(relPath,id,q){
   if(!q) return true;
-  const hay=(o.id+' '+(o.name||'')+' '+(o.category_name||'')).toLowerCase();
+  const o=id?objectsById[id]:null;
+  const hay=(relPath+' '+(o?o.id+' '+(o.name||'')+' '+(o.category_name||''):'')).toLowerCase();
   return hay.includes(q);
 }
 
-// Тот же порядок, что рисует список (группы по алфавиту, внутри группы — по имени) — используется
-// и рендером, и Tab-навигацией (чтобы "следующий" в клавиатуре совпадал с тем, что "следующий" на экране).
-function getVisibleOrderedIds(){
+// Группирует видимые (отфильтрованные поиском) фото: по category_name привязанного объекта, или
+// отдельной группой "⚠ Без JSON" (всегда последней) для фото без привязки. Внутри группы — по имени
+// объекта (чтобы скины одного id шли подряд), затем по имени файла.
+function computeGroupedPhotoEntries(){
   const q=searchQuery.trim().toLowerCase();
-  const all=Object.values(objectsById).filter(o=>matchesSearch(o,q));
+  const entries=allRefFiles.filter(p=>matchesSearchPhoto(p,refFileMatch[p],q));
   const groups={};
-  all.forEach(o=>{ const g=o.category_name||o.category||'—'; (groups[g]=groups[g]||[]).push(o); });
-  const groupNames=Object.keys(groups).sort((a,b)=>a.localeCompare(b,'ru'));
-  const out=[];
-  for(const g of groupNames) groups[g].sort((a,b)=>(a.name||a.id).localeCompare(b.name||b.id,'ru')).forEach(o=>out.push(o.id));
-  return out;
+  entries.forEach(p=>{
+    const id=refFileMatch[p];
+    const g=(id&&objectsById[id])?(objectsById[id].category_name||objectsById[id].category||'—'):'⚠ Без JSON';
+    (groups[g]=groups[g]||[]).push(p);
+  });
+  const groupNames=Object.keys(groups).sort((a,b)=>{
+    if(a==='⚠ Без JSON') return 1;
+    if(b==='⚠ Без JSON') return -1;
+    return a.localeCompare(b,'ru');
+  });
+  return groupNames.map(g=>{
+    const paths=groups[g].slice().sort((a,b)=>{
+      const idA=refFileMatch[a], idB=refFileMatch[b];
+      const nameA=(idA&&objectsById[idA]&&objectsById[idA].name)||a;
+      const nameB=(idB&&objectsById[idB]&&objectsById[idB].name)||b;
+      return nameA.localeCompare(nameB,'ru')||a.localeCompare(b,'ru');
+    });
+    return {groupName:g,paths};
+  });
+}
+
+// Тот же порядок, что рисует список — используется и рендером, и Tab-навигацией.
+function getVisibleOrderedPaths(){
+  return computeGroupedPhotoEntries().flatMap(g=>g.paths);
+}
+
+function variationLabel(relPath,id){
+  const stem=relPath.split('/').pop().replace(/\.png$/i,'');
+  if(!id||stem===id) return 'основная';
+  return stem.startsWith(id+'_') ? stem.slice(id.length+1).replace(/_/g,' ') : stem;
 }
 
 function renderObjectList(){
   const root=document.getElementById('objectList');
-  const q=searchQuery.trim().toLowerCase();
-  const all=Object.values(objectsById).filter(o=>matchesSearch(o,q));
-  const groups={};
-  all.forEach(o=>{ const g=o.category_name||o.category||'—'; (groups[g]=groups[g]||[]).push(o); });
-  const groupNames=Object.keys(groups).sort((a,b)=>a.localeCompare(b,'ru'));
-  if(!groupNames.length){ root.innerHTML='<div class="empty-hint">Ничего не найдено.</div>'; return; }
+  const grouped=computeGroupedPhotoEntries();
+  if(!grouped.length){ root.innerHTML='<div class="empty-hint">Ничего не найдено.</div>'; return; }
   let html='';
-  for(const g of groupNames){
-    const items=groups[g].sort((a,b)=>(a.name||a.id).localeCompare(b.name||b.id,'ru'));
-    html+=`<div class="obj-group">${esc(g)} (${items.length})</div>`;
-    for(const o of items){
-      const b=o.behavior||{};
-      const w=Math.round(b.real_width_cm||0), h=Math.round(b.real_height_cm||0);
-      const warn=!w||!h;
-      const dirty=isDirty(o.id);
-      html+=`<div class="obj-row${multiSelectedIds.has(o.id)?' active':''}" data-id="${esc(o.id)}">
-        <span class="thumb" id="thumb_${esc(o.id)}"><span class="thumb-empty">${o.appearance&&o.appearance.asset?'…':'∅'}</span></span>
-        <span class="n"><span class="t">${dirty?'● ':''}${esc(o.name||o.id)}</span><span class="sz${warn?' warn':''}">${w}×${h} см</span></span>
-      </div>`;
+  for(const {groupName,paths} of grouped){
+    html+=`<div class="obj-group">${esc(groupName)} (${paths.length})</div>`;
+    for(const p of paths){
+      const id=refFileMatch[p];
+      const o=id?objectsById[id]:null;
+      const active=multiSelectedPaths.has(p);
+      if(o){
+        const b=o.behavior||{};
+        const w=Math.round(b.real_width_cm||0), h=Math.round(b.real_height_cm||0);
+        const warn=!w||!h;
+        const dirty=isDirty(id);
+        html+=`<div class="obj-row${active?' active':''}" data-path="${esc(p)}">
+          <span class="thumb"><span class="thumb-empty">…</span></span>
+          <span class="n"><span class="t">${dirty?'● ':''}${esc(o.name||id)}</span><span class="sub">${esc(variationLabel(p,id))}</span><span class="sz${warn?' warn':''}">${w}×${h} см</span></span>
+        </div>`;
+      } else {
+        html+=`<div class="obj-row${active?' active':''}" data-path="${esc(p)}">
+          <span class="thumb"><span class="thumb-empty">…</span></span>
+          <span class="n"><span class="t">${esc(p.split('/').pop())}</span><span class="sz warn">⚠ нет JSON</span></span>
+        </div>`;
+      }
     }
   }
   root.innerHTML=html;
-  const total=Object.keys(objectsById).length;
-  const withImg=Object.values(objectsById).filter(o=>o.appearance&&o.appearance.asset).length;
+
+  const totalObjects=Object.keys(objectsById).length;
+  const matchedPhotos=allRefFiles.filter(p=>refFileMatch[p]).length;
   const cov=document.getElementById('coverageLabel');
-  if(cov) cov.textContent=total?`${withImg}/${total} объектов с картинкой`:'';
-  root.querySelectorAll('.obj-row').forEach(el=>{ el.addEventListener('click',e=>onObjectRowClick(el.dataset.id,e)); });
-  // Миниатюры подгружаем лениво и только для видимых категорий — не дожидаясь выбора объекта.
-  Object.values(objectsById).filter(o=>matchesSearch(o,q)).forEach(o=>loadThumb(o.id));
+  if(cov) cov.textContent=`${allRefFiles.length} фото · ${matchedPhotos} с JSON · ${allRefFiles.length-matchedPhotos} без JSON · ${totalObjects} объектов в каталоге`;
+
+  const allPaths=grouped.flatMap(g=>g.paths);
+  const rowEls=root.querySelectorAll('.obj-row');
+  rowEls.forEach((el,i)=>el.addEventListener('click',e=>onPhotoRowClick(allPaths[i],e)));
+  // Миниатюры — лениво, с ограничением параллелизма (ghMapLimit уже используется для того же в
+  // GitHub-режиме; тут файлов может быть за тысячу, без лимита это или зависание, или rate limit).
+  ghMapLimit(allPaths,8,async(p,i)=>{ await loadPhotoThumb(p,rowEls[i]); });
 }
 
-async function loadThumb(id){
-  const el=document.getElementById('thumb_'+id);
-  if(!el) return;
-  const url=await getObjectImageUrl(id);
-  const cur=document.getElementById('thumb_'+id); // список мог перерисоваться, пока грузили
-  if(!cur) return;
-  cur.innerHTML = url ? `<img src="${url}">` : '<span class="thumb-empty">∅</span>';
+async function loadPhotoThumb(p,rowEl){
+  if(!rowEl) return;
+  const url=await getRefImageUrl(p);
+  if(!rowEl.isConnected || rowEl.dataset.path!==p) return; // список мог перестроиться, пока грузили
+  const thumbEl=rowEl.querySelector('.thumb');
+  if(thumbEl) thumbEl.innerHTML = url ? `<img src="${url}">` : '<span class="thumb-empty">∅</span>';
 }
 
+async function getRefImageUrl(path){
+  if(path in refImageUrlCache) return refImageUrlCache[path];
+  const file=await readProjectFileBlob('assets/refs/'+path);
+  if(!file){ refImageUrlCache[path]=null; return null; }
+  const url=URL.createObjectURL(file);
+  const ok=await new Promise(res=>{ const im=new Image(); im.onload=()=>res(true); im.onerror=()=>res(false); im.src=url; });
+  if(!ok){ URL.revokeObjectURL(url); refImageUrlCache[path]=null; return null; }
+  refImageUrlCache[path]=url;
+  return url;
+}
+async function getRefImageNaturalDims(path){
+  if(path in refImageDimsCache) return refImageDimsCache[path];
+  const url=await getRefImageUrl(path);
+  if(!url){ refImageDimsCache[path]=null; return null; }
+  const dims=await new Promise(res=>{ const im=new Image(); im.onload=()=>res({w:im.naturalWidth,h:im.naturalHeight}); im.onerror=()=>res(null); im.src=url; });
+  refImageDimsCache[path]=dims;
+  return dims;
+}
+// Официальная (привязанная через appearance.asset) картинка объекта из assets/sprites/ — используется
+// только сценой массового режима (там объекты разные, показываем то, что реально видно в игре).
 async function getObjectImageUrl(id){
   if(id in imageUrlCache) return imageUrlCache[id];
   const o=objectsById[id];
@@ -106,101 +187,104 @@ async function getObjectImageUrl(id){
   return url;
 }
 
-// Лёгкое обновление одной строки списка (размер/точка "есть правки") — вызывается на каждый ввод
-// в инспекторе, чтобы не перестраивать весь список (и не дёргать повторную загрузку миниатюр).
+// Лёгкое обновление строк списка для одного id (их может быть НЕСКОЛЬКО — у id несколько фото) —
+// вызывается на каждый ввод в инспекторе, чтобы не перестраивать весь список.
 function updateListRowBadge(id){
-  const row=document.querySelector(`.obj-row[data-id="${CSS.escape(id)}"]`);
-  if(!row) return;
   const o=objectsById[id]; if(!o) return;
   const b=o.behavior||{};
   const w=Math.round(b.real_width_cm||0), h=Math.round(b.real_height_cm||0);
-  const szEl=row.querySelector('.sz');
-  if(szEl){ szEl.textContent=w+'×'+h+' см'; szEl.className='sz'+((!w||!h)?' warn':''); }
-  const tEl=row.querySelector('.t');
-  if(tEl) tEl.textContent=(isDirty(id)?'● ':'')+(o.name||o.id);
+  const dirty=isDirty(id);
+  document.querySelectorAll('.obj-row').forEach(row=>{
+    if(refFileMatch[row.dataset.path]!==id) return;
+    const szEl=row.querySelector('.sz');
+    if(szEl){ szEl.textContent=w+'×'+h+' см'; szEl.className='sz'+((!w||!h)?' warn':''); }
+    const tEl=row.querySelector('.t');
+    if(tEl) tEl.textContent=(dirty?'● ':'')+(o.name||id);
+  });
 }
 
-// Реальные пиксельные пропорции картинки объекта (не то же самое, что appearance.imageWidth/Height
-// в JSON — те могли быть записаны неточно раньше; здесь читаем их заново с самого файла).
-async function getObjectImageNaturalDims(id){
-  if(id in imageDimsCache) return imageDimsCache[id];
-  const url=await getObjectImageUrl(id);
-  if(!url){ imageDimsCache[id]=null; return null; }
-  const dims=await new Promise(res=>{ const im=new Image(); im.onload=()=>res({w:im.naturalWidth,h:im.naturalHeight}); im.onerror=()=>res(null); im.src=url; });
-  imageDimsCache[id]=dims;
-  return dims;
+function recomputeMultiSelectedIds(){
+  multiSelectedIds=new Set([...multiSelectedPaths].map(p=>refFileMatch[p]).filter(Boolean));
 }
 
 // Обычный клик (без модификаторов) — всегда одиночный выбор, сбрасывает любое множественное выделение.
-async function selectObject(id){
-  multiSelectedIds=new Set(id?[id]:[]);
-  selectedId=id;
-  lastClickedIndex=getVisibleOrderedIds().indexOf(id);
+async function selectPhoto(path){
+  multiSelectedPaths=new Set(path?[path]:[]);
+  recomputeMultiSelectedIds();
+  selectedPath=path;
+  selectedId=refFileMatch[path]||null;
+  lastClickedIndex=getVisibleOrderedPaths().indexOf(path);
   renderObjectList();
-  const o=objectsById[id];
-  if(!o) return;
-  document.getElementById('selectedHint').textContent=o.name+' ('+o.id+')';
-  renderInspector(o);
-  await renderScene(o);
-  const row=document.querySelector(`.obj-row[data-id="${CSS.escape(id)}"]`);
+  if(selectedId && objectsById[selectedId]){
+    const o=objectsById[selectedId];
+    document.getElementById('selectedHint').textContent=o.name+' ('+o.id+') — '+path.split('/').pop();
+    renderInspector(o,path);
+    await renderScene(o,false,await getRefImageUrl(path));
+  } else {
+    document.getElementById('selectedHint').textContent=path?path.split('/').pop()+' — нет JSON':'';
+    renderNoJsonInspector(path);
+    await renderScene(null);
+  }
+  const row=[...document.querySelectorAll('.obj-row')].find(el=>el.dataset.path===path);
   if(row) row.scrollIntoView({block:'nearest'});
 }
 
 // Shift+клик — диапазон от последнего клика до этого (как в проводнике). Ctrl/Cmd+клик — добавить/
-// убрать именно этот объект, не трогая остальное выделение. Обычный клик — см. selectObject() выше.
-function onObjectRowClick(id,e){
-  const ids=getVisibleOrderedIds();
-  const idx=ids.indexOf(id);
+// убрать именно этот путь, не трогая остальное выделение. Обычный клик — см. selectPhoto() выше.
+function onPhotoRowClick(path,e){
+  const paths=getVisibleOrderedPaths();
+  const idx=paths.indexOf(path);
   if(e.shiftKey && lastClickedIndex!=null){
     const [a,b]=[lastClickedIndex,idx].sort((x,y)=>x-y);
-    multiSelectedIds=new Set(ids.slice(a,b+1));
+    multiSelectedPaths=new Set(paths.slice(a,b+1));
+    recomputeMultiSelectedIds();
     renderObjectList();
     onSelectionChanged();
     return;
   }
   if(e.ctrlKey||e.metaKey){
-    if(multiSelectedIds.size===0 && selectedId) multiSelectedIds=new Set([selectedId]);
-    if(multiSelectedIds.has(id)) multiSelectedIds.delete(id); else multiSelectedIds.add(id);
+    if(multiSelectedPaths.size===0 && selectedPath) multiSelectedPaths=new Set([selectedPath]);
+    if(multiSelectedPaths.has(path)) multiSelectedPaths.delete(path); else multiSelectedPaths.add(path);
+    recomputeMultiSelectedIds();
     lastClickedIndex=idx;
     renderObjectList();
     onSelectionChanged();
     return;
   }
   lastClickedIndex=idx;
-  selectObject(id);
+  selectPhoto(path);
 }
 
-// После Shift/Ctrl-клика решает: 0/1 объект — обычная одиночная панель, 2+ — массовое редактирование.
+// После Shift/Ctrl-клика решает: 0/1 путь — обычная одиночная панель, 2+ — массовое редактирование
+// (по уникальным id выделенных путей — фото без JSON в массовое редактирование не попадают).
 function onSelectionChanged(){
-  if(multiSelectedIds.size<=1){
-    const id=[...multiSelectedIds][0]||null;
-    selectedId=id;
-    if(id){
-      const o=objectsById[id];
-      if(o){ document.getElementById('selectedHint').textContent=o.name+' ('+o.id+')'; renderInspector(o); renderScene(o); }
-    } else clearInspectorAndScene();
+  if(multiSelectedPaths.size<=1){
+    const path=[...multiSelectedPaths][0]||null;
+    selectPhoto(path);
     return;
   }
-  selectedId=null;
-  document.getElementById('selectedHint').textContent=multiSelectedIds.size+' объектов выбрано';
-  renderBulkInspector();
+  selectedPath=null; selectedId=null;
+  document.getElementById('selectedHint').textContent=multiSelectedPaths.size+' фото выбрано ('+multiSelectedIds.size+' объектов)';
+  if(multiSelectedIds.size>=2) renderBulkInspector();
+  else if(multiSelectedIds.size===1){ selectedId=[...multiSelectedIds][0]; renderInspector(objectsById[selectedId],null); renderScene(objectsById[selectedId]); }
+  else clearInspectorAndScene();
 }
 
 function clearInspectorAndScene(){
-  document.getElementById('inspector').innerHTML='<div class="empty-hint">Выбери объект слева, чтобы задать его реальный размер и характеристики.</div>';
-  document.getElementById('selectedHint').textContent='Выбери объект слева — он появится рядом с персонажем в реальном масштабе (1см = 1px при 100%)';
+  document.getElementById('inspector').innerHTML='<div class="empty-hint">Выбери фото слева, чтобы задать его объекту реальный размер и характеристики.</div>';
+  document.getElementById('selectedHint').textContent='Выбери фото слева — объект появится рядом с персонажем в реальном масштабе (1см = 1px при 100%)';
   renderScene(null);
 }
 
-// Tab/Shift+Tab — следующий/предыдущий объект в текущем (отфильтрованном) списке, по кругу.
-// Всегда возвращает к одиночному выбору (см. selectObject) — быстрый просмотр по одному после
-// массового редактирования начинается заново от текущего объекта.
+// Tab/Shift+Tab — следующее/предыдущее фото в текущем (отфильтрованном) списке, по кругу.
+// Всегда возвращает к одиночному выбору — быстрый просмотр по одному после массового
+// редактирования начинается заново от текущего фото.
 function navigateObjectList(delta){
-  const ids=getVisibleOrderedIds();
-  if(!ids.length) return;
-  const curIdx=ids.indexOf(selectedId);
-  const nextIdx=curIdx===-1 ? 0 : (curIdx+delta+ids.length)%ids.length;
-  selectObject(ids[nextIdx]);
+  const paths=getVisibleOrderedPaths();
+  if(!paths.length) return;
+  const curIdx=paths.indexOf(selectedPath);
+  const nextIdx=curIdx===-1 ? 0 : (curIdx+delta+paths.length)%paths.length;
+  selectPhoto(paths[nextIdx]);
 }
 
 document.getElementById('searchBox').addEventListener('input',e=>{ searchQuery=e.target.value; renderObjectList(); });

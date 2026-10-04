@@ -77,6 +77,22 @@ async function listJsonDir(path){
   }catch(e){ out.missing=true; }
   return out;
 }
+// Все файлы (рекурсивно), чьё имя подходит под regex — относительные пути от path, напр. все .png
+// из assets/refs/ (там подпапки-категории) для списка "все фотографии, что есть" слева.
+async function listFilesRecursive(path,re){
+  if(ghIsConnected()) return listFilesRecursiveGithub(path,re);
+  const out={files:[],missing:false};
+  let root; try{ root=await getSubdir(projectDirHandle,path,false); }catch(e){ out.missing=true; return out; }
+  async function walk(dir,prefix){
+    for await(const [name,h] of dir.entries()){
+      if(name.startsWith('.')) continue;
+      if(h.kind==='directory') await walk(h,prefix+name+'/');
+      else if(re.test(name)) out.files.push(prefix+name);
+    }
+  }
+  try{ await walk(root,''); }catch(e){}
+  return out;
+}
 // Один файл (обычно картинка) по пути от корня проекта, как Blob — GitHub или папка.
 async function readProjectFileBlob(relPath){
   if(ghIsConnected()){
