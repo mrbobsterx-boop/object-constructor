@@ -23,12 +23,12 @@ document.addEventListener('keydown',e=>{
     return;
   }
   if(e.code==='KeyX'){
-    const el=document.getElementById('fRealWidth');
+    const el=document.getElementById('fRealWidth')||document.getElementById('fBulkWidth');
     if(el){ e.preventDefault(); el.focus(); el.select(); }
     return;
   }
   if(e.code==='KeyY'){
-    const el=document.getElementById('fRealHeight');
+    const el=document.getElementById('fRealHeight')||document.getElementById('fBulkHeight');
     if(el){ e.preventDefault(); el.focus(); el.select(); }
     return;
   }

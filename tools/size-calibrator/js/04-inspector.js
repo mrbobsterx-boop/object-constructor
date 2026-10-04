@@ -181,16 +181,21 @@ function wireCfRows(o){
   });
 }
 
-async function saveObject(id){
+// Пишет один объект на диск/GitHub — без побочных эффектов на DOM, чтобы одинаково годиться
+// и для одиночного "Сохранить", и для цикла при массовом сохранении (saveBulk).
+async function saveObjectCore(id){
   const o=objectsById[id];
-  if(!o) return;
+  if(!o) throw new Error('объект не найден');
+  const bytes=new TextEncoder().encode(JSON.stringify(o,null,2)+'\n');
+  const ok=await writeFileToProject('data/objects/'+id+'.json',bytes);
+  if(!ok) throw new Error('не подключена ни папка, ни GitHub');
+  objectsSavedJSON[id]=JSON.stringify(o);
+}
+async function saveObject(id){
   const statusEl=document.getElementById('saveStatus');
   statusEl.textContent='Сохранение…'; statusEl.className='save-status';
   try{
-    const bytes=new TextEncoder().encode(JSON.stringify(o,null,2)+'\n');
-    const ok=await writeFileToProject('data/objects/'+id+'.json',bytes);
-    if(!ok) throw new Error('не подключена ни папка, ни GitHub');
-    objectsSavedJSON[id]=JSON.stringify(o);
+    await saveObjectCore(id);
     statusEl.textContent='Сохранено ✓'; statusEl.className='save-status ok';
     renderObjectList();
   }catch(e){
@@ -198,10 +203,86 @@ async function saveObject(id){
   }
 }
 
-function revertObject(id){
+function revertObjectSilent(id){
   const saved=objectsSavedJSON[id];
   if(!saved) return;
   objectsById[id]=JSON.parse(saved);
+}
+function revertObject(id){
+  revertObjectSilent(id);
   renderObjectList();
   selectObject(id);
+}
+
+/* ============================================================
+   МАССОВОЕ РЕДАКТИРОВАНИЕ — несколько объектов выбраны в списке слева
+   (Shift/Ctrl+клик, см. 02-state.js). Один и тот же размер ставится сразу
+   всем выбранным — без привязки к пропорциям конкретной картинки (это
+   противоречило бы самой цели: сделать несколько РАЗНЫХ картинок одного
+   игрового размера, напр. несколько скинов верстака).
+   ============================================================ */
+function renderBulkInspector(){
+  const root=document.getElementById('inspector');
+  const ids=getVisibleOrderedIds().filter(id=>multiSelectedIds.has(id));
+  const names=ids.map(id=>(objectsById[id]&&objectsById[id].name)||id);
+  root.innerHTML=`
+    <div class="insp-head">
+      <div class="id">Массовое редактирование</div>
+      <div class="name">${ids.length} объектов выбрано</div>
+      <div class="muted hint" style="margin-top:6px">${names.map(esc).join(', ')}</div>
+    </div>
+    <div class="section">
+      <h3>Размер для всех выбранных (см)</h3>
+      <div class="row">
+        <div class="field" style="flex:1"><label>Ширина</label><input id="fBulkWidth" type="number" min="0" step="1" placeholder="не менять"></div>
+        <div class="field" style="flex:1"><label>Высота</label><input id="fBulkHeight" type="number" min="0" step="1" placeholder="не менять"></div>
+      </div>
+      <div class="muted hint">Значение ставится ОДИНАКОВЫМ сразу всем выбранным объектам (пропорции картинок разных скинов тут ни при чём — это для случаев вроде "эти 4 верстака должны быть одного размера"). Для подгонки под пропорции конкретной картинки открой объект по одному — X/Y.</div>
+    </div>
+    <div class="section">
+      <div class="row">
+        <button type="button" id="btnBulkSave" class="primary">💾 Сохранить все в JSON</button>
+        <button type="button" id="btnBulkRevert">Отменить правки</button>
+        <button type="button" id="btnBulkClear">Снять выделение</button>
+      </div>
+      <div class="save-status" id="saveStatus"></div>
+    </div>
+  `;
+  document.getElementById('fBulkWidth').oninput=e=>{
+    if(e.target.value==='') return;
+    const v=Math.max(0,Number(e.target.value)||0);
+    ids.forEach(id=>{ const o=objectsById[id]; if(o){ o.behavior.real_width_cm=v; updateListRowBadge(id); } });
+    renderSceneMulti(ids,true); updateBulkSaveStatus(ids);
+  };
+  document.getElementById('fBulkHeight').oninput=e=>{
+    if(e.target.value==='') return;
+    const v=Math.max(0,Number(e.target.value)||0);
+    ids.forEach(id=>{ const o=objectsById[id]; if(o){ o.behavior.real_height_cm=v; updateListRowBadge(id); } });
+    renderSceneMulti(ids,true); updateBulkSaveStatus(ids);
+  };
+  document.getElementById('btnBulkSave').onclick=()=>saveBulk(ids);
+  document.getElementById('btnBulkRevert').onclick=()=>{
+    ids.forEach(revertObjectSilent);
+    renderObjectList(); renderBulkInspector(); renderSceneMulti(ids);
+  };
+  document.getElementById('btnBulkClear').onclick=()=>{
+    multiSelectedIds=new Set(); selectedId=null; renderObjectList(); clearInspectorAndScene();
+  };
+  updateBulkSaveStatus(ids);
+  renderSceneMulti(ids);
+}
+function updateBulkSaveStatus(ids){
+  const el=document.getElementById('saveStatus'); if(!el) return;
+  const dirtyCount=ids.filter(isDirty).length;
+  if(dirtyCount){ el.textContent=dirtyCount+' из '+ids.length+' изменены, не сохранены'; el.className='save-status dirty'; }
+  else { el.textContent=''; el.className='save-status'; }
+}
+async function saveBulk(ids){
+  const el=document.getElementById('saveStatus');
+  el.textContent='Сохранение…'; el.className='save-status';
+  let ok=0, fail=0;
+  for(const id of ids){ try{ await saveObjectCore(id); ok++; }catch(e){ fail++; } }
+  renderObjectList();
+  el.textContent = fail? `Сохранено ${ok}, ошибок ${fail}` : `Сохранено ${ok} объект(ов) ✓`;
+  el.className='save-status '+(fail?'err':'ok');
 }

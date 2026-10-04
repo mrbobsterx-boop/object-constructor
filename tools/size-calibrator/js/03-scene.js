@@ -84,6 +84,39 @@ async function renderScene(obj,keepView){
   applyStageTransform();
 }
 
+// Массовое редактирование — персонаж + ВСЕ выбранные объекты в ряд, каждый в своём настоящем
+// размере, чтобы сразу видеть "теперь они все одного размера" после правки.
+async function renderSceneMulti(ids,keepView){
+  const stage=document.getElementById('stage');
+  stage.style.width=STAGE_W+'px'; stage.style.height=STAGE_H+'px';
+  const ch=characterSize();
+  const charX=60;
+  let html=renderStaticSceneChrome();
+  html+=`<div class="sc-figure" style="left:${charX}px;top:${FLOOR_Y-ch.h}px;width:${ch.w}px;height:${ch.h}px">${humanSvg()}</div>`;
+  html+=`<div class="sc-cap" style="left:${charX}px;top:${FLOOR_Y-ch.h-18}px">Персонаж — ${ch.h} см</div>`;
+
+  let cursorX=charX+ch.w+GAP_CM;
+  const urls=await Promise.all(ids.map(id=>getObjectImageUrl(id)));
+  ids.forEach((id,i)=>{
+    const o=objectsById[id]; if(!o) return;
+    const b=o.behavior||{};
+    const w=Math.max(1,Number(b.real_width_cm)||0), h=Math.max(1,Number(b.real_height_cm)||0);
+    const objX=cursorX, objTop=FLOOR_Y-h;
+    const url=urls[i];
+    if(url) html+=`<img class="sc-obj" src="${url}" style="left:${objX}px;top:${objTop}px;width:${w}px;height:${h}px">`;
+    else html+=`<div class="sc-obj-empty" style="left:${objX}px;top:${objTop}px;width:${w}px;height:${h}px">нет картинки<br>${esc(o.name||o.id)}</div>`;
+    html+=`<div class="sc-cap" style="left:${objX}px;top:${objTop-18}px">${esc(o.name||o.id)} — ${w}×${h} см</div>`;
+    cursorX=objX+w+GAP_CM;
+  });
+  stage.innerHTML=html;
+  if(keepView){ applyStageTransform(); return; }
+  const wrap=document.getElementById('canvasWrap');
+  const sceneW=cursorX+60, sceneH=ch.h+140;
+  const fit=Math.min(1.6,Math.max(0.03,Math.min(wrap.clientWidth/sceneW,wrap.clientHeight/sceneH)));
+  zoom=fit; panX=40; panY=wrap.clientHeight-FLOOR_Y*zoom-40;
+  applyStageTransform();
+}
+
 function setZoom(z,aroundClientX,aroundClientY){
   const wrap=document.getElementById('canvasWrap');
   const rect=wrap.getBoundingClientRect();
@@ -110,4 +143,7 @@ window.addEventListener('pointerup',()=>{ panning=false; canvasWrap.classList.re
 
 document.getElementById('btnZoomIn').onclick=()=>setZoom(zoom*1.25);
 document.getElementById('btnZoomOut').onclick=()=>setZoom(zoom*0.8);
-document.getElementById('btnZoomReset').onclick=()=>{ if(objectsById[selectedId]) renderScene(objectsById[selectedId]); };
+document.getElementById('btnZoomReset').onclick=()=>{
+  if(multiSelectedIds.size>1) renderSceneMulti(getVisibleOrderedIds().filter(id=>multiSelectedIds.has(id)));
+  else if(objectsById[selectedId]) renderScene(objectsById[selectedId]);
+};

@@ -9,6 +9,8 @@ let objectsSavedJSON={};  // id -> JSON.stringify последней сохра�
 let imageUrlCache={};    // id -> object URL картинки (или null, если не найдена/битая)
 let imageDimsCache={};   // id -> {w,h} реальные пиксели картинки (или null) — для "сохранить пропорции"
 let selectedId=null;
+let multiSelectedIds=new Set(); // текущее выделение в списке (для одиночного режима совпадает с {selectedId})
+let lastClickedIndex=null;      // якорь для Shift+клик (индекс в getVisibleOrderedIds())
 let searchQuery='';
 
 async function loadAllObjects(){
@@ -64,7 +66,7 @@ function renderObjectList(){
       const w=Math.round(b.real_width_cm||0), h=Math.round(b.real_height_cm||0);
       const warn=!w||!h;
       const dirty=isDirty(o.id);
-      html+=`<div class="obj-row${o.id===selectedId?' active':''}" data-id="${esc(o.id)}">
+      html+=`<div class="obj-row${multiSelectedIds.has(o.id)?' active':''}" data-id="${esc(o.id)}">
         <span class="thumb" id="thumb_${esc(o.id)}"><span class="thumb-empty">${o.appearance&&o.appearance.asset?'…':'∅'}</span></span>
         <span class="n"><span class="t">${dirty?'● ':''}${esc(o.name||o.id)}</span><span class="sz${warn?' warn':''}">${w}×${h} см</span></span>
       </div>`;
@@ -75,7 +77,7 @@ function renderObjectList(){
   const withImg=Object.values(objectsById).filter(o=>o.appearance&&o.appearance.asset).length;
   const cov=document.getElementById('coverageLabel');
   if(cov) cov.textContent=total?`${withImg}/${total} объектов с картинкой`:'';
-  root.querySelectorAll('.obj-row').forEach(el=>{ el.onclick=()=>selectObject(el.dataset.id); });
+  root.querySelectorAll('.obj-row').forEach(el=>{ el.addEventListener('click',e=>onObjectRowClick(el.dataset.id,e)); });
   // Миниатюры подгружаем лениво и только для видимых категорий — не дожидаясь выбора объекта.
   Object.values(objectsById).filter(o=>matchesSearch(o,q)).forEach(o=>loadThumb(o.id));
 }
@@ -129,9 +131,12 @@ async function getObjectImageNaturalDims(id){
   return dims;
 }
 
+// Обычный клик (без модификаторов) — всегда одиночный выбор, сбрасывает любое множественное выделение.
 async function selectObject(id){
+  multiSelectedIds=new Set(id?[id]:[]);
   selectedId=id;
-  document.querySelectorAll('.obj-row').forEach(el=>el.classList.toggle('active',el.dataset.id===id));
+  lastClickedIndex=getVisibleOrderedIds().indexOf(id);
+  renderObjectList();
   const o=objectsById[id];
   if(!o) return;
   document.getElementById('selectedHint').textContent=o.name+' ('+o.id+')';
@@ -141,7 +146,55 @@ async function selectObject(id){
   if(row) row.scrollIntoView({block:'nearest'});
 }
 
+// Shift+клик — диапазон от последнего клика до этого (как в проводнике). Ctrl/Cmd+клик — добавить/
+// убрать именно этот объект, не трогая остальное выделение. Обычный клик — см. selectObject() выше.
+function onObjectRowClick(id,e){
+  const ids=getVisibleOrderedIds();
+  const idx=ids.indexOf(id);
+  if(e.shiftKey && lastClickedIndex!=null){
+    const [a,b]=[lastClickedIndex,idx].sort((x,y)=>x-y);
+    multiSelectedIds=new Set(ids.slice(a,b+1));
+    renderObjectList();
+    onSelectionChanged();
+    return;
+  }
+  if(e.ctrlKey||e.metaKey){
+    if(multiSelectedIds.size===0 && selectedId) multiSelectedIds=new Set([selectedId]);
+    if(multiSelectedIds.has(id)) multiSelectedIds.delete(id); else multiSelectedIds.add(id);
+    lastClickedIndex=idx;
+    renderObjectList();
+    onSelectionChanged();
+    return;
+  }
+  lastClickedIndex=idx;
+  selectObject(id);
+}
+
+// После Shift/Ctrl-клика решает: 0/1 объект — обычная одиночная панель, 2+ — массовое редактирование.
+function onSelectionChanged(){
+  if(multiSelectedIds.size<=1){
+    const id=[...multiSelectedIds][0]||null;
+    selectedId=id;
+    if(id){
+      const o=objectsById[id];
+      if(o){ document.getElementById('selectedHint').textContent=o.name+' ('+o.id+')'; renderInspector(o); renderScene(o); }
+    } else clearInspectorAndScene();
+    return;
+  }
+  selectedId=null;
+  document.getElementById('selectedHint').textContent=multiSelectedIds.size+' объектов выбрано';
+  renderBulkInspector();
+}
+
+function clearInspectorAndScene(){
+  document.getElementById('inspector').innerHTML='<div class="empty-hint">Выбери объект слева, чтобы задать его реальный размер и характеристики.</div>';
+  document.getElementById('selectedHint').textContent='Выбери объект слева — он появится рядом с персонажем в реальном масштабе (1см = 1px при 100%)';
+  renderScene(null);
+}
+
 // Tab/Shift+Tab — следующий/предыдущий объект в текущем (отфильтрованном) списке, по кругу.
+// Всегда возвращает к одиночному выбору (см. selectObject) — быстрый просмотр по одному после
+// массового редактирования начинается заново от текущего объекта.
 function navigateObjectList(delta){
   const ids=getVisibleOrderedIds();
   if(!ids.length) return;
