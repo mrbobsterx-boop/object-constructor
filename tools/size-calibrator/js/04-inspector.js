@@ -5,6 +5,47 @@
    превью); "Сохранить" пишет data/objects/<id>.json целиком (остальные поля
    объекта — actions, crafting, combat и т.п. — не трогаются).
    ============================================================ */
+/* ============================================================
+   "Сохранить пропорции" — тот же механизм, что в Object Constructor
+   (см. tools/os/js/07-object-io.js fitSizeFrom/updateAspectUI): игра
+   растягивает картинку ровно под real_width_cm×real_height_cm (не наоборот),
+   так что размер, не совпадающий с реальными пропорциями PNG, даёт видимое
+   сплющивание/растяжение — как у кирки/кувалды/топора на скриншотах.
+   ============================================================ */
+let keepAspectEnabled=(function(){ try{ const v=localStorage.getItem('size_calibrator_keep_aspect'); return v===null?true:v==='1'; }catch(e){ return true; } })();
+
+// changed: 'w' — только что поправили ширину (пересчитать высоту), 'h' — наоборот. force — игнорировать тумблер (кнопка "Подогнать").
+function fitSizeFrom(o,changed,force){
+  if(!force && !keepAspectEnabled){ updateAspectUI(o); return; }
+  const dims=imageDimsCache[o.id];
+  if(!dims||!dims.w||!dims.h){ updateAspectUI(o); return; }
+  if(changed==='w'){ const w=o.behavior.real_width_cm||0; if(w) o.behavior.real_height_cm=Math.max(0,Math.round(w*dims.h/dims.w)); }
+  else if(changed==='h'){ const h=o.behavior.real_height_cm||0; if(h) o.behavior.real_width_cm=Math.max(0,Math.round(h*dims.w/dims.h)); }
+  const wEl=document.getElementById('fRealWidth'), hEl=document.getElementById('fRealHeight');
+  if(wEl) wEl.value=o.behavior.real_width_cm; if(hEl) hEl.value=o.behavior.real_height_cm;
+  updateAspectUI(o);
+}
+function updateAspectUI(o){
+  const btn=document.getElementById('btnKeepAspect'); if(!btn) return;
+  btn.classList.toggle('armed',keepAspectEnabled);
+  const statusEl=document.getElementById('aspectStatus'), fitBtn=document.getElementById('btnFitAspect');
+  const dims=imageDimsCache[o.id];
+  if(!dims||!dims.w||!dims.h){
+    statusEl.textContent=(o.id in imageDimsCache)?'У объекта нет картинки — пропорции сверить не с чем.':'Загрузка картинки…';
+    fitBtn.style.display='none';
+    return;
+  }
+  const imgRatio=dims.w/dims.h;
+  let txt=`Пропорции картинки: ${dims.w}×${dims.h} px`;
+  const w=o.behavior.real_width_cm||0, h=o.behavior.real_height_cm||0;
+  if(w&&h){
+    const mismatch=Math.abs((w/h)-imgRatio)/imgRatio>0.02;
+    fitBtn.style.display=mismatch?'':'none';
+    if(mismatch) txt+=' · ⚠ текущий размер не совпадает с пропорциями картинки (растянуто/сплющено)';
+  } else fitBtn.style.display='none';
+  statusEl.textContent=txt;
+}
+
 const PHYSICS_OPTS=['STATIC','DYNAMIC','CHARACTER'];
 const PLACEMENT_OPTS=[['ANYWHERE','Где угодно'],['FLOOR_ONLY','Только пол (нужна опора под всей шириной)']];
 const COLLISION_OPTS=['NONE','RECT','HULL_PIXELS','CIRCLE'];
@@ -52,7 +93,14 @@ function renderInspector(o){
         <div class="field" style="flex:1"><label>Ширина</label><input id="fRealWidth" type="number" min="0" step="1" value="${Math.round(b.real_width_cm||0)}"></div>
         <div class="field" style="flex:1"><label>Высота</label><input id="fRealHeight" type="number" min="0" step="1" value="${Math.round(b.real_height_cm||0)}"></div>
       </div>
-      <div class="muted hint">Картинка растягивается под этот размер (не наоборот) — пиксели PNG на игровой размер не влияют.</div>
+      <div class="field">
+        <div class="row">
+          <button type="button" id="btnKeepAspect" class="toggle-btn">🔗 Сохранить пропорции</button>
+          <button type="button" id="btnFitAspect" style="display:none">Подогнать высоту по ширине</button>
+        </div>
+        <div class="muted hint" id="aspectStatus" style="margin-top:4px"></div>
+      </div>
+      <div class="muted hint">Картинка растягивается под этот размер (не наоборот) — пиксели PNG на игровой размер не влияют. Но если размер не совпадает с пропорциями картинки, она выглядит сплющенной/вытянутой — включи "Сохранить пропорции", чтобы высота/ширина сами подстраивались под реальную картинку.</div>
     </div>
     <div class="section">
       <h3>Физика и вес</h3>
@@ -76,8 +124,16 @@ function renderInspector(o){
     </div>
   `;
 
-  document.getElementById('fRealWidth').oninput=e=>{ o.behavior.real_width_cm=Number(e.target.value)||0; fieldChanged(); };
-  document.getElementById('fRealHeight').oninput=e=>{ o.behavior.real_height_cm=Number(e.target.value)||0; fieldChanged(); };
+  document.getElementById('fRealWidth').oninput=e=>{ o.behavior.real_width_cm=Number(e.target.value)||0; fitSizeFrom(o,'w'); fieldChanged(); };
+  document.getElementById('fRealHeight').oninput=e=>{ o.behavior.real_height_cm=Number(e.target.value)||0; fitSizeFrom(o,'h'); fieldChanged(); };
+  document.getElementById('btnKeepAspect').onclick=()=>{
+    keepAspectEnabled=!keepAspectEnabled;
+    try{ localStorage.setItem('size_calibrator_keep_aspect',keepAspectEnabled?'1':'0'); }catch(e){}
+    updateAspectUI(o);
+  };
+  document.getElementById('btnFitAspect').onclick=()=>{ fitSizeFrom(o,'w',true); fieldChanged(); };
+  updateAspectUI(o);
+  getObjectImageNaturalDims(o.id).then(()=>{ if(selectedId===o.id) updateAspectUI(o); });
   document.getElementById('fPhysics').onchange=e=>{ o.behavior.physics=e.target.value; fieldChanged(); };
   document.getElementById('fCollision').onchange=e=>{ o.behavior.collision=e.target.value; fieldChanged(); };
   document.getElementById('fPlacement').onchange=e=>{ o.behavior.placement_mode=e.target.value; fieldChanged(); };

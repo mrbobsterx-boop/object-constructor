@@ -6,6 +6,7 @@ button,input,select,textarea{font:inherit}button{background:#242b35;color:#e8edf
 button:hover{background:#303947}button:disabled{opacity:.4;cursor:default}
 button.primary{background:#2f6e3f;border-color:#4d9a6a}button.primary:hover{background:#387f4a}
 button.danger{background:#6e2f2f;border-color:#9a4d4d}button.danger:hover{background:#7f3838}
+button.toggle-btn.armed{background:#2f6e3f;border-color:#4d9a6a}
 .app{height:100vh;display:grid;grid-template-columns:260px 1fr 300px;grid-template-rows:auto 1fr}
 header{grid-column:1/-1;display:flex;align-items:center;gap:6px;padding:6px 10px;border-bottom:1px solid #303844;background:#181d24;flex-wrap:wrap}
 header h1{font-size:13px;margin:0;white-space:nowrap}

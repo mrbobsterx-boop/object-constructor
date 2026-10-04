@@ -7,6 +7,7 @@
 let objectsById={};      // id -> рабочая (редактируемая) копия JSON
 let objectsSavedJSON={};  // id -> JSON.stringify последней сохранённой/загруженной версии (для revert + badge "есть правки")
 let imageUrlCache={};    // id -> object URL картинки (или null, если не найдена/битая)
+let imageDimsCache={};   // id -> {w,h} реальные пиксели картинки (или null) — для "сохранить пропорции"
 let selectedId=null;
 let searchQuery='';
 
@@ -102,6 +103,17 @@ function updateListRowBadge(id){
   if(szEl){ szEl.textContent=w+'×'+h+' см'; szEl.className='sz'+((!w||!h)?' warn':''); }
   const tEl=row.querySelector('.t');
   if(tEl) tEl.textContent=(isDirty(id)?'● ':'')+(o.name||o.id);
+}
+
+// Реальные пиксельные пропорции картинки объекта (не то же самое, что appearance.imageWidth/Height
+// в JSON — те могли быть записаны неточно раньше; здесь читаем их заново с самого файла).
+async function getObjectImageNaturalDims(id){
+  if(id in imageDimsCache) return imageDimsCache[id];
+  const url=await getObjectImageUrl(id);
+  if(!url){ imageDimsCache[id]=null; return null; }
+  const dims=await new Promise(res=>{ const im=new Image(); im.onload=()=>res({w:im.naturalWidth,h:im.naturalHeight}); im.onerror=()=>res(null); im.src=url; });
+  imageDimsCache[id]=dims;
+  return dims;
 }
 
 async function selectObject(id){
