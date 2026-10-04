@@ -113,6 +113,16 @@ async function readJsonFromGithub(path){
     return {data:JSON.parse(new TextDecoder('utf-8').decode(r.bytes)),broken:false};
   }catch(e){ return {data:null,broken:true}; }
 }
+// Параллельно, но с ограничением — иначе каталоги вроде data/objects/ (180+ файлов) читаются по
+// одному файлу за раз последовательно (сотни round-trip'ов, десятки секунд, выглядит как зависание),
+// а без лимита разом можно упереться в secondary rate limit GitHub API.
+async function ghMapLimit(items,limit,fn){
+  const out=new Array(items.length);
+  let i=0;
+  async function worker(){ while(i<items.length){ const idx=i++; out[idx]=await fn(items[idx],idx); } }
+  await Promise.all(Array.from({length:Math.min(limit,items.length)},worker));
+  return out;
+}
 async function listJsonDirGithub(path){
   const out={items:[],missing:false};
   try{
@@ -120,11 +130,11 @@ async function listJsonDirGithub(path){
     const prefix=path.replace(/\/$/,'')+'/';
     const entries=tree.filter(t=>t.type==='blob'&&t.path.startsWith(prefix)&&t.path.slice(prefix.length).indexOf('/')===-1&&/\.json$/i.test(t.path));
     if(!entries.length){ out.missing=true; return out; }
-    for(const entry of entries){
+    out.items=await ghMapLimit(entries,12,async entry=>{
       const name=entry.path.slice(prefix.length);
       const r=await readJsonFromGithub(entry.path);
-      out.items.push({name,data:r.data,broken:r.broken});
-    }
+      return {name,data:r.data,broken:r.broken};
+    });
   }catch(e){ out.missing=true; }
   return out;
 }
