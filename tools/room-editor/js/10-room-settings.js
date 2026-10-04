@@ -26,6 +26,27 @@ document.getElementById('btnApplyPlayerZ').onclick=()=>{
   room.playerWalkZ=+document.getElementById('playerWalkZ').value||10;
   renderRoom(); renderPropertiesPanel(); scheduleHistoryPush();
 };
+
+/* ============================================================
+   РАЗМЕР ЭКЗЕМПЛЯРОВ ИЗ КАТАЛОГА
+   Экземпляр запоминает real_width_cm/real_height_cm на момент размещения
+   (inst.realWidthCm/realHeightCm) — если объект потом поправили в Object
+   Constructor/Калибровщике размеров, уже стоящие в комнате копии размер
+   САМИ не обновляют. Эта кнопка пересчитывает все экземпляры в комнате по
+   текущим данным каталога (см. getObjectWorldSize в 03-room-geometry.js).
+   ============================================================ */
+document.getElementById('btnResyncAllSizes').onclick=()=>{
+  let n=0;
+  room.instances.forEach(inst=>{
+    const cat=projectCatalog.find(c=>c.id===inst.objectId);
+    if(!cat||!cat.json) return;
+    const before=inst.realWidthCm+'x'+inst.realHeightCm;
+    syncInstanceWorldSize(inst,cat.json);
+    if(before!==inst.realWidthCm+'x'+inst.realHeightCm) n++;
+  });
+  renderRoom(); renderPropertiesPanel(); scheduleHistoryPush();
+  alert(n?`Обновлён размер у ${n} объект(ов) из ${room.instances.length}.`:'Все размеры уже совпадают с каталогом — обновлять нечего.');
+};
 document.getElementById('roomId').addEventListener('input', ()=>{ document.getElementById('roomId').dataset.auto='0'; });
 document.getElementById('roomId').dataset.auto='1';
 document.getElementById('roomId').oninput=e=>{ room.id=e.target.value; scheduleHistoryPush(); };

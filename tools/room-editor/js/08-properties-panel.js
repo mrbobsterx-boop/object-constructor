@@ -37,7 +37,7 @@ function renderPropertiesPanel(){
       <h3>${esc(inst.name)} <span class="status">(${esc(inst.objectId)})</span></h3>
       <div class="field"><label>X (м)</label><input id="instX" type="number" step="0.01" value="${pxToM(inst.x)}"></div>
       <div class="field"><label>Y (м)</label><input id="instY" type="number" step="0.01" value="${pxToM(inst.y)}"></div>
-      <div class="field"><label>Размер в игре</label><div class="status">${(inst.realWidthCm||0).toFixed(0)} × ${(inst.realHeightCm||0).toFixed(0)} см</div></div>
+      <div class="field"><label>Размер в игре</label><div class="row" style="align-items:center"><div class="status">${(inst.realWidthCm||0).toFixed(0)} × ${(inst.realHeightCm||0).toFixed(0)} см</div><button id="instResyncSize" title="Подтянуть размер заново из data/objects — на случай если объект поправили после того, как его сюда поставили">🔄</button></div></div>
       <div class="field"><label>Масштаб экземпляра (%)</label><input id="instScale" type="number" min="1" value="${Math.round((inst.scale||1)*100)}"></div>
       <div class="field"><label>Поворот (градусы, от -180 до 180)</label><input id="instRot" type="number" min="-180" max="180" value="${inst.rotation}"></div>
       <div class="row"><button id="instFlipH">Флип ↔</button><button id="instFlipV">Флип ↕</button></div>
@@ -90,6 +90,13 @@ function renderPropertiesPanel(){
     <div class="section"><button id="instDelete" class="danger">Удалить объект</button></div>
   `;
   renderDoorRoomOptions();
+  document.getElementById('instResyncSize').onclick=()=>{
+    const cat=projectCatalog.find(c=>c.id===inst.objectId);
+    if(!cat||!cat.json){ alert('Объект не найден в каталоге (data/objects) — нечего подтягивать.'); return; }
+    syncInstanceWorldSize(inst,cat.json);
+    if(inst.placementMode==='FLOOR_ONLY'&&!inst.isDecor) snapInstanceToFloor(inst);
+    updatePlacementValidity(inst); renderRoom(); renderPropertiesPanel(); scheduleHistoryPush();
+  };
   document.getElementById('instX').oninput=e=>{ inst.x=mToPx(+e.target.value||0); updatePlacementValidity(inst); renderRoom(); scheduleHistoryPush(); };
   document.getElementById('instY').oninput=e=>{ inst.y=mToPx(+e.target.value||0); updatePlacementValidity(inst); renderRoom(); scheduleHistoryPush(); };
   document.getElementById('instScale').oninput=e=>{ inst.scale=Math.max(0.01,(+e.target.value||100)/100); updatePlacementValidity(inst); if(inst.placementMode==='FLOOR_ONLY'&&!inst.isDecor) snapInstanceToFloor(inst); renderRoom(); scheduleHistoryPush(); };

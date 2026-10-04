@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<!-- ============================================================
+     SIZE CALIBRATOR — MODULAR FILE MAP
+     ------------------------------------------------------------
+     MODULE 01  Global utils / units / project folder (GitHub + File System Access)
+     MODULE 02  State: load/save data/objects/*.json, object list
+     MODULE 03  Scene: character + object side-by-side, zoom/pan
+     MODULE 04  Inspector: size/physics/custom-fields form, save to JSON
+     MODULE 05  Init
+     ============================================================ -->
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Size Calibrator</title>
+<link rel="stylesheet" href="css/app.css">
+</head>
+<body>
+<div class="app">
+<header>
+  <h1>Калибровщик размеров</h1>
+  <button id="btnConnectFolder">📁 Подключить папку проекта</button>
+  <span id="folderStatus" class="status">Папка не подключена</span>
+  <button id="btnRegrantFolder" style="display:none">Разрешить доступ</button>
+  <button id="btnConnectGithub" title="Читать/писать файлы проекта напрямую через GitHub (personal access token)">🐙 Подключить GitHub</button>
+  <button id="btnGithubDisconnect" style="display:none" title="Удалить токен из этого браузера">Отключить GitHub</button>
+  <span id="githubStatus" class="status">GitHub не подключён</span>
+  <div class="spacer"></div>
+  <span id="coverageLabel" class="status"></span>
+</header>
+
+<aside class="object-list">
+  <div class="section">
+    <input id="searchBox" placeholder="Поиск по названию/id...">
+  </div>
+  <div id="objectList" class="obj-list"><div class="empty-hint">Подключи папку проекта или GitHub вверху, чтобы загрузить data/objects/*.json.</div></div>
+</aside>
+
+<main>
+  <div class="canvas-toolbar">
+    <button id="btnZoomOut">−</button>
+    <span class="zoom-label" id="zoomLabel">100%</span>
+    <button id="btnZoomIn">+</button>
+    <button id="btnZoomReset">Сброс вида</button>
+    <div class="spacer"></div>
+    <span class="hint muted" id="selectedHint">Выбери объект слева — он появится рядом с персонажем в реальном масштабе (1см = 1px при 100%)</span>
+  </div>
+  <div class="canvas-wrap" id="canvasWrap">
+    <div class="canvas-stage" id="stage"></div>
+  </div>
+</main>
+
+<aside class="inspector" id="inspector">
+  <div class="empty-hint">Выбери объект слева, чтобы задать его реальный размер и характеристики.
+  Сцена покажет его рядом с персонажем ростом 1,8&nbsp;м — так сразу видно, если что-то в разы больше
+  или меньше, чем должно быть (как огромный холодильник и крошечная бочка для воды).</div>
+</aside>
+</div>
+
+<!-- Порядок менять нельзя: скрипты делят одну глобальную область, номер = порядок загрузки -->
+<script src="../shared/js/github-sync.js"></script>
+<script src="js/01-core-utils.js"></script>
+<script src="js/02-state.js"></script>
+<script src="js/03-scene.js"></script>
+<script src="js/04-inspector.js"></script>
+<script src="js/05-init.js"></script>
+</body>
+</html>
