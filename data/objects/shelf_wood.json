@@ -67,41 +67,9 @@
     "makes_sounds": false
   },
   "actions": [
-    "STORE",
-    "TAKE_FROM",
     "SEARCH"
   ],
   "action_settings": {
-    "STORE": {
-      "requirements": "",
-      "time": 1,
-      "tool": "",
-      "consume": {
-        "item": "",
-        "amount": 0
-      },
-      "produce": {
-        "item": "",
-        "amount": 0
-      },
-      "required_skill": null,
-      "effects": []
-    },
-    "TAKE_FROM": {
-      "requirements": "",
-      "time": 1,
-      "tool": "",
-      "consume": {
-        "item": "",
-        "amount": 0
-      },
-      "produce": {
-        "item": "",
-        "amount": 0
-      },
-      "required_skill": null,
-      "effects": []
-    },
     "SEARCH": {
       "requirements": "",
       "time": 4,
@@ -128,9 +96,9 @@
     "wearLifetimeDays": 0
   },
   "inventory": {
-    "enabled": true,
-    "slots": 6,
-    "maxWeight": 15,
+    "enabled": false,
+    "slots": 0,
+    "maxWeight": 0,
     "storage": "GENERAL"
   },
   "resource": null,
@@ -187,6 +155,7 @@
   ],
   "components": [],
   "custom": {
-    "load_capacity_kg": 30
+    "load_capacity_kg": 30,
+    "mount": "wall"
   }
 }

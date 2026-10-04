@@ -47,7 +47,7 @@ addItems([
  {id:'shelf_wood',n:'Полка',c:'container',s:'shelf',g:'home',p:1,sz:[100,30],wt:8,ph:'STATIC',pl:'ANYWHERE',vg:'shelf',
   why:'Компактное хранение на стене и опора для мелких предметов; экономит место на полу.',
   fn:'Настенное хранилище и поверхность; несущая способность ограничена.',v:['Деревянная','Металлическая уголковая','Угловая','Двойная'],
-  os:{hasInventory:true,slots:6,maxWeight:15},cf:[['load_capacity_kg',30,'Несущая способность полки (кг)']],pn:['Крепится к стене'],act:['STORE','TAKE_FROM','SEARCH'],
+  cf:[['load_capacity_kg',30,'Несущая способность полки (кг)'],['mount','wall','Крепление: стена']],pn:['Крепится к стене — открытая полка, предметы на ней видны и стоят сверху, это не инвентарь со слотами'],act:['SEARCH'],
   req:['mat_plank','mat_nails','tool_hammer'],w:['crate_wood','food_canned','toolbox'],use:'Лут мелких предметов; аккуратное наполнение комнат.',rooms:['kitchen','workshop','storage','bedroom'],vis:['idle'],sys:['storage','physics','rooms'],rc:'mat_plank ×2 + mat_nails ×4'},
  {id:'lamp_ceiling',n:'Лампа потолочная',c:'machine',s:'lamp',g:'home',p:0,sz:[30,25],ph:'STATIC',pl:'ANYWHERE',vg:'lamp',
   why:'Свет в убежище: без него комнаты тёмные, а лампы — главный потребитель энергии и наглядный индикатор баланса.',
