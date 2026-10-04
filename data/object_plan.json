@@ -3,12 +3,15 @@
   "status": {},
   "steps": {},
   "notes": {},
-  "saved_at": "2026-10-03T20:57:57.657Z",
+  "saved_at": "2026-10-04T10:32:23.856Z",
   "custom": [],
   "customGroups": [],
   "variationOverrides": {
     "block_brick": [
       "черный"
+    ],
+    "mat_log": [
+      "дрова"
     ]
   }
 }
