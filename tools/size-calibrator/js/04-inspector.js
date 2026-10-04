@@ -91,7 +91,7 @@ function cfRowHtml(key,val,idx){
    полей, поэтому новые поля схемы тоже сразу становятся видимыми и
    редактируемыми здесь.
    ============================================================ */
-const GENERIC_SKIP_TOP=new Set(['id','category','category_name','appearance','custom','behavior','schema_version']);
+const GENERIC_SKIP_TOP=new Set(['id','name','category','category_name','appearance','custom','behavior','schema_version']);
 const GENERIC_SKIP_BEHAVIOR=new Set(['real_width_cm','real_height_cm','physics','collision','placement_mode','carryable','weight','hasWeight']);
 
 function pathSet(obj,path,val){
@@ -179,12 +179,29 @@ function renderInspector(o,path){
   const root=document.getElementById('inspector');
   const b=o.behavior||{};
   const cfEntries=Object.entries(o.custom||{});
+  const variationCurrent=path?variationLabel(path,o.id):'';
   root.innerHTML=`
     <div class="insp-head">
       <div class="id">${esc(o.id)} · ${esc(o.category_name||o.category||'')}</div>
       <div class="name">${esc(o.name||o.id)}</div>
       ${path?`<div class="muted hint" style="margin-top:4px">Показано фото: ${esc(path)}</div>`:''}
     </div>
+    <div class="section">
+      <h3>Название объекта <span class="muted hint">(общее для ВСЕХ фото этого id)</span></h3>
+      <div class="row">
+        <input id="fObjectName" type="text" value="${esc(o.name||'')}" style="flex:1">
+      </div>
+      <div class="muted hint">id (${esc(o.id)}) не меняется — только отображаемое имя. Правка здесь затронет все фото этого объекта, не только текущее.</div>
+    </div>
+    ${path?`
+    <div class="section">
+      <h3>Название ЭТОГО фото <span class="muted hint">(только оно, id и остальные фото объекта не трогает)</span></h3>
+      <div class="row">
+        <input id="fVariationName" type="text" value="${esc(variationCurrent==='основная'?'':variationCurrent)}" placeholder="основная (без суффикса)" style="flex:1">
+        <button type="button" id="btnRenameVariation">Переименовать файл</button>
+      </div>
+      <div class="muted hint" id="renameStatus">Можно писать по-русски — сохранится в имени файла английским слагом (как и у остальных картинок).</div>
+    </div>`:''}
     <div class="section">
       <h3>Размер (игровой, см)</h3>
       <div class="row">
@@ -227,6 +244,21 @@ function renderInspector(o,path){
     </div>
   `;
 
+  document.getElementById('fObjectName').oninput=e=>{ o.name=e.target.value; fieldChanged(); };
+  if(path){
+    document.getElementById('btnRenameVariation').onclick=async()=>{
+      const statusEl=document.getElementById('renameStatus');
+      const raw=document.getElementById('fVariationName').value.trim();
+      const slug=raw?sanitizeSlug(translit(raw)):'';
+      statusEl.textContent='Переименование…'; statusEl.className='muted hint';
+      const res=await renamePhotoVariation(path,slug);
+      if(res.ok){
+        await selectPhoto(res.path);
+      } else {
+        statusEl.textContent='Ошибка: '+res.error; statusEl.className='save-status err';
+      }
+    };
+  }
   document.getElementById('fRealWidth').oninput=e=>{ o.behavior.real_width_cm=Number(e.target.value)||0; fitSizeFrom(o,path,'w'); fieldChanged(); };
   document.getElementById('fRealHeight').oninput=e=>{ o.behavior.real_height_cm=Number(e.target.value)||0; fitSizeFrom(o,path,'h'); fieldChanged(); };
   document.getElementById('btnKeepAspect').onclick=()=>{

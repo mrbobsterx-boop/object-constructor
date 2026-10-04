@@ -207,6 +207,36 @@ function recomputeMultiSelectedIds(){
   multiSelectedIds=new Set([...multiSelectedPaths].map(p=>refFileMatch[p]).filter(Boolean));
 }
 
+// Переименовывает ОДНО фото (меняет только его файл в assets/refs/, оставляя id объекта как есть) —
+// это то, что пользователь на самом деле хочет, когда зовёт это "сменить имя у одного": у объекта
+// на всех его фото одно общее name (одна строка в data/objects/<id>.json), а вот какое из них "Полка
+// двойная сломанная" и какое "Полка металлическая с крючками" — определяется именем ФАЙЛА, и это
+// можно менять независимо для каждого фото. newSuffixSlug='' означает "без суффикса" (= сам id).
+async function renamePhotoVariation(oldPath,newSuffixSlug){
+  const id=refFileMatch[oldPath];
+  if(!id) return {ok:false,error:'У этого фото нет JSON — переименование недоступно.'};
+  const lastSlash=oldPath.lastIndexOf('/');
+  const dir=lastSlash>=0?oldPath.slice(0,lastSlash+1):'';
+  const newStem=newSuffixSlug?id+'_'+newSuffixSlug:id;
+  const newPath=dir+newStem+'.png';
+  if(newPath===oldPath) return {ok:true,path:oldPath};
+  if(allRefFiles.includes(newPath)) return {ok:false,error:'Файл с таким именем уже есть: '+newPath};
+  const file=await readProjectFileBlob('assets/refs/'+oldPath);
+  if(!file) return {ok:false,error:'Не удалось прочитать файл для переименования.'};
+  const bytes=new Uint8Array(await file.arrayBuffer());
+  const wrote=await writeFileToProject('assets/refs/'+newPath,bytes);
+  if(!wrote) return {ok:false,error:'Не удалось записать новый файл (папка/GitHub не подключены?).'};
+  await deleteProjectFile('assets/refs/'+oldPath);
+  const idx=allRefFiles.indexOf(oldPath);
+  if(idx>=0) allRefFiles[idx]=newPath; else allRefFiles.push(newPath);
+  delete refImageUrlCache[oldPath]; delete refImageDimsCache[oldPath];
+  refFileMatch[newPath]=id; delete refFileMatch[oldPath];
+  if(multiSelectedPaths.has(oldPath)){ multiSelectedPaths.delete(oldPath); multiSelectedPaths.add(newPath); }
+  if(selectedPath===oldPath) selectedPath=newPath;
+  if(lastClickedIndex!=null){ /* индекс мог сместиться вместе со списком — пересчитается на следующем клике */ }
+  return {ok:true,path:newPath};
+}
+
 // Обычный клик (без модификаторов) — всегда одиночный выбор, сбрасывает любое множественное выделение.
 async function selectPhoto(path){
   multiSelectedPaths=new Set(path?[path]:[]);

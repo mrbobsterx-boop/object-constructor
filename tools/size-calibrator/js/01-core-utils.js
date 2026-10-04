@@ -5,6 +5,13 @@
    репозиторию GitHub (shared/js/github-sync.js).
    ============================================================ */
 function esc(s){ return String(s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
+// Та же транслитерация, что в os/js/01-core-utils.js и генераторе — переименование фото (см.
+// renamePhotoVariation в 04-inspector.js) пишет имя файла английским слагом, даже если ввели по-русски.
+function translit(str){
+  const map={а:'a',б:'b',в:'v',г:'g',д:'d',е:'e',ё:'e',ж:'zh',з:'z',и:'i',й:'y',к:'k',л:'l',м:'m',н:'n',о:'o',п:'p',р:'r',с:'s',т:'t',у:'u',ф:'f',х:'h',ц:'ts',ч:'ch',ш:'sh',щ:'sch',ъ:'',ы:'y',ь:'',э:'e',ю:'yu',я:'ya'};
+  return (str||'').toLowerCase().split('').map(c=>map[c]!==undefined?map[c]:(/[a-z0-9]/.test(c)?c:'_')).join('').replace(/_+/g,'_').replace(/^_|_$/g,'');
+}
+function sanitizeSlug(s){ return (s||'').toLowerCase().replace(/[^a-z0-9_\-]+/g,'_').replace(/^_+|_+$/g,''); }
 
 /* ============================================================
    ЕДИНИЦЫ: 100 px = 1 игровой метр = та же конвенция, что Object Constructor
@@ -103,6 +110,20 @@ async function readProjectFileBlob(relPath){
     const dir=parts.length?await getSubdir(projectDirHandle,parts.join('/'),false):projectDirHandle;
     return await (await dir.getFileHandle(fileName)).getFile();
   }catch(e){ return null; }
+}
+// Удаляет один файл — нужен для переименования фото (пишем под новым именем, потом удаляем старый файл).
+async function deleteProjectFile(relPath){
+  let ok=false;
+  if(projectDirHandle){
+    try{
+      const parts=relPath.split('/'); const fileName=parts.pop();
+      const dir=parts.length?await getSubdir(projectDirHandle,parts.join('/'),false):projectDirHandle;
+      await dir.removeEntry(fileName);
+      ok=true;
+    }catch(e){}
+  }
+  if(ghIsConnected()){ try{ await deleteFileFromGithub(relPath,'Size Calibrator: rename (remove old) '+relPath); ok=true; }catch(e){} }
+  return ok;
 }
 function updateFolderStatus(needsRegrant){
   const el=document.getElementById('folderStatus');
