@@ -12,8 +12,8 @@
   "appearance": {
     "mode": "IMAGE",
     "asset": "weapon/trap/trap_bear_kapkan_lovushka.png",
-    "imageWidth": 0,
-    "imageHeight": 0,
+    "imageWidth": 522,
+    "imageHeight": 258,
     "collision": null
   },
   "behavior": {
