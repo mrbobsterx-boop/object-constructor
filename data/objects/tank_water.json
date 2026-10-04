@@ -12,8 +12,8 @@
   "appearance": {
     "mode": "IMAGE",
     "asset": "container/water/tank_water_rezervuar_vody.png",
-    "imageWidth": 207,
-    "imageHeight": 240,
+    "imageWidth": 480,
+    "imageHeight": 969,
     "collision": null
   },
   "behavior": {

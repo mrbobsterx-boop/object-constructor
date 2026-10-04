@@ -169,6 +169,7 @@
   "custom": {
     "circuits": 4,
     "max_load_w": 1500,
-    "fuse_state": "ok"
+    "fuse_state": "ok",
+    "mount": "wall"
   }
 }

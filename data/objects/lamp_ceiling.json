@@ -161,6 +161,7 @@
   "components": [],
   "custom": {
     "power_w": 10,
-    "bulb_lifetime_key": "lightbulb_lifetime"
+    "bulb_lifetime_key": "lightbulb_lifetime",
+    "mount": "ceiling"
   }
 }

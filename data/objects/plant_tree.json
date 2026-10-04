@@ -133,6 +133,7 @@
   "custom": {
     "growth_time_key": "tree_growth",
     "yield_min": 3,
-    "yield_max": 6
+    "yield_max": 6,
+    "requires_block_below": "block_dirt"
   }
 }

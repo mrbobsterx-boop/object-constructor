@@ -159,6 +159,7 @@
   "components": [],
   "custom": {
     "power_w": 80,
-    "growth_multiplier": 1.5
+    "growth_multiplier": 1.5,
+    "mount": "ceiling"
   }
 }

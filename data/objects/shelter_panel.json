@@ -134,6 +134,7 @@
   ],
   "components": [],
   "custom": {
-    "linked_resources": "water,energy"
+    "linked_resources": "water,energy",
+    "mount": "wall"
   }
 }

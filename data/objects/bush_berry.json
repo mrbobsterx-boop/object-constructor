@@ -147,6 +147,7 @@
   ],
   "components": [],
   "custom": {
-    "fruit_cycle_h": 48
+    "fruit_cycle_h": 48,
+    "requires_block_below": "block_dirt"
   }
 }

@@ -157,6 +157,7 @@
     "yield_min": 3,
     "yield_max": 6,
     "harvest_extra_item": "seed_bag",
-    "harvest_extra_amount": 1
+    "harvest_extra_amount": 1,
+    "requires_block_below": "block_dirt"
   }
 }

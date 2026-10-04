@@ -171,6 +171,7 @@
   ],
   "components": [],
   "custom": {
-    "link_mode": "room"
+    "link_mode": "room",
+    "mount": "wall"
   }
 }

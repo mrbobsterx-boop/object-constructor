@@ -113,6 +113,7 @@
   ],
   "components": [],
   "custom": {
-    "time_source": "TIME"
+    "time_source": "TIME",
+    "mount": "wall"
   }
 }

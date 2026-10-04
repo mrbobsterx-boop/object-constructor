@@ -192,6 +192,7 @@
   "custom": {
     "soil_capacity": 10,
     "water_capacity_l": 5,
-    "fertility": 1
+    "fertility": 1,
+    "requires_block_below": "block_dirt"
   }
 }
