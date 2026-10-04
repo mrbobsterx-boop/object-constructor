@@ -1,7 +1,7 @@
 {
   "schema_version": 4,
   "id": "block_ore_iron",
-  "name": "указатель деревянный",
+  "name": "Железная руда (пласт)",
   "category": "block",
   "category_name": "Блок / материал",
   "subtype": "ore",
