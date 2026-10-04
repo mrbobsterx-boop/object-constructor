@@ -1105,27 +1105,27 @@
     {
       "ref": "f_community",
       "kind": "faction",
-      "name": "Община «Родник»"
+      "name": "Община «Wellspring»"
     },
     {
       "ref": "f_traders",
       "kind": "faction",
-      "name": "Караван «Колесо»"
+      "name": "Караван «Iron Wheel»"
     },
     {
       "ref": "f_raiders",
       "kind": "faction",
-      "name": "Банда «Ржавые»"
+      "name": "Банда «Rust Dogs»"
     },
     {
       "ref": "f_slavers",
       "kind": "faction",
-      "name": "«Перевозчики»"
+      "name": "«Ferrymen»"
     },
     {
       "ref": "f_remnant",
       "kind": "faction",
-      "name": "«Гарнизон»"
+      "name": "«Garrison»"
     }
   ]
 }

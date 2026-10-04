@@ -405,7 +405,7 @@
           "effects": []
         },
         {
-          "label": "Записка с грифом «Объект-9»",
+          "label": "Записка с грифом «Site-9»",
           "target_ref": "story.version_object9",
           "requires": [],
           "effects": []
@@ -479,7 +479,7 @@
     {
       "ref": "story.version_fever",
       "title": "Версия «Лихорадка»",
-      "text": "💡 Предложение\nБолезнь пришла с юга через больницы. Анна Ветрова из «Родника» верит в это: сама видела первых больных. Но почему тогда мёртвые встают?",
+      "text": "💡 Предложение\nБолезнь пришла с юга через больницы. Anna Weller из «Wellspring» верит в это: сама видела первых больных. Но почему тогда мёртвые встают?",
       "type": "event",
       "category": "story",
       "eventSource": "location",
@@ -520,7 +520,7 @@
     {
       "ref": "story.version_object9",
       "title": "Версия «Опыт»",
-      "text": "💡 Предложение\nУтечка из закрытой лаборатории «Объект-9». «Гарнизон» всё отрицает — и очень не любит, когда об этом спрашивают.",
+      "text": "💡 Предложение\nУтечка из закрытой лаборатории «Site-9». «Garrison» всё отрицает — и очень не любит, когда об этом спрашивают.",
       "type": "choice",
       "category": "story",
       "eventSource": "location",
@@ -545,7 +545,7 @@
       "ending": "",
       "choices": [
         {
-          "label": "Спросить майора Ровнова",
+          "label": "Спросить майора Rowan",
           "target_ref": "story.clue_contradiction",
           "requires": [],
           "effects": [
@@ -652,7 +652,7 @@
     {
       "ref": "story.version_onpurpose",
       "title": "Версия «Нарочно»",
-      "text": "💡 Предложение\n«Власть сама выпустила заразу, а себе построила бункеры». Так говорят «Ржавые» и «Перевозчики» — и этим оправдывают всё. Но бункеры власти тоже вымерли.",
+      "text": "💡 Предложение\n«Власть сама выпустила заразу, а себе построила бункеры». Так говорят «Rust Dogs» и «Ferrymen» — и этим оправдывают всё. Но бункеры власти тоже вымерли.",
       "type": "choice",
       "category": "story",
       "eventSource": "faction",
@@ -738,8 +738,8 @@
     },
     {
       "ref": "story.raider_talk",
-      "title": "Разговор у костра «Ржавых»",
-      "text": "💡 Предложение\nБорзый, подвыпив, объясняет, почему правил больше нет.",
+      "title": "Разговор у костра «Rust Dogs»",
+      "text": "💡 Предложение\nBrute, подвыпив, объясняет, почему правил больше нет.",
       "type": "event",
       "category": "story",
       "eventSource": "faction",
@@ -856,7 +856,7 @@
     {
       "ref": "f_slavers",
       "kind": "faction",
-      "name": "«Перевозчики»"
+      "name": "«Ferrymen»"
     },
     {
       "ref": "g_loners",
@@ -871,17 +871,17 @@
     {
       "ref": "c_vetrova",
       "kind": "character",
-      "name": "Анна Ветрова"
+      "name": "Anna Weller"
     },
     {
       "ref": "c_borzov",
       "kind": "character",
-      "name": "Глеб Борзов («Борзый»)"
+      "name": "Gus Brody («Brute»)"
     },
     {
       "ref": "c_rovnov",
       "kind": "character",
-      "name": "Майор Игнат Ровнов"
+      "name": "Major Ian Rowan"
     },
     {
       "ref": "v_fever",
@@ -891,7 +891,7 @@
     {
       "ref": "v_object9",
       "kind": "concept",
-      "name": "Версия «Опыт» (Объект-9)"
+      "name": "Версия «Опыт» (Site-9)"
     },
     {
       "ref": "v_water",
