@@ -12,8 +12,8 @@
   "appearance": {
     "mode": "IMAGE",
     "asset": "item/cloth/mat_cloth_tkan.png",
-    "imageWidth": 0,
-    "imageHeight": 0,
+    "imageWidth": 156,
+    "imageHeight": 127,
     "collision": null
   },
   "behavior": {

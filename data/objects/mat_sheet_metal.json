@@ -12,8 +12,8 @@
   "appearance": {
     "mode": "IMAGE",
     "asset": "item/metal/mat_sheet_metal_metallicheskiy_list.png",
-    "imageWidth": 0,
-    "imageHeight": 0,
+    "imageWidth": 555,
+    "imageHeight": 114,
     "collision": null
   },
   "behavior": {

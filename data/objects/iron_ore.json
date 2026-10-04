@@ -12,8 +12,8 @@
   "appearance": {
     "mode": "IMAGE",
     "asset": "item/mineral/iron_ore_zheleznaya_ruda.png",
-    "imageWidth": 0,
-    "imageHeight": 0,
+    "imageWidth": 150,
+    "imageHeight": 124,
     "collision": null
   },
   "behavior": {

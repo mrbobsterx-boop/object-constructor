@@ -12,8 +12,8 @@
   "appearance": {
     "mode": "IMAGE",
     "asset": "item/repair/repair_kit_remontnyy_nabor.png",
-    "imageWidth": 0,
-    "imageHeight": 0,
+    "imageWidth": 506,
+    "imageHeight": 340,
     "collision": null
   },
   "behavior": {

@@ -12,8 +12,8 @@
   "appearance": {
     "mode": "IMAGE",
     "asset": "item/component/part_electronic_elektronnye_komponenty.png",
-    "imageWidth": 0,
-    "imageHeight": 0,
+    "imageWidth": 164,
+    "imageHeight": 161,
     "collision": null
   },
   "behavior": {

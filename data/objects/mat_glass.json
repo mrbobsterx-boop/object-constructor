@@ -12,8 +12,8 @@
   "appearance": {
     "mode": "IMAGE",
     "asset": "item/glass/mat_glass_steklo.png",
-    "imageWidth": 0,
-    "imageHeight": 0,
+    "imageWidth": 121,
+    "imageHeight": 120,
     "collision": null
   },
   "behavior": {

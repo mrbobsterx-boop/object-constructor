@@ -12,8 +12,8 @@
   "appearance": {
     "mode": "IMAGE",
     "asset": "item/rope/mat_rope_verevka.png",
-    "imageWidth": 0,
-    "imageHeight": 0,
+    "imageWidth": 354,
+    "imageHeight": 154,
     "collision": null
   },
   "behavior": {

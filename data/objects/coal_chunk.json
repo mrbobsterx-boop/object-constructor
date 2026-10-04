@@ -12,8 +12,8 @@
   "appearance": {
     "mode": "IMAGE",
     "asset": "item/mineral/coal_chunk_ugol.png",
-    "imageWidth": 0,
-    "imageHeight": 0,
+    "imageWidth": 316,
+    "imageHeight": 203,
     "collision": null
   },
   "behavior": {

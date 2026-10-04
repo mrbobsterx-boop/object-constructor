@@ -12,8 +12,8 @@
   "appearance": {
     "mode": "IMAGE",
     "asset": "item/construction/mat_rubble_stroitelnyy_musor.png",
-    "imageWidth": 0,
-    "imageHeight": 0,
+    "imageWidth": 185,
+    "imageHeight": 140,
     "collision": null
   },
   "behavior": {

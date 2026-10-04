@@ -12,8 +12,8 @@
   "appearance": {
     "mode": "IMAGE",
     "asset": "item/fastener/mat_nails_gvozdi_krepezh.png",
-    "imageWidth": 0,
-    "imageHeight": 0,
+    "imageWidth": 145,
+    "imageHeight": 94,
     "collision": null
   },
   "behavior": {
