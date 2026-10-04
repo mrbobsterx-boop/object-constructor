@@ -69,6 +69,19 @@ header .spacer{flex:1}
 .state-tag.st-icon{color:#9dc2ff;border-color:var(--info)}
 .preview-row .state-tags{flex:none;margin-top:0}
 
+/* ---- список фото (новая версия: один файл = одна строка, не "семья") ---- */
+.file-row{display:flex;align-items:center;gap:7px;padding:5px 6px;cursor:pointer;border-left:2px solid transparent;border-radius:4px}
+.file-row:hover{background:var(--panel2)}
+.file-row.active{background:#17261d;border-left-color:var(--accent-hi)}
+.file-row .thumb{width:28px;height:28px;flex:none;border-radius:4px;background:#0e1217;border:1px solid var(--line2);display:flex;align-items:center;justify-content:center;overflow:hidden}
+.file-row .thumb img{max-width:100%;max-height:100%;object-fit:contain;image-rendering:pixelated}
+.file-row .thumb-empty{color:var(--warn);font-size:10px}
+.file-row .n{flex:1;min-width:0}
+.file-row .n .t{font-size:12px;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.file-row .n .sub{display:block;font-size:10px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.save-status{font-size:11.5px;margin-top:4px}
+.save-status.ok{color:var(--accent-hi)}.save-status.err{color:#ff9a88}
+
 /* ---- назначение / журнал ---- */
 .log-item{font-size:11.5px;padding:5px 7px;border-radius:5px;margin-bottom:4px;border:1px solid var(--line2);background:var(--panel2);word-break:break-word}
 .log-item.ok{border-color:var(--accent)}

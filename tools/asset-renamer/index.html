@@ -10,36 +10,29 @@
 <div class="app">
 <header>
   <h1>Asset Renamer</h1>
-  <button id="btnConnectSource" class="primary">📂 Папка-источник</button>
-  <button id="btnRegrantSource" style="display:none">Разрешить доступ (источник)</button>
-  <span id="sourceStatus" class="status">Источник не подключён</span>
-  <label style="display:flex;align-items:center;gap:4px;font-size:12px"><input type="checkbox" id="chkSourceGithub" disabled> источник — GitHub</label>
-  <button id="btnConnectDest">💾 Папка назначения</button>
-  <button id="btnRegrantDest" style="display:none">Разрешить доступ (назначение)</button>
-  <span id="destStatus" class="status">Назначение не подключено</span>
-  <label style="display:flex;align-items:center;gap:4px;font-size:12px"><input type="checkbox" id="chkDestGithub" disabled> назначение — GitHub</label>
-  <button id="btnConnectGithub" title="Подключить репозиторий GitHub (personal access token) — затем выбери галочками, какая сторона (источник/назначение) через него работает">🐙 Подключить GitHub</button>
+  <button id="btnConnectFolder">📁 Подключить папку проекта</button>
+  <span id="folderStatus" class="status">Папка не подключена</span>
+  <button id="btnRegrantFolder" style="display:none">Разрешить доступ</button>
+  <button id="btnConnectGithub" title="Читать/писать assets/refs/ и data/objects/ напрямую через GitHub (personal access token)">🐙 Подключить GitHub</button>
   <button id="btnGithubDisconnect" style="display:none" title="Удалить токен из этого браузера">Отключить GitHub</button>
   <span id="githubStatus" class="status">GitHub не подключён</span>
   <div class="spacer"></div>
-  <span class="hint">Ctrl+Z/Ctrl+Shift+Z — отменить/вернуть · Enter — подтвердить</span>
+  <span id="coverageLabel" class="status"></span>
 </header>
 
 <div class="side-left">
-  <div class="hint" style="margin-bottom:10px">
-    Клик по файлу — выбрать всю его группу (файлы с одинаковым названием, различающиеся только номером). Ctrl+клик по файлу той же группы — сузить набор для полей раздела/объекта/вариации. Ctrl+клик по файлу другой группы — не даст добавить (группы не смешиваются).
-  </div>
+  <input type="text" id="searchBox" placeholder="Поиск по имени файла/id/названию..." style="width:100%;margin-bottom:10px">
   <div id="sourceList"></div>
 </div>
 
 <div class="side-center" id="editPanel">
-  <div class="hint">Выбери файл слева, чтобы начать редактирование.</div>
+  <div class="hint">Выбери фото слева, чтобы начать редактирование.</div>
 </div>
 
 <div class="side-right">
   <div class="group">
-    <h3>Журнал переноса</h3>
-    <div id="destLog" class="hint">Здесь появится список перенесённых файлов.</div>
+    <h3>Журнал</h3>
+    <div id="destLog" class="hint">Здесь появится список переименований и изменений имени объекта.</div>
   </div>
 </div>
 </div>

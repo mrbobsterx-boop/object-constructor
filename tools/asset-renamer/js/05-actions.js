@@ -1,117 +1,56 @@
 /* ============================================================
-   MODULE 05 — СКАН ИСТОЧНИКА И ПЕРЕНОС (подтверждение)
+   MODULE 05 — ПЕРЕИМЕНОВАНИЕ ФАЙЛА + ПРАВКА ИМЕНИ ОБЪЕКТА
    ============================================================ */
 
-let moveLog=[];
-
-const AR_GITHUB_SOURCE_PATH='assets/sprites', AR_GITHUB_DEST_PATH='assets/refs';
-// assets/refs/ растёт сотнями файлов в одну плоскую папку — GitHub обрезает список на странице
-// после 1000. Раскладываем по категории ОС (как и assets/sprites/<категория>/…), категорию берём
-// из каталога Object Plan по id = раздел_объект; когда объекта ещё нет в каталоге (новый, не
-// заведённый тип) — файл остаётся в плоском корне assets/refs/, как и раньше.
-function categoryForPending(p){
-  const idGuess=[slug(p.razdel),slug(p.obj)].filter(Boolean).join('_');
-  if(!idGuess) return null;
-  const item=(typeof PLAN_ITEMS!=='undefined'?PLAN_ITEMS:[]).find(i=>i.id===idGuess);
-  return item?item.c:null;
+// Переименовывает ОДИН файл внутри assets/refs/ (та же папка-категория, меняется только базовое
+// имя). newStem — полное новое имя без расширения (id или id_суффикс).
+async function doRename(oldPath,newStem){
+  const dot=oldPath.lastIndexOf('.'); const ext=dot>=0?oldPath.slice(dot+1):'png';
+  const lastSlash=oldPath.lastIndexOf('/');
+  const dir=lastSlash>=0?oldPath.slice(0,lastSlash+1):'';
+  const newPath=dir+newStem+'.'+ext;
+  if(newPath===oldPath) return {ok:true,path:oldPath,unchanged:true};
+  if(allFiles.includes(newPath)) return {ok:false,error:'Файл с таким именем уже есть: '+newPath};
+  const file=await readProjectFileBlob('assets/refs/'+oldPath);
+  if(!file) return {ok:false,error:'Не удалось прочитать файл для переименования.'};
+  const bytes=new Uint8Array(await file.arrayBuffer());
+  const wrote=await writeFileToProject('assets/refs/'+newPath,bytes);
+  if(!wrote) return {ok:false,error:'Не удалось сохранить (не подключены ни папка, ни GitHub).'};
+  await deleteProjectFile('assets/refs/'+oldPath);
+  const idx=allFiles.indexOf(oldPath);
+  if(idx>=0) allFiles[idx]=newPath; else allFiles.push(newPath);
+  allFiles.sort();
+  delete fileUrlCache[oldPath];
+  const idsDesc=PLAN_ITEMS.map(i=>i.id).sort((a,b)=>b.length-a.length);
+  const match=idsDesc.find(id=>newStem===id||newStem.startsWith(id+'_'))||null;
+  delete fileMatch[oldPath];
+  fileMatch[newPath]=match;
+  if(selectedPath===oldPath) selectedPath=newPath;
+  logEvent({from:oldPath,to:newPath,ok:true});
+  return {ok:true,path:newPath};
 }
-async function scanSource(){
-  if(!sourceDirHandle&&!sourceIsGithub()) return;
-  let names;
-  if(sourceIsGithub()){
-    const r=await listFilesRecursiveGithub(AR_GITHUB_SOURCE_PATH,SPRITE_EXT);
-    names=r.files.filter(f=>f.indexOf('/')===-1); // источник плоский, как и папочный режим (listTopLevelFiles)
-  }else{
-    names=await listTopLevelFiles(sourceDirHandle);
-  }
-  families=buildFamilies(names);
-  const keep=new Set(names);
-  for(const [name,url] of fileUrls){ if(!keep.has(name)){ URL.revokeObjectURL(url); fileUrls.delete(name); } }
-  for(const name of names){
-    if(!fileUrls.has(name)){
-      try{
-        const url=sourceIsGithub()
-          ? await readBinaryObjectUrlFromGithub(AR_GITHUB_SOURCE_PATH+'/'+name)
-          : URL.createObjectURL(await (await sourceDirHandle.getFileHandle(name)).getFile());
-        if(url) fileUrls.set(name,url);
-      }catch(e){ /* пропускаем нечитаемый файл */ }
-    }
-  }
-  setSourceStatus(`Источник: ${sourceIsGithub()?'GitHub ('+AR_GITHUB_SOURCE_PATH+')':sourceDirHandle.name} · файлов: ${names.length}, групп: ${families.length}`);
-  if(activeFamilyKey&&!findFamily(activeFamilyKey)){ activeFamilyKey=null; selection=new Set(); pending=new Map(); }
-  render();
+// Фото УЖЕ привязано к id — меняем только суффикс-вариацию, id-префикс остаётся как есть.
+async function renameMatchedPhoto(oldPath,newSuffixSlug){
+  const id=fileMatch[oldPath];
+  if(!id) return {ok:false,error:'У этого фото нет id.'};
+  return doRename(oldPath,newSuffixSlug?id+'_'+newSuffixSlug:id);
 }
-
-function logMoves(results){
-  moveLog=[...results.map(r=>({...r,at:new Date()})),...moveLog].slice(0,300);
-  renderRight();
+// Фото НЕ привязано — присваиваем id вручную (плюс необязательную вариацию), чтобы оно начало
+// матчиться как обычное фото объекта (JSON при этом не создаём — см. Калибровщик размеров).
+async function renameUnmatchedPhoto(oldPath,newId,newSuffixSlug){
+  if(!newId) return {ok:false,error:'Укажи id объекта.'};
+  return doRename(oldPath,newSuffixSlug?newId+'_'+newSuffixSlug:newId);
 }
-
-async function confirmMove(){
-  if(!activeFamilyKey) return;
-  const srcOk=sourceDirHandle||sourceIsGithub(), destOk=destDirHandle||destIsGithub();
-  if(!srcOk||!destOk){ alert('Подключи и источник, и назначение (папку или GitHub).'); return; }
-  const fam=findFamily(activeFamilyKey);
-  if(!fam) return;
-  // Коллизии имён теперь проверяются отдельно в каждой подпапке-категории (destPath ниже), а не
-  // одним плоским списком на весь assets/refs/ — набор для каждой нужной подпапки подгружаем
-  // по требованию и кэшируем на время этого вызова.
-  const existingByDir=new Map();
-  async function existingSetFor(destDir){
-    if(existingByDir.has(destDir)) return existingByDir.get(destDir);
-    const set=new Set();
-    if(destIsGithub()){
-      try{ const r=await listFilesRecursiveGithub(destDir,SPRITE_EXT); r.files.forEach(f=>{ if(f.indexOf('/')===-1) set.add(f.toLowerCase()); }); }
-      catch(e){ alert('Не удалось прочитать GitHub-назначение: '+e.message); throw e; }
-    }else{
-      try{ const dirHandle=await getSubdir(destDirHandle,destDir.replace(/^assets\/refs\/?/,''),true); for await(const [name,h] of dirHandle.entries()){ if(h.kind==='file') set.add(name.toLowerCase()); } }
-      catch(e){ alert('Не удалось прочитать папку назначения: '+e.message); throw e; }
-    }
-    existingByDir.set(destDir,set);
-    return set;
-  }
-  const results=[];
-  for(const file of fam.files){
-    const p=pending.get(file.fileName);
-    if(!p||!p.states.size) continue;
-    const category=categoryForPending(p);
-    const destDir=category?(AR_GITHUB_DEST_PATH+'/'+category):AR_GITHUB_DEST_PATH;
-    try{
-      let blob;
-      if(sourceIsGithub()){
-        const raw=await ghReadFileRaw(AR_GITHUB_SOURCE_PATH+'/'+file.fileName);
-        if(!raw) throw new Error('файл не найден на GitHub');
-        blob=new Blob([raw.bytes]);
-      }else{
-        const srcHandle=await sourceDirHandle.getFileHandle(file.fileName);
-        blob=await srcHandle.getFile();
-      }
-      const existing=await existingSetFor(destDir);
-      // Один снимок может быть отмечен сразу несколькими состояниями (айдл + иконка, и т.п.) —
-      // тогда из него получается несколько итоговых файлов, все — копии одних и тех же байтов.
-      for(const wantedName of computeFinalNames(p,file.ext)){
-        let finalName=wantedName;
-        if(existing.has(finalName.toLowerCase())){
-          const dot=finalName.lastIndexOf('.'); const stem=finalName.slice(0,dot); const fext=finalName.slice(dot+1);
-          let n=2;
-          while(existing.has(`${stem}_${n}.${fext}`.toLowerCase())) n++;
-          finalName=`${stem}_${n}.${fext}`;
-        }
-        existing.add(finalName.toLowerCase());
-        if(destIsGithub()){
-          await writeFileToGithub(destDir+'/'+finalName,new Uint8Array(await blob.arrayBuffer()),'Asset Renamer: '+destDir+'/'+finalName);
-        }else{
-          const dirHandle=await getSubdir(destDirHandle,category||'',true);
-          const destHandle=await dirHandle.getFileHandle(finalName,{create:true});
-          const w=await destHandle.createWritable(); await w.write(blob); await w.close();
-        }
-        results.push({from:file.fileName,to:destDir+'/'+finalName,ok:true});
-      }
-      if(sourceIsGithub()) await deleteFileFromGithub(AR_GITHUB_SOURCE_PATH+'/'+file.fileName,'Asset Renamer: remove '+AR_GITHUB_SOURCE_PATH+'/'+file.fileName);
-      else await sourceDirHandle.removeEntry(file.fileName);
-    }catch(e){ results.push({from:file.fileName,to:null,ok:false,error:e.message}); }
-  }
-  logMoves(results);
-  activeFamilyKey=null; selection=new Set(); pending=new Map(); brush='idle'; resetHistory();
-  await scanSource();
+// Правит ОБЩЕЕ имя объекта (data/objects/<id>.json → name) — читает актуальный файл целиком,
+// меняет только name, пишет обратно, остальные поля не трогает.
+async function saveObjectName(id,newName){
+  const json=await getObjectJson(id);
+  if(!json) return {ok:false,error:'Не удалось прочитать data/objects/'+id+'.json'};
+  json.name=newName;
+  const bytes=new TextEncoder().encode(JSON.stringify(json,null,2)+'\n');
+  const wrote=await writeFileToProject('data/objects/'+id+'.json',bytes);
+  if(!wrote) return {ok:false,error:'Не удалось сохранить JSON (не подключены ни папка, ни GitHub).'};
+  jsonCache[id]=json;
+  logEvent({from:'data/objects/'+id+'.json',to:'name → '+newName,ok:true});
+  return {ok:true};
 }
