@@ -14,11 +14,21 @@ let eventLog=[];
 
 async function loadAll(){
   document.getElementById('sourceList').innerHTML='<div class="hint">Загрузка assets/refs/…</div>';
+  await loadPlanCustomItems();
   const r=await listFilesRecursive('assets/refs',SPRITE_EXT);
   allFiles=(r.files||[]).slice().sort();
   fileMatch=computeFileMatches(allFiles);
   jsonCache={};
   render();
+}
+// "Свои" объекты из data/object_plan.json (тот же файл читает/пишет Object Plan и Image Prep Tool,
+// см. tools/ipt/image-prep-tool/js/02-plan-bridge.js) — чтобы новый объект, которого ещё нет в
+// статическом каталоге (PLAN_ITEMS), сразу матчился тут и предлагался в автодополнении id.
+async function loadPlanCustomItems(){
+  try{
+    const r=await readSingleJson('data/object_plan.json');
+    planCustomItems=(r&&r.data&&Array.isArray(r.data.custom))?r.data.custom:[];
+  }catch(e){ planCustomItems=[]; }
 }
 
 async function getFileUrl(relPath){

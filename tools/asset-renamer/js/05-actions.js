@@ -24,7 +24,7 @@ async function doRename(oldPath,newStem,newDir){
   if(idx>=0) allFiles[idx]=newPath; else allFiles.push(newPath);
   allFiles.sort();
   delete fileUrlCache[oldPath];
-  const idsDesc=PLAN_ITEMS.map(i=>i.id).sort((a,b)=>b.length-a.length);
+  const idsDesc=planAllItems().map(i=>i.id).sort((a,b)=>b.length-a.length);
   const match=idsDesc.find(id=>newStem===id||newStem.startsWith(id+'_'))||null;
   delete fileMatch[oldPath];
   fileMatch[newPath]=match;

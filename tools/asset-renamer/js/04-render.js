@@ -57,7 +57,7 @@ async function renderCenter(){
     <div class="group">
       <h3>ID объекта <span class="muted small">(если он здесь неправильный — поправь, это переименует файл)</span></h3>
       <div class="row"><input type="text" id="fTargetId" list="idList" value="${esc(detectedId||'')}" placeholder="id объекта, напр. tank_water" style="flex:1"></div>
-      <datalist id="idList">${PLAN_ITEMS.map(i=>`<option value="${esc(i.id)}">${esc(i.n)}</option>`).join('')}</datalist>
+      <datalist id="idList">${planAllItems().map(i=>`<option value="${esc(i.id)}">${esc(i.n)}</option>`).join('')}</datalist>
       <div class="hint" id="idMatchHint"></div>
     </div>
     <div class="group">

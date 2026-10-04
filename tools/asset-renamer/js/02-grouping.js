@@ -10,10 +10,17 @@
 const CATEGORY_NAME_BY_ID={};
 CATEGORIES.forEach(c=>{ CATEGORY_NAME_BY_ID[c.id]=c.name; });
 
-function planItemById(id){ return PLAN_ITEMS.find(i=>i.id===id); }
+// "Свои" объекты, добавленные через Image Prep Tool (панель именования → "+ новый раздел/объект")
+// или Object Plan — живут в data/object_plan.json (поле custom), не в статических файлах каталога.
+// Подмешиваем их сюда, иначе Asset Renamer не узнаёт о только что добавленном новом объекте: его
+// фото проваливались бы в "⚠ Без JSON", а id не предлагался бы в автодополнении. См. loadAll() в
+// 03-state.js (loadPlanCustomItems) и tools/ipt/image-prep-tool/js/02-plan-bridge.js (тот же файл).
+let planCustomItems=[];
+function planAllItems(){ return PLAN_ITEMS.concat(planCustomItems); }
+function planItemById(id){ return planAllItems().find(i=>i.id===id); }
 
 function computeFileMatches(files){
-  const idsDesc=PLAN_ITEMS.map(i=>i.id).sort((a,b)=>b.length-a.length);
+  const idsDesc=planAllItems().map(i=>i.id).sort((a,b)=>b.length-a.length);
   const out={};
   files.forEach(relPath=>{
     const base=relPath.split('/').pop().replace(SPRITE_EXT,'');
