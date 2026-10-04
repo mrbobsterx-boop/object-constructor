@@ -28,6 +28,7 @@ async function doRename(oldPath,newStem,newDir){
   const match=idsDesc.find(id=>newStem===id||newStem.startsWith(id+'_'))||null;
   delete fileMatch[oldPath];
   fileMatch[newPath]=match;
+  if(reviewedPaths.has(oldPath)){ reviewedPaths.delete(oldPath); reviewedPaths.add(newPath); saveReviewedToStorage(); }
   if(selectedPath===oldPath) selectedPath=newPath;
   logEvent({from:oldPath,to:newPath,ok:true});
   return {ok:true,path:newPath};

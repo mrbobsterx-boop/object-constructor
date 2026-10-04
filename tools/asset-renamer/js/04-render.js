@@ -14,9 +14,10 @@ function renderLeft(){
       const id=fileMatch[p];
       const item=id?planItemById(id):null;
       const active=p===selectedPath;
+      const reviewed=isReviewed(p);
       const title=item?item.n:p.split('/').pop();
       const sub=item?humanizeSuffix(variationSuffix(p,id)):'⚠ нет JSON';
-      html+=`<div class="file-row${active?' active':''}" data-path="${esc(p)}">
+      html+=`<div class="file-row${active?' active':''}${reviewed?' reviewed':''}" data-path="${esc(p)}">
         <span class="thumb"><span class="thumb-empty">…</span></span>
         <span class="n"><span class="t">${esc(title)}</span><span class="sub">${esc(sub)}</span></span>
       </div>`;
@@ -54,20 +55,25 @@ async function renderCenter(){
       <img src="${esc(url||'')}" style="width:96px;height:96px">
       <div class="preview-names"><div>${esc(path)}</div></div>
     </div></div>
+    <div class="group" style="display:flex;align-items:center;gap:10px">
+      <button id="btnMarkOk">✓ Всё ОК <span class="kbd">Enter</span></button>
+      <span class="hint muted" id="okHint">${isReviewed(path)?'Уже отмечено как просмотренное ✓':'Если здесь всё правильно и менять ничего не нужно.'}</span>
+    </div>
     <div class="group">
-      <h3>ID объекта <span class="muted small">(если он здесь неправильный — поправь, это переименует файл)</span></h3>
+      <h3>ID объекта <span class="kbd">1</span> <span class="muted small">(если он здесь неправильный — поправь, это переименует файл)</span></h3>
       <div class="row"><input type="text" id="fTargetId" list="idList" value="${esc(detectedId||'')}" placeholder="id объекта, напр. tank_water" style="flex:1"></div>
       <datalist id="idList">${planAllItems().map(i=>`<option value="${esc(i.id)}">${esc(i.n)}</option>`).join('')}</datalist>
       <div class="hint" id="idMatchHint"></div>
     </div>
     <div class="group">
-      <h3>Название ЭТОГО фото <span class="muted small">(остальные фото этого id не трогает)</span></h3>
+      <h3>Название ЭТОГО фото <span class="kbd">3</span> <span class="muted small">(остальные фото этого id не трогает)</span></h3>
       <div class="row"><input type="text" id="fVarName" value="${esc(humanizeSuffix(suffix)==='основная'?'':humanizeSuffix(suffix))}" placeholder="основная (без суффикса)" style="flex:1"></div>
       <button id="btnRenamePhoto" class="primary">Сохранить (переименовать файл)</button>
-      <div class="hint" id="renameStatus">Можно по-русски — сохранится в имени файла английским словом.</div>
+      <div class="hint" id="renameStatus">Можно по-русски — сохранится в имени файла английским словом. Или <span class="kbd">Ctrl+Enter</span> — сохранить всё сразу и перейти дальше.</div>
     </div>
     <div class="group" id="objNameGroup"></div>
   `;
+  document.getElementById('btnMarkOk').onclick=markOkAndAdvance;
 
   const idInput=document.getElementById('fTargetId');
   async function refreshObjNameGroup(){
@@ -83,7 +89,7 @@ async function renderCenter(){
     if(idInput.value.trim()!==curId) return; // id успели поменять, пока грузился JSON
     const currentName=(json&&json.name)||item.n;
     group.innerHTML=`
-      <h3>Название объекта <span class="muted small">(общее для всех фото этого id)</span></h3>
+      <h3>Название объекта <span class="kbd">2</span> <span class="muted small">(общее для всех фото этого id)</span></h3>
       <div class="row"><input type="text" id="fObjName" value="${esc(currentName)}" style="flex:1"><button id="btnSaveObjName" class="primary">Сохранить имя</button></div>
       <div class="hint" id="objNameStatus">${json?'id не меняется — только отображаемое имя. Затронет все фото этого id.':'⚠ data/objects/'+esc(curId)+'.json не найден.'}</div>
     `;
