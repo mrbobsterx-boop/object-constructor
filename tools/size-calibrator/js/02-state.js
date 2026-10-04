@@ -34,6 +34,19 @@ function matchesSearch(o,q){
   return hay.includes(q);
 }
 
+// Тот же порядок, что рисует список (группы по алфавиту, внутри группы — по имени) — используется
+// и рендером, и Tab-навигацией (чтобы "следующий" в клавиатуре совпадал с тем, что "следующий" на экране).
+function getVisibleOrderedIds(){
+  const q=searchQuery.trim().toLowerCase();
+  const all=Object.values(objectsById).filter(o=>matchesSearch(o,q));
+  const groups={};
+  all.forEach(o=>{ const g=o.category_name||o.category||'—'; (groups[g]=groups[g]||[]).push(o); });
+  const groupNames=Object.keys(groups).sort((a,b)=>a.localeCompare(b,'ru'));
+  const out=[];
+  for(const g of groupNames) groups[g].sort((a,b)=>(a.name||a.id).localeCompare(b.name||b.id,'ru')).forEach(o=>out.push(o.id));
+  return out;
+}
+
 function renderObjectList(){
   const root=document.getElementById('objectList');
   const q=searchQuery.trim().toLowerCase();
@@ -124,6 +137,17 @@ async function selectObject(id){
   document.getElementById('selectedHint').textContent=o.name+' ('+o.id+')';
   renderInspector(o);
   await renderScene(o);
+  const row=document.querySelector(`.obj-row[data-id="${CSS.escape(id)}"]`);
+  if(row) row.scrollIntoView({block:'nearest'});
+}
+
+// Tab/Shift+Tab — следующий/предыдущий объект в текущем (отфильтрованном) списке, по кругу.
+function navigateObjectList(delta){
+  const ids=getVisibleOrderedIds();
+  if(!ids.length) return;
+  const curIdx=ids.indexOf(selectedId);
+  const nextIdx=curIdx===-1 ? 0 : (curIdx+delta+ids.length)%ids.length;
+  selectObject(ids[nextIdx]);
 }
 
 document.getElementById('searchBox').addEventListener('input',e=>{ searchQuery=e.target.value; renderObjectList(); });
