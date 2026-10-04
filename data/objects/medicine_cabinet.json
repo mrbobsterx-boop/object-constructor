@@ -214,5 +214,7 @@
     "loot"
   ],
   "components": [],
-  "custom": {}
+  "custom": {
+    "mount": "wall"
+  }
 }

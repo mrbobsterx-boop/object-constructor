@@ -136,7 +136,6 @@
   "custom": {
     "growth_time_h": 120,
     "yield_min": 5,
-    "yield_max": 8,
-    "requires_block_below": "block_dirt"
+    "yield_max": 8
   }
 }
