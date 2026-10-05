@@ -334,6 +334,7 @@ async function saveObjectCore(id){
   const ok=await writeFileToProject('data/objects/'+id+'.json',bytes);
   if(!ok) throw new Error('не подключена ни папка, ни GitHub');
   objectsSavedJSON[id]=JSON.stringify(o);
+  markReviewedId(id);
 }
 async function saveObject(id){
   const statusEl=document.getElementById('saveStatus');

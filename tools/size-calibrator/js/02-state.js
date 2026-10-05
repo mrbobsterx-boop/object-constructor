@@ -20,8 +20,31 @@ let multiSelectedIds=new Set();   // производное: уникальны�
 let lastClickedIndex=null;        // якорь для Shift+клик (индекс в getVisibleOrderedPaths())
 let searchQuery='';
 
+// "Сохранено" — отметка объектов (по id — сохранение идёт целым объектом, а не отдельным фото),
+// которые пользователь уже сохранил хотя бы раз. Переживает перезагрузку (localStorage), чтобы
+// при следующем заходе было видно, что уже сделано. См. то же самое в Asset Renamer
+// (js/03-state.js, reviewedPaths) — здесь ключ id, а не путь файла, т.к. сохраняется объект целиком.
+let reviewedIds=new Set();
+const REVIEWED_STORAGE_KEY='size_calibrator_reviewed_v1';
+function loadReviewedFromStorage(){
+  try{
+    const raw=localStorage.getItem(REVIEWED_STORAGE_KEY);
+    reviewedIds=new Set(raw?JSON.parse(raw):[]);
+  }catch(e){ reviewedIds=new Set(); }
+}
+function saveReviewedToStorage(){
+  try{ localStorage.setItem(REVIEWED_STORAGE_KEY,JSON.stringify(Array.from(reviewedIds))); }catch(e){}
+}
+function isReviewedId(id){ return reviewedIds.has(id); }
+function markReviewedId(id){
+  if(!id||reviewedIds.has(id)) return;
+  reviewedIds.add(id);
+  saveReviewedToStorage();
+}
+
 async function loadAllObjects(){
   document.getElementById('objectList').innerHTML='<div class="empty-hint">Загрузка data/objects/ и assets/refs/…</div>';
+  loadReviewedFromStorage();
   const [objRes,refRes]=await Promise.all([
     listJsonDir('data/objects'),
     listFilesRecursive('assets/refs',/\.png$/i)
@@ -117,7 +140,8 @@ function renderObjectList(){
         const w=Math.round(b.real_width_cm||0), h=Math.round(b.real_height_cm||0);
         const warn=!w||!h;
         const dirty=isDirty(id);
-        html+=`<div class="obj-row${active?' active':''}" data-path="${esc(p)}">
+        const reviewed=isReviewedId(id);
+        html+=`<div class="obj-row${active?' active':''}${reviewed?' reviewed':''}" data-path="${esc(p)}">
           <span class="thumb"><span class="thumb-empty">…</span></span>
           <span class="n"><span class="t">${dirty?'● ':''}${esc(o.name||id)}</span><span class="sub">${esc(variationLabel(p,id))}</span><span class="sz${warn?' warn':''}">${w}×${h} см</span></span>
         </div>`;

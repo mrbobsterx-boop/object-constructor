@@ -28,6 +28,8 @@ label{font-size:11px;color:#98a4b2;display:block;margin-bottom:3px}
 .obj-row{display:flex;align-items:center;gap:7px;padding:5px 10px;cursor:pointer;border-left:2px solid transparent}
 .obj-row:hover{background:#1b222b}
 .obj-row.active{background:#1d2a22;border-left-color:#7fe9a0}
+.obj-row.reviewed{transform:translateX(10px)}
+.obj-row.reviewed .n .t::after{content:' ✓';color:#7fe9a0}
 .obj-row .thumb{width:28px;height:28px;flex:none;border-radius:4px;background:#10141a;border:1px solid #2a313b;display:flex;align-items:center;justify-content:center;overflow:hidden}
 .obj-row .thumb img{max-width:100%;max-height:100%;object-fit:contain;image-rendering:pixelated}
 .obj-row .thumb-empty{color:#e7c65b;font-size:11px}
