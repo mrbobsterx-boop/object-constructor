@@ -1,0 +1,174 @@
+{
+  "schema_version": 4,
+  "id": "treadmill_generator",
+  "name": "Беговая дорожка-генератор",
+  "category": "machine",
+  "category_name": "Машина",
+  "subtype": "energy",
+  "description": "Персонаж бежит на дорожке (run), производя энергию и тратя собственную энергию и еду.",
+  "transform": {
+    "layer": 0
+  },
+  "appearance": {
+    "mode": "IMAGE",
+    "asset": "machine/energy/treadmill_generator_begovaya_dorozhka.png",
+    "imageWidth": 539,
+    "imageHeight": 332,
+    "collision": null
+  },
+  "behavior": {
+    "carryable": false,
+    "placeable": true,
+    "collision": "RECT",
+    "physics": "DYNAMIC",
+    "interactive": true,
+    "hasWeight": true,
+    "weight": 30,
+    "real_width_cm": 160,
+    "real_height_cm": 120,
+    "placement_mode": "FLOOR_ONLY",
+    "variant_group": null,
+    "allowed_room_types": [
+      "machine_room",
+      "shelter_living"
+    ],
+    "light": null,
+    "shadow": null,
+    "needs": {
+      "food": false,
+      "water": false,
+      "sleep": false,
+      "health": false,
+      "stress": false,
+      "water_params": null
+    },
+    "autonomy": {
+      "enabled": false,
+      "satisfy_needs": false,
+      "search_water": false,
+      "search_food": false,
+      "sleep": false
+    },
+    "perception": {
+      "vision": null,
+      "hearing": null
+    },
+    "movement": {
+      "enabled": false,
+      "speed_mps": 0
+    },
+    "danger": {
+      "reacts": false,
+      "can_flee": false,
+      "can_hide": false
+    },
+    "makes_sounds": false
+  },
+  "actions": [
+    "USE",
+    "REPAIR"
+  ],
+  "action_settings": {
+    "USE": {
+      "requirements": "",
+      "time": 1,
+      "tool": "",
+      "consume": {
+        "item": "",
+        "amount": 0
+      },
+      "produce": {
+        "item": "",
+        "amount": 0
+      },
+      "required_skill": null,
+      "effects": []
+    },
+    "REPAIR": {
+      "requirements": "",
+      "time": 10,
+      "tool": "",
+      "consume": {
+        "item": "",
+        "amount": 0
+      },
+      "produce": {
+        "item": "",
+        "amount": 0
+      },
+      "required_skill": null,
+      "effects": []
+    }
+  },
+  "combat": {
+    "dealsDamage": false,
+    "damageAmount": 0,
+    "providesDefense": false,
+    "defenseAmount": 0,
+    "wearsOut": false,
+    "wearAmount": 0,
+    "wearLifetimeDays": 0
+  },
+  "inventory": {
+    "enabled": false,
+    "slots": 0,
+    "maxWeight": 0,
+    "storage": "GENERAL"
+  },
+  "resource": null,
+  "destruction": {
+    "enabled": true,
+    "hp": 100,
+    "damaged_threshold_percent": 50,
+    "onDestroy": [
+      "REMOVE"
+    ],
+    "damaged": null,
+    "broken": {
+      "nativeWidth": 539,
+      "nativeHeight": 319,
+      "image": "machine/energy/treadmill_generator_begovaya_dorozhka_broken.png"
+    },
+    "destroyAnimation": null
+  },
+  "block": null,
+  "crafting": {
+    "enabled": true,
+    "recipe": {
+      "id": "TREADMILL_GENERATOR",
+      "ingredients": [
+        {
+          "item": "part_mech",
+          "count": 3
+        },
+        {
+          "item": "mat_scrap",
+          "count": 5
+        }
+      ],
+      "result": {
+        "id": "treadmill_generator",
+        "amount": 1,
+        "label": "Беговая дорожка-генератор",
+        "category": "machine"
+      },
+      "recipeImage": null
+    }
+  },
+  "visuals": {
+    "idle": null,
+    "animations": [],
+    "images": []
+  },
+  "character_ref": null,
+  "animation_enabled": false,
+  "tags": [
+    "energy",
+    "needs",
+    "ai"
+  ],
+  "components": [],
+  "custom": {
+    "power_output_w": 80
+  }
+}
