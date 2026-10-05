@@ -24,8 +24,8 @@
     "interactive": true,
     "hasWeight": true,
     "weight": 60,
-    "real_width_cm": 160,
-    "real_height_cm": 95,
+    "real_width_cm": 200,
+    "real_height_cm": 111,
     "placement_mode": "FLOOR_ONLY",
     "variant_group": "workbench",
     "allowed_room_types": [
