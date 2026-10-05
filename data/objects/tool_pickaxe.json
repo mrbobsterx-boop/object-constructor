@@ -1,7 +1,7 @@
 {
   "schema_version": 4,
   "id": "tool_pickaxe",
-  "name": "Кирка",
+  "name": "отбойный молоток",
   "category": "tool",
   "category_name": "Инструмент",
   "subtype": "harvest",
