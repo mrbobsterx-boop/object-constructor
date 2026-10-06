@@ -98,6 +98,15 @@ async function ghFetchTree(force){
   return ghTreeCache;
 }
 async function ghReadFileRaw(path){
+  // Правки, ещё не отправленные ghFlushQueue (см. ниже), не существуют на GitHub — отдаём их из
+  // памяти, иначе чтение файла сразу после его записи через ghQueueWrite увидело бы старую версию
+  // (или 404 для только что переименованного файла) до истечения дебаунса.
+  if(typeof ghPendingChanges!=='undefined'&&ghPendingChanges.has(path)){
+    const queued=ghPendingChanges.get(path);
+    if(queued===null) return null;
+    const bytes=typeof queued==='string'?new TextEncoder().encode(queued):queued;
+    return {sha:null,bytes};
+  }
   const s=ghLoad();
   const res=await fetch(ghApiUrl(`contents/${ghEncPath(path)}?ref=${encodeURIComponent(s.branch)}`),{headers:ghHeaders()});
   if(res.status===404) return null;
@@ -238,6 +247,75 @@ async function ghBatchCommit(changes,message){
   return true;
 }
 
+// ---- очередь с дебаунсом: копим правки в памяти, отправляем одним ghBatchCommit после паузы в
+// активности — вместо коммита (= деплоя) на каждое отдельное "Сохранить". Это и есть настоящая
+// причина, почему за рабочую сессию набегало по 100-200+ деплоев: Size Calibrator/Asset Renamer
+// писали каждый файл сразу через writeFileToGithub. Редактор вызывает ghQueueWrite/ghQueueDelete
+// вместо прямой записи; остальное (дебаунс, таймаут, отправка одним коммитом) — здесь.
+// ВАЖНО: правки живут только в памяти вкладки до отправки — если закрыть вкладку раньше, чем
+// сработает дебаунс/флаш, они потеряются. Поэтому: (1) дебаунс короткий и есть жёсткий потолок
+// ожидания, (2) при скрытии/закрытии вкладки — best-effort немедленный флаш, (3) каждый редактор
+// обязан показывать статус через ghOnQueueStatus, чтобы было видно "N ожидает отправки" и дать
+// кнопку "Отправить сейчас" (ghFlushQueue) — молчаливой потери данных быть не должно.
+let ghPendingChanges=new Map(); // path -> content (string|Uint8Array|null)
+let ghFlushTimer=null;
+let ghQueueFirstChangeAt=0;
+let ghQueueMessagePrefix='Batch update';
+let ghQueueStatusCb=null;
+const GH_QUEUE_DEBOUNCE_MS=5000;   // флаш через столько тишины после последней правки
+const GH_QUEUE_MAX_WAIT_MS=20000;  // но не дольше стольки с первой невыгруженной правки
+
+function ghOnQueueStatus(cb){ ghQueueStatusCb=cb; }
+function ghNotifyQueueStatus(status,extra){ if(ghQueueStatusCb){ try{ ghQueueStatusCb(status,Object.assign({count:ghPendingChanges.size},extra||{})); }catch(e){} } }
+
+function ghScheduleFlush(){
+  const now=Date.now();
+  if(!ghQueueFirstChangeAt) ghQueueFirstChangeAt=now;
+  if(ghFlushTimer) clearTimeout(ghFlushTimer);
+  const overMaxWait=(now-ghQueueFirstChangeAt)>=GH_QUEUE_MAX_WAIT_MS;
+  const delay=overMaxWait?0:GH_QUEUE_DEBOUNCE_MS;
+  ghFlushTimer=setTimeout(()=>{ ghFlushQueue().catch(()=>{}); },delay);
+  ghNotifyQueueStatus('pending');
+}
+function ghQueueWrite(path,content,messagePrefix){
+  ghPendingChanges.set(path,content);
+  if(messagePrefix) ghQueueMessagePrefix=messagePrefix;
+  ghScheduleFlush();
+}
+function ghQueueDelete(path,messagePrefix){
+  ghPendingChanges.set(path,null);
+  if(messagePrefix) ghQueueMessagePrefix=messagePrefix;
+  ghScheduleFlush();
+}
+async function ghFlushQueue(){
+  if(ghFlushTimer){ clearTimeout(ghFlushTimer); ghFlushTimer=null; }
+  if(!ghPendingChanges.size) return true;
+  const entries=Array.from(ghPendingChanges.entries());
+  const changes=entries.map(([path,content])=>({path,content}));
+  ghPendingChanges=new Map();
+  ghQueueFirstChangeAt=0;
+  ghNotifyQueueStatus('sending',{count:changes.length});
+  try{
+    await ghBatchCommit(changes,`${ghQueueMessagePrefix} (${changes.length} файл${changes.length===1?'':changes.length<5?'а':'ов'})`);
+    ghNotifyQueueStatus('sent',{count:changes.length});
+    return true;
+  }catch(e){
+    // Не потерять правки молча — вернуть обратно в очередь (новые правки поверх них не затираем)
+    // И не дать очереди молча замереть без таймера — иначе следующая попытка случится только
+    // если пользователь сделает ещё одну правку (или закроет вкладку). Переназначаем автоповтор
+    // через обычный дебаунс; статус 'error' показывается первым, но очередь остаётся живой.
+    entries.forEach(([path,content])=>{ if(!ghPendingChanges.has(path)) ghPendingChanges.set(path,content); });
+    ghNotifyQueueStatus('error',{error:e.message});
+    ghScheduleFlush();
+    throw e;
+  }
+}
+function ghQueuePendingCount(){ return ghPendingChanges.size; }
+// Лучшее, что можно сделать при закрытии вкладки с неотправленной очередью — попытаться быстро
+// отправить (может не успеть — fetch из unload не гарантирован) и предупредить штатным диалогом.
+document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='hidden'&&ghPendingChanges.size) ghFlushQueue().catch(()=>{}); });
+window.addEventListener('beforeunload',e=>{ if(ghPendingChanges.size){ ghFlushQueue().catch(()=>{}); e.preventDefault(); e.returnValue=''; } });
+
 // ---- общий UI-хелпер: кнопка "GitHub" + статус-строка (вызвать после того как в DOM уже есть
 // #githubStatus/#btnConnectGithub/#btnGithubDisconnect, обычно из 11-init.js аналога приложения) ----
 function wireGithubButtons(){
@@ -246,4 +324,24 @@ function wireGithubButtons(){
   if(btnConnect) btnConnect.onclick=connectGithub;
   if(btnDisconnect) btnDisconnect.onclick=()=>{ if(confirm('Отключить GitHub? Токен будет удалён из этого браузера.')) disconnectGithub(); };
   tryRestoreGithub();
+  wireGithubQueueStatus();
+}
+// Опционально: если в DOM есть #ghQueueStatus/#btnGhFlushNow (не у всех приложений, которые не
+// копят правки через ghQueueWrite/ghQueueDelete — им это не нужно), показываем "N ожидает отправки"
+// и даём отправить раньше дебаунса руками, чтобы правки никогда не терялись молча.
+function wireGithubQueueStatus(){
+  const statusEl=document.getElementById('ghQueueStatus');
+  const btnFlush=document.getElementById('btnGhFlushNow');
+  if(!statusEl) return;
+  function render(status,info){
+    const n=(info&&info.count)||0;
+    if(status==='sending') statusEl.textContent='GitHub: отправка '+n+' файл(ов)…';
+    else if(status==='sent') statusEl.textContent='GitHub: отправлено ✓';
+    else if(status==='error') statusEl.textContent='GitHub: ошибка отправки ('+n+' ожидает) — '+(info&&info.error||'');
+    else if(n>0) statusEl.textContent='GitHub: '+n+' изменени'+(n===1?'е':(n<5?'я':'й'))+' ожидает отправки';
+    else statusEl.textContent='';
+    if(btnFlush) btnFlush.style.display=(n>0&&status!=='sending')?'':'none';
+  }
+  ghOnQueueStatus(render);
+  if(btnFlush) btnFlush.onclick=()=>{ ghFlushQueue().catch(e=>alert('Не удалось отправить изменения: '+e.message)); };
 }
