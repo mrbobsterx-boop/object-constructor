@@ -193,6 +193,51 @@ async function deleteFileFromGithub(relPath,message){
   return true;
 }
 
+// Пишет/удаляет МНОГО файлов ОДНИМ коммитом (Git Data API: blobs → tree → commit → обновление ветки),
+// вместо writeFileToGithub/deleteFileFromGithub по одному файлу за раз (= один коммит на файл = один
+// Vercel-деплой на файл — именно так однажды был исчерпан дневной лимит деплоев). Нужен любому
+// редактору, который за один раз меняет/удаляет много файлов (напр. массовое удаление фото).
+// changes: [{path, content}] — content=Uint8Array|string для добавить/перезаписать, content=null для удалить.
+async function ghBatchCommit(changes,message){
+  if(!ghIsConnected()) return false;
+  if(!changes||!changes.length) return true;
+  const s=ghLoad();
+  const refRes=await fetch(ghApiUrl(`git/ref/heads/${encodeURIComponent(s.branch)}`),{headers:ghHeaders()});
+  if(!refRes.ok) throw new Error('HTTP '+refRes.status+' (чтение ветки)');
+  const refData=await refRes.json();
+  const latestCommitSha=refData.object.sha;
+  const commitRes=await fetch(ghApiUrl(`git/commits/${latestCommitSha}`),{headers:ghHeaders()});
+  if(!commitRes.ok) throw new Error('HTTP '+commitRes.status+' (чтение коммита)');
+  const commitData=await commitRes.json();
+  const baseTreeSha=commitData.tree.sha;
+
+  const additions=changes.filter(c=>c.content!==null);
+  const deletions=changes.filter(c=>c.content===null);
+  const blobShas={};
+  await ghMapLimit(additions,8,async c=>{
+    const isText=typeof c.content==='string';
+    const content=isText?ghTextToBase64(c.content):ghBytesToBase64(c.content);
+    const res=await fetch(ghApiUrl('git/blobs'),{method:'POST',headers:Object.assign(ghHeaders(),{'Content-Type':'application/json'}),body:JSON.stringify({content,encoding:'base64'})});
+    if(!res.ok) throw new Error('HTTP '+res.status+' (blob '+c.path+')');
+    const data=await res.json();
+    blobShas[c.path]=data.sha;
+  });
+  const treeEntries=[
+    ...additions.map(c=>({path:c.path,mode:'100644',type:'blob',sha:blobShas[c.path]})),
+    ...deletions.map(c=>({path:c.path,mode:'100644',type:'blob',sha:null}))
+  ];
+  const treeRes=await fetch(ghApiUrl('git/trees'),{method:'POST',headers:Object.assign(ghHeaders(),{'Content-Type':'application/json'}),body:JSON.stringify({base_tree:baseTreeSha,tree:treeEntries})});
+  if(!treeRes.ok) throw new Error('HTTP '+treeRes.status+' (создание дерева)');
+  const treeData=await treeRes.json();
+  const newCommitRes=await fetch(ghApiUrl('git/commits'),{method:'POST',headers:Object.assign(ghHeaders(),{'Content-Type':'application/json'}),body:JSON.stringify({message:message||'Batch update',tree:treeData.sha,parents:[latestCommitSha]})});
+  if(!newCommitRes.ok) throw new Error('HTTP '+newCommitRes.status+' (создание коммита)');
+  const newCommitData=await newCommitRes.json();
+  const updateRefRes=await fetch(ghApiUrl(`git/refs/heads/${encodeURIComponent(s.branch)}`),{method:'PATCH',headers:Object.assign(ghHeaders(),{'Content-Type':'application/json'}),body:JSON.stringify({sha:newCommitData.sha})});
+  if(!updateRefRes.ok) throw new Error('HTTP '+updateRefRes.status+' (обновление ветки)');
+  ghTreeCache=null;
+  return true;
+}
+
 // ---- общий UI-хелпер: кнопка "GitHub" + статус-строка (вызвать после того как в DOM уже есть
 // #githubStatus/#btnConnectGithub/#btnGithubDisconnect, обычно из 11-init.js аналога приложения) ----
 function wireGithubButtons(){

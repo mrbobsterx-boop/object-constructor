@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Photo Cleaner</title>
+<link rel="stylesheet" href="css/app.css">
+</head>
+<body>
+<div class="app">
+<header>
+  <h1>Photo Cleaner</h1>
+  <button id="btnConnectFolder">📁 Подключить папку проекта</button>
+  <span id="folderStatus" class="status">Папка не подключена</span>
+  <button id="btnRegrantFolder" style="display:none">Разрешить доступ</button>
+  <button id="btnConnectGithub" title="Читать/писать assets/refs/ и data/objects/ напрямую через GitHub (personal access token)">🐙 Подключить GitHub</button>
+  <button id="btnGithubDisconnect" style="display:none" title="Удалить токен из этого браузера">Отключить GitHub</button>
+  <span id="githubStatus" class="status">GitHub не подключён</span>
+  <div class="spacer"></div>
+  <span id="coverageLabel" class="status"></span>
+</header>
+
+<div class="col col-1">
+  <div class="col-head">
+    <h2>Все фото</h2>
+    <span class="hint muted">⌨ Tab/Shift+Tab — след./пред. · Backspace — удалить (в «Временно удалённые»)</span>
+  </div>
+  <div id="colAll" class="col-body"></div>
+</div>
+
+<div class="col col-2">
+  <div class="col-head">
+    <h2>Временно удалённые</h2>
+    <span class="hint muted">⌨ Tab/Shift+Tab — пересмотреть · Enter — вернуть в конец списка · Backspace — удалить навсегда</span>
+  </div>
+  <div id="colStaged" class="col-body"></div>
+</div>
+
+<div class="col col-3">
+  <div class="col-head">
+    <h2>Удалённые навсегда <span id="pendingCount" class="muted"></span></h2>
+    <button id="btnCommitDelete" class="danger" disabled>🗑 Сохранить (удалить из GitHub)</button>
+  </div>
+  <div id="pendingStatus" class="hint"></div>
+  <div id="colPending" class="col-body"></div>
+</div>
+</div>
+
+<!-- Порядок менять нельзя: скрипты делят одну глобальную область, номер = порядок загрузки, INIT — последний -->
+<script src="../object-plan/js/02-vocab.js"></script>
+<script src="../object-plan/js/03-data-shelter.js"></script>
+<script src="../object-plan/js/04-data-production.js"></script>
+<script src="../object-plan/js/05-data-world.js"></script>
+<script src="../shared/js/github-sync.js"></script>
+<script src="js/01-core-utils.js"></script>
+<script src="js/02-catalog.js"></script>
+<script src="js/03-state.js"></script>
+<script src="js/04-render.js"></script>
+<script src="js/05-actions.js"></script>
+<script src="js/06-keyboard-nav.js"></script>
+<script src="js/07-init.js"></script>
+</body>
+</html>
