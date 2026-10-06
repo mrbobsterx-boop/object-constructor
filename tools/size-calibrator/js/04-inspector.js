@@ -29,6 +29,45 @@ function fitSizeFrom(o,path,changed,force){
   if(wEl) wEl.value=o.behavior.real_width_cm; if(hEl) hEl.value=o.behavior.real_height_cm;
   updateAspectUI(o,path);
 }
+// "📐 Пересчитать размер всех объектов" (кнопка в тулбаре сцены, не привязана к выбору) — для КАЖДОГО
+// объекта пересчитывает высоту из текущей ширины по реальным пропорциям ОДНОГО его фото (предпочитая
+// не _broken/_icon — тот же выбор, что генератор делает для официального спрайта). Та же формула, что
+// fitSizeFrom(changed='w'), просто сразу для всех id, а не только для выбранного. Правки живут в
+// памяти, как обычное редактирование — ничего не пишет на диск само по себе, "Сохранить" отдельно.
+function pickRepresentativePhotoForId(id){
+  const candidates=allRefFiles.filter(p=>refFileMatch[p]===id);
+  if(!candidates.length) return null;
+  const clean=candidates.filter(p=>!/_(broken|icon)(_\d+)?\.png$/i.test(p));
+  return clean[0]||candidates[0];
+}
+async function recalcAllObjectSizes(){
+  const ids=Object.keys(objectsById);
+  if(!ids.length) return;
+  if(!confirm(`Пересчитать высоту из ширины для всех ${ids.length} объектов по реальным пропорциям их фото?\nПравки не сохранятся сами — после этого нужно нажать "Сохранить" (или массово) отдельно.`)) return;
+  const btn=document.getElementById('btnRecalcAllSizes');
+  const oldText=btn.textContent; btn.disabled=true; btn.textContent='Пересчитываю…';
+  let changed=0, skipped=0;
+  await ghMapLimit(ids,8,async id=>{
+    const o=objectsById[id];
+    const w=o.behavior.real_width_cm||0;
+    if(!w){ skipped++; return; }
+    const path=pickRepresentativePhotoForId(id);
+    if(!path){ skipped++; return; }
+    const dims=await getRefImageNaturalDims(path);
+    if(!dims||!dims.w||!dims.h){ skipped++; return; }
+    const newH=Math.max(0,Math.round(w*dims.h/dims.w));
+    if(newH!==o.behavior.real_height_cm){ o.behavior.real_height_cm=newH; changed++; }
+  });
+  btn.disabled=false; btn.textContent=oldText;
+  renderObjectList();
+  if(selectedId&&objectsById[selectedId]){
+    renderInspector(objectsById[selectedId],selectedPath);
+    renderScene(objectsById[selectedId],false,selectedPath?await getRefImageUrl(selectedPath):null);
+  }
+  alert(`Готово: пересчитано ${changed}, пропущено (нет фото/ширины) ${skipped}.`);
+}
+document.getElementById('btnRecalcAllSizes').onclick=recalcAllObjectSizes;
+
 function updateAspectUI(o,path){
   const btn=document.getElementById('btnKeepAspect'); if(!btn) return;
   btn.classList.toggle('armed',keepAspectEnabled);
