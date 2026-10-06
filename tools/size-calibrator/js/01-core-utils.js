@@ -67,7 +67,7 @@ async function writeFileToProject(relPath,bytes){
     await writable.close();
     ok=true;
   }
-  if(ghIsConnected()){ await writeFileToGithub(relPath,bytes,'Size Calibrator: '+relPath); ok=true; }
+  if(ghIsConnected()){ ghQueueWrite(relPath,bytes,'Size Calibrator'); ok=true; }
   return ok;
 }
 // GitHub в приоритете при чтении, если подключён — иначе папка проекта.
@@ -122,7 +122,7 @@ async function deleteProjectFile(relPath){
       ok=true;
     }catch(e){}
   }
-  if(ghIsConnected()){ try{ await deleteFileFromGithub(relPath,'Size Calibrator: rename (remove old) '+relPath); ok=true; }catch(e){} }
+  if(ghIsConnected()){ ghQueueDelete(relPath,'Size Calibrator'); ok=true; }
   return ok;
 }
 function updateFolderStatus(needsRegrant){

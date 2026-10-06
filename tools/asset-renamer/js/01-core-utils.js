@@ -56,7 +56,7 @@ async function writeFileToProject(relPath,bytes){
     await writable.close();
     ok=true;
   }
-  if(ghIsConnected()){ await writeFileToGithub(relPath,bytes,'Asset Renamer: '+relPath); ok=true; }
+  if(ghIsConnected()){ ghQueueWrite(relPath,bytes,'Asset Renamer'); ok=true; }
   return ok;
 }
 async function deleteProjectFile(relPath){
@@ -69,7 +69,7 @@ async function deleteProjectFile(relPath){
       ok=true;
     }catch(e){}
   }
-  if(ghIsConnected()){ try{ await deleteFileFromGithub(relPath,'Asset Renamer: remove (rename) '+relPath); ok=true; }catch(e){} }
+  if(ghIsConnected()){ ghQueueDelete(relPath,'Asset Renamer'); ok=true; }
   return ok;
 }
 async function listFilesRecursive(path,re){
