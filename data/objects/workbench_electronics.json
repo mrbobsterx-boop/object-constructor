@@ -24,8 +24,8 @@
     "interactive": true,
     "hasWeight": true,
     "weight": 45,
-    "real_width_cm": 140,
-    "real_height_cm": 95,
+    "real_width_cm": 230,
+    "real_height_cm": 182,
     "placement_mode": "FLOOR_ONLY",
     "variant_group": null,
     "allowed_room_types": [
