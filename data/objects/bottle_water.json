@@ -12,8 +12,8 @@
   "appearance": {
     "mode": "IMAGE",
     "asset": "item/water/bottle_water_butylka_s_vodoy.png",
-    "imageWidth": 96,
-    "imageHeight": 272,
+    "imageWidth": 122,
+    "imageHeight": 193,
     "collision": null
   },
   "behavior": {
@@ -158,7 +158,11 @@
       "REMOVE"
     ],
     "damaged": null,
-    "broken": null,
+    "broken": {
+      "nativeWidth": 135,
+      "nativeHeight": 185,
+      "image": "item/water/bottle_water_butylka_s_vodoy_broken.png"
+    },
     "destroyAnimation": null
   },
   "block": null,

@@ -12,8 +12,8 @@
   "appearance": {
     "mode": "IMAGE",
     "asset": "furniture/bed/bed_single_krovat.png",
-    "imageWidth": 534,
-    "imageHeight": 162,
+    "imageWidth": 511,
+    "imageHeight": 231,
     "collision": null
   },
   "behavior": {
@@ -143,8 +143,8 @@
     ],
     "damaged": null,
     "broken": {
-      "nativeWidth": 570,
-      "nativeHeight": 194,
+      "nativeWidth": 579,
+      "nativeHeight": 237,
       "image": "furniture/bed/bed_single_krovat_broken.png"
     },
     "destroyAnimation": null

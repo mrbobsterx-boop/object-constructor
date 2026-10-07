@@ -12,8 +12,8 @@
   "appearance": {
     "mode": "IMAGE",
     "asset": "door/transition/signpost_fork_ukazatel_razvilki.png",
-    "imageWidth": 413,
-    "imageHeight": 992,
+    "imageWidth": 379,
+    "imageHeight": 1000,
     "collision": null
   },
   "behavior": {
