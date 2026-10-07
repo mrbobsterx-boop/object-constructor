@@ -110,11 +110,7 @@
       "REMOVE"
     ],
     "damaged": null,
-    "broken": {
-      "nativeWidth": 733,
-      "nativeHeight": 175,
-      "image": "container/shelf/shelf_wood_polka_broken.png"
-    },
+    "broken": null,
     "destroyAnimation": null
   },
   "block": null,

@@ -12,8 +12,8 @@
   "appearance": {
     "mode": "IMAGE",
     "asset": "decor/billboard/billboard_road_reklamnyy_schit.png",
-    "imageWidth": 433,
-    "imageHeight": 1009,
+    "imageWidth": 292,
+    "imageHeight": 453,
     "collision": null
   },
   "behavior": {
@@ -107,11 +107,7 @@
       "REMOVE"
     ],
     "damaged": null,
-    "broken": {
-      "nativeWidth": 282,
-      "nativeHeight": 563,
-      "image": "decor/billboard/billboard_road_reklamnyy_schit_broken.png"
-    },
+    "broken": null,
     "destroyAnimation": null
   },
   "block": null,

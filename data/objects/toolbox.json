@@ -12,8 +12,8 @@
   "appearance": {
     "mode": "IMAGE",
     "asset": "container/tools/toolbox_yaschik_s_instrumentami.png",
-    "imageWidth": 455,
-    "imageHeight": 273,
+    "imageWidth": 497,
+    "imageHeight": 327,
     "collision": null
   },
   "behavior": {
@@ -158,7 +158,7 @@
     "damaged": null,
     "broken": {
       "nativeWidth": 481,
-      "nativeHeight": 300,
+      "nativeHeight": 409,
       "image": "container/tools/toolbox_yaschik_s_instrumentami_broken.png"
     },
     "destroyAnimation": null
