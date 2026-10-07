@@ -462,12 +462,35 @@ function updateBulkSaveStatus(ids){
   if(dirtyCount){ el.textContent=dirtyCount+' из '+ids.length+' изменены, не сохранены'; el.className='save-status dirty'; }
   else { el.textContent=''; el.className='save-status'; }
 }
-async function saveBulk(ids){
-  const el=document.getElementById('saveStatus');
-  el.textContent='Сохранение…'; el.className='save-status';
+// statusElId по умолчанию 'saveStatus' (панель массового редактирования слева) — но та панель видна,
+// только когда выбрано несколько фото. Глобальная "Сохранить все" (кнопка в тулбаре сцены, не привязана
+// к выбору — см. ниже) пишет статус в свой собственный элемент тулбара, 'allSaveStatus'.
+async function saveBulk(ids,statusElId){
+  const el=document.getElementById(statusElId||'saveStatus');
+  if(el){ el.textContent='Сохранение…'; el.className='save-status'; }
   let ok=0, fail=0;
   for(const id of ids){ try{ await saveObjectCore(id); ok++; }catch(e){ fail++; } }
   renderObjectList();
-  el.textContent = fail? `Сохранено ${ok}, ошибок ${fail}` : `Сохранено ${ok} объект(ов) ✓`;
-  el.className='save-status '+(fail?'err':'ok');
+  if(selectedId&&objectsById[selectedId]) renderInspector(objectsById[selectedId],selectedPath);
+  if(el){
+    el.textContent = fail? `Сохранено ${ok}, ошибок ${fail}` : `Сохранено ${ok} объект(ов) ✓`;
+    el.className='save-status '+(fail?'err':'ok');
+  }
 }
+// "💾 Сохранить все" (тулбар сцены) — сохраняет ВСЕ объекты с несохранёнными правками, откуда бы они
+// ни взялись: после "Пересчитать размер всех объектов", после ручной правки в инспекторе одного
+// объекта, после массового редактирования — isDirty() одинаково ловит все три случая (сравнение с
+// objectsSavedJSON). Пишет через ту же очередь (writeFileToProject -> ghQueueWrite), так что хоть
+// сотня изменённых объектов уйдёт одним GitHub-коммитом, а не одним на файл.
+async function saveAllDirty(){
+  const allIds=Object.keys(objectsById);
+  const dirtyIds=allIds.filter(isDirty);
+  const statusEl=document.getElementById('allSaveStatus');
+  if(!dirtyIds.length){ if(statusEl){ statusEl.textContent='Нет несохранённых изменений'; statusEl.className='save-status'; } return; }
+  if(!confirm(`Сохранить ${dirtyIds.length} изменённых объект(ов) в их data/objects/*.json?`)) return;
+  const btn=document.getElementById('btnSaveAllDirty');
+  const oldText=btn.textContent; btn.disabled=true; btn.textContent='Сохраняю…';
+  await saveBulk(dirtyIds,'allSaveStatus');
+  btn.disabled=false; btn.textContent=oldText;
+}
+document.getElementById('btnSaveAllDirty').onclick=saveAllDirty;
