@@ -12,8 +12,8 @@
   "appearance": {
     "mode": "IMAGE",
     "asset": "item/component/lightbulb_lampochka.png",
-    "imageWidth": 128,
-    "imageHeight": 231,
+    "imageWidth": 339,
+    "imageHeight": 71,
     "collision": null
   },
   "behavior": {
@@ -141,11 +141,7 @@
       "REMOVE"
     ],
     "damaged": null,
-    "broken": {
-      "nativeWidth": 125,
-      "nativeHeight": 229,
-      "image": "item/component/lightbulb_lampochka_broken.png"
-    },
+    "broken": null,
     "destroyAnimation": null
   },
   "block": null,

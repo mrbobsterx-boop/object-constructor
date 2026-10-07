@@ -12,8 +12,8 @@
   "appearance": {
     "mode": "IMAGE",
     "asset": "item/food/meal_soup_gotovoe_blyudo_sup_ragu.png",
-    "imageWidth": 529,
-    "imageHeight": 352,
+    "imageWidth": 307,
+    "imageHeight": 221,
     "collision": null
   },
   "behavior": {

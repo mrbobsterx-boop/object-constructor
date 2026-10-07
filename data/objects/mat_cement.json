@@ -12,8 +12,8 @@
   "appearance": {
     "mode": "IMAGE",
     "asset": "item/construction/mat_cement_tsement_stroymaterialy.png",
-    "imageWidth": 253,
-    "imageHeight": 308,
+    "imageWidth": 343,
+    "imageHeight": 311,
     "collision": null
   },
   "behavior": {

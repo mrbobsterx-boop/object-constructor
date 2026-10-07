@@ -12,8 +12,8 @@
   "appearance": {
     "mode": "IMAGE",
     "asset": "item/wood/mat_plank_doski.png",
-    "imageWidth": 543,
-    "imageHeight": 140,
+    "imageWidth": 138,
+    "imageHeight": 134,
     "collision": null
   },
   "behavior": {

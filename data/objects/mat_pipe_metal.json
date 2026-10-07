@@ -12,8 +12,8 @@
   "appearance": {
     "mode": "IMAGE",
     "asset": "item/metal/mat_pipe_metal_truba.png",
-    "imageWidth": 558,
-    "imageHeight": 113,
+    "imageWidth": 144,
+    "imageHeight": 104,
     "collision": null
   },
   "behavior": {
