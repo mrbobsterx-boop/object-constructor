@@ -12,8 +12,8 @@
   "appearance": {
     "mode": "IMAGE",
     "asset": "item/component/part_mech_mehanicheskie_detali.png",
-    "imageWidth": 159,
-    "imageHeight": 151,
+    "imageWidth": 145,
+    "imageHeight": 132,
     "collision": null
   },
   "behavior": {

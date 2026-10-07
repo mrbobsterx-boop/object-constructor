@@ -12,8 +12,8 @@
   "appearance": {
     "mode": "IMAGE",
     "asset": "item/component/power_cable_provod_kabel.png",
-    "imageWidth": 410,
-    "imageHeight": 394,
+    "imageWidth": 356,
+    "imageHeight": 322,
     "collision": null
   },
   "behavior": {
@@ -109,11 +109,7 @@
       "REMOVE"
     ],
     "damaged": null,
-    "broken": {
-      "nativeWidth": 442,
-      "nativeHeight": 395,
-      "image": "item/component/power_cable_provod_kabel_broken.png"
-    },
+    "broken": null,
     "destroyAnimation": null
   },
   "block": null,
