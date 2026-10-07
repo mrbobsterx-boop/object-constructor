@@ -12,8 +12,8 @@
   "appearance": {
     "mode": "IMAGE",
     "asset": "tool/harvest/tool_axe_topor.png",
-    "imageWidth": 607,
-    "imageHeight": 319,
+    "imageWidth": 282,
+    "imageHeight": 334,
     "collision": null
   },
   "behavior": {
@@ -173,11 +173,7 @@
       "REMOVE"
     ],
     "damaged": null,
-    "broken": {
-      "nativeWidth": 644,
-      "nativeHeight": 333,
-      "image": "tool/harvest/tool_axe_topor_broken.png"
-    },
+    "broken": null,
     "destroyAnimation": null
   },
   "block": null,

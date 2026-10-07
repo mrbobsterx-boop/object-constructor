@@ -12,8 +12,8 @@
   "appearance": {
     "mode": "IMAGE",
     "asset": "tool/harvest/tool_crowbar_lom.png",
-    "imageWidth": 879,
-    "imageHeight": 148,
+    "imageWidth": 737,
+    "imageHeight": 293,
     "collision": null
   },
   "behavior": {

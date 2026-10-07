@@ -12,8 +12,8 @@
   "appearance": {
     "mode": "IMAGE",
     "asset": "tool/craft/tool_hammer_molotok.png",
-    "imageWidth": 553,
-    "imageHeight": 262,
+    "imageWidth": 259,
+    "imageHeight": 289,
     "collision": null
   },
   "behavior": {
@@ -157,11 +157,7 @@
       "REMOVE"
     ],
     "damaged": null,
-    "broken": {
-      "nativeWidth": 577,
-      "nativeHeight": 265,
-      "image": "tool/craft/tool_hammer_molotok_broken.png"
-    },
+    "broken": null,
     "destroyAnimation": null
   },
   "block": null,

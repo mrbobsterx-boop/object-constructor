@@ -12,8 +12,8 @@
   "appearance": {
     "mode": "IMAGE",
     "asset": "weapon/melee/weapon_pipe_truba_dubinka.png",
-    "imageWidth": 517,
-    "imageHeight": 175,
+    "imageWidth": 545,
+    "imageHeight": 197,
     "collision": null
   },
   "behavior": {

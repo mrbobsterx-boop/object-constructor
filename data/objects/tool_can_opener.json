@@ -12,8 +12,8 @@
   "appearance": {
     "mode": "IMAGE",
     "asset": "tool/kitchen/tool_can_opener_konservnyy_nozh.png",
-    "imageWidth": 835,
-    "imageHeight": 287,
+    "imageWidth": 444,
+    "imageHeight": 189,
     "collision": null
   },
   "behavior": {
@@ -107,11 +107,7 @@
       "REMOVE"
     ],
     "damaged": null,
-    "broken": {
-      "nativeWidth": 837,
-      "nativeHeight": 319,
-      "image": "tool/kitchen/tool_can_opener_konservnyy_nozh_broken.png"
-    },
+    "broken": null,
     "destroyAnimation": null
   },
   "block": null,
