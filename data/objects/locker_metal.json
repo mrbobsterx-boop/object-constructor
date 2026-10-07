@@ -12,8 +12,8 @@
   "appearance": {
     "mode": "IMAGE",
     "asset": "container/locker/locker_metal_shkafchik_metallicheskiy.png",
-    "imageWidth": 159,
-    "imageHeight": 342,
+    "imageWidth": 160,
+    "imageHeight": 309,
     "collision": null
   },
   "behavior": {
@@ -175,8 +175,8 @@
     ],
     "damaged": null,
     "broken": {
-      "nativeWidth": 233,
-      "nativeHeight": 368,
+      "nativeWidth": 266,
+      "nativeHeight": 320,
       "image": "container/locker/locker_metal_shkafchik_metallicheskiy_broken.png"
     },
     "destroyAnimation": null
