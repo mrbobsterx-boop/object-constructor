@@ -12,8 +12,8 @@
   "appearance": {
     "mode": "IMAGE",
     "asset": "machine/power/fuse_box_elektroschit.png",
-    "imageWidth": 391,
-    "imageHeight": 321,
+    "imageWidth": 486,
+    "imageHeight": 276,
     "collision": null
   },
   "behavior": {
@@ -142,8 +142,8 @@
     ],
     "damaged": null,
     "broken": {
-      "nativeWidth": 395,
-      "nativeHeight": 320,
+      "nativeWidth": 496,
+      "nativeHeight": 287,
       "image": "machine/power/fuse_box_elektroschit_broken.png"
     },
     "destroyAnimation": null

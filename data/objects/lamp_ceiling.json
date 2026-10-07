@@ -12,8 +12,8 @@
   "appearance": {
     "mode": "IMAGE",
     "asset": "machine/lamp/lamp_ceiling_lampa_potolochnaya.png",
-    "imageWidth": 0,
-    "imageHeight": 0,
+    "imageWidth": 200,
+    "imageHeight": 338,
     "collision": null
   },
   "behavior": {
