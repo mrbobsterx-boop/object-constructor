@@ -12,8 +12,8 @@
   "appearance": {
     "mode": "IMAGE",
     "asset": "building/defense/fence_wire_zabor_s_kolyuchey_provolokoy.png",
-    "imageWidth": 464,
-    "imageHeight": 351,
+    "imageWidth": 432,
+    "imageHeight": 344,
     "collision": null
   },
   "behavior": {
