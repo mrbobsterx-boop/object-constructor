@@ -12,8 +12,8 @@
   "appearance": {
     "mode": "IMAGE",
     "asset": "container/medicine/first_aid_kit_aptechka.png",
-    "imageWidth": 495,
-    "imageHeight": 348,
+    "imageWidth": 350,
+    "imageHeight": 330,
     "collision": null
   },
   "behavior": {

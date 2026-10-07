@@ -12,8 +12,8 @@
   "appearance": {
     "mode": "IMAGE",
     "asset": "building/water/water_tower_vodonapornaya_bashnya.png",
-    "imageWidth": 404,
-    "imageHeight": 975,
+    "imageWidth": 357,
+    "imageHeight": 976,
     "collision": null
   },
   "behavior": {
@@ -124,8 +124,8 @@
     ],
     "damaged": null,
     "broken": {
-      "nativeWidth": 385,
-      "nativeHeight": 980,
+      "nativeWidth": 381,
+      "nativeHeight": 989,
       "image": "building/water/water_tower_vodonapornaya_bashnya_broken.png"
     },
     "destroyAnimation": null
