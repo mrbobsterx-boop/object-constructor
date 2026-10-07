@@ -12,8 +12,8 @@
   "appearance": {
     "mode": "IMAGE",
     "asset": "item/mineral/stone_chunk_kusok_kamnya.png",
-    "imageWidth": 144,
-    "imageHeight": 106,
+    "imageWidth": 165,
+    "imageHeight": 120,
     "collision": null
   },
   "behavior": {

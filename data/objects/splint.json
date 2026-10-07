@@ -12,8 +12,8 @@
   "appearance": {
     "mode": "IMAGE",
     "asset": "item/medicine/splint_shina.png",
-    "imageWidth": 1216,
-    "imageHeight": 262,
+    "imageWidth": 381,
+    "imageHeight": 275,
     "collision": null
   },
   "behavior": {
@@ -108,11 +108,7 @@
       "REMOVE"
     ],
     "damaged": null,
-    "broken": {
-      "nativeWidth": 982,
-      "nativeHeight": 221,
-      "image": "item/medicine/splint_shina_broken.png"
-    },
+    "broken": null,
     "destroyAnimation": null
   },
   "block": null,

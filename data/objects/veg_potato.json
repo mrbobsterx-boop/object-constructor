@@ -12,8 +12,8 @@
   "appearance": {
     "mode": "IMAGE",
     "asset": "item/food/veg_potato_ovoschi_kartofel_morkov.png",
-    "imageWidth": 376,
-    "imageHeight": 357,
+    "imageWidth": 369,
+    "imageHeight": 309,
     "collision": null
   },
   "behavior": {
@@ -142,8 +142,8 @@
     ],
     "damaged": null,
     "broken": {
-      "nativeWidth": 403,
-      "nativeHeight": 358,
+      "nativeWidth": 374,
+      "nativeHeight": 269,
       "image": "item/food/veg_potato_ovoschi_kartofel_morkov_broken.png"
     },
     "destroyAnimation": null
