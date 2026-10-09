@@ -125,11 +125,7 @@
       "REMOVE"
     ],
     "damaged": null,
-    "broken": {
-      "nativeWidth": 371,
-      "nativeHeight": 428,
-      "image": "plant/crop/plant_potato_kartofel_rastenie_broken.png"
-    },
+    "broken": null,
     "destroyAnimation": null
   },
   "block": null,
