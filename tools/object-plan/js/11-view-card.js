@@ -74,12 +74,16 @@ VIEW_RENDERERS.card=function(id){
     <div><div class="muted small">ДЛЯ ЧЕГО ПОЛЕЗЕН</div>${esc(i.use)||'—'}</div>
     ${i.note?`<div style="margin-top:8px"><div class="muted small">ОТКРЫТЫЕ ВОПРОСЫ</div><span class="warn">${esc(i.note)}</span></div>`:''}`);
 
+  // Решение автора 2026-10-09: игра использует только обычный вид объекта (idle) — разбитая картинка
+  // (broken) нигде не рендерится (WorldObject._update_visual: «только обычный вид… сломанных картинок
+  // нет»), а иконка инвентаря (icon) не обязательна — её нет, используется основная картинка
+  // (DataRegistry.icon_for). Поэтому здесь не три состояния на проверку, а один вопрос: есть ли у
+  // вариации вообще фото.
   const variantRow=v=>{
     const ru=variationRu(v), en=variationEn(v), th=refStateThumbs(i,v);
-    const stateBadge=(has,label,cls)=>`<span class="badge ${has?cls:''}" title="${has?label+' есть в assets/refs':label+' не найден'}">${has?'✓':'—'} ${label}</span>`;
-    return `<li class="variant-row">${th.any?`<img class="vthumb" src="${esc(th.any)}" alt="">`:''}<div class="variant-info">
+    return `<li class="variant-row">${th.any?`<img class="vthumb" src="${esc(th.idle||th.any)}" alt="">`:''}<div class="variant-info">
       <div>${esc(ru)} <span class="muted small">(${esc(en)})</span></div>
-      <div class="row" style="margin:3px 0 0">${stateBadge(th.idle,'idle','ok')} ${stateBadge(th.broken,'broken','warn')} ${stateBadge(th.icon,'icon','info')}</div>
+      <div class="row" style="margin:3px 0 0"><span class="badge ${th.any?'ok':''}" title="${th.any?'фото есть в assets/refs':'фото не найдено в assets/refs'}">${th.any?'✓':'—'} фото</span></div>
       ${th.any?'':'<div class="muted small">нет превью в assets/refs</div>'}
       </div></li>`;
   };
