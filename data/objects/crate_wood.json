@@ -192,11 +192,7 @@
       "DROP_ITEMS"
     ],
     "damaged": null,
-    "broken": {
-      "nativeWidth": 667,
-      "nativeHeight": 514,
-      "image": "container/crate/crate_wood_derevyannyy_yaschik_broken.png"
-    },
+    "broken": null,
     "destroyAnimation": null
   },
   "block": null,

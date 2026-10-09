@@ -164,11 +164,7 @@
       "REMOVE"
     ],
     "damaged": null,
-    "broken": {
-      "nativeWidth": 281,
-      "nativeHeight": 319,
-      "image": "container/fuel/fuel_canister_kanistra_s_toplivom_broken.png"
-    },
+    "broken": null,
     "destroyAnimation": null
   },
   "block": null,

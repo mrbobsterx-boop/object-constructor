@@ -12,8 +12,8 @@
   "appearance": {
     "mode": "IMAGE",
     "asset": "container/medicine/medicine_cabinet_aptechnyy_shkafchik.png",
-    "imageWidth": 402,
-    "imageHeight": 478,
+    "imageWidth": 390,
+    "imageHeight": 460,
     "collision": null
   },
   "behavior": {

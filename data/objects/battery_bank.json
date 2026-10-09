@@ -149,11 +149,7 @@
       "REMOVE"
     ],
     "damaged": null,
-    "broken": {
-      "nativeWidth": 450,
-      "nativeHeight": 262,
-      "image": "container/energy/battery_bank_akkumulyator_broken.png"
-    },
+    "broken": null,
     "destroyAnimation": null
   },
   "block": null,

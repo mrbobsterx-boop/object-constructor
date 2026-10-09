@@ -141,11 +141,7 @@
       "REMOVE"
     ],
     "damaged": null,
-    "broken": {
-      "nativeWidth": 528,
-      "nativeHeight": 362,
-      "image": "container/safe/safe_metal_seyf_broken.png"
-    },
+    "broken": null,
     "destroyAnimation": null
   },
   "block": null,

@@ -12,8 +12,8 @@
   "appearance": {
     "mode": "IMAGE",
     "asset": "container/water/barrel_water_bochka_dlya_vody.png",
-    "imageWidth": 205,
-    "imageHeight": 254,
+    "imageWidth": 337,
+    "imageHeight": 651,
     "collision": null
   },
   "behavior": {
@@ -182,11 +182,7 @@
       "REMOVE"
     ],
     "damaged": null,
-    "broken": {
-      "nativeWidth": 307,
-      "nativeHeight": 260,
-      "image": "container/water/barrel_water_bochka_dlya_vody_broken.png"
-    },
+    "broken": null,
     "destroyAnimation": null
   },
   "block": null,

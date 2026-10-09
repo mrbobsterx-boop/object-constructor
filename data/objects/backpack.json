@@ -12,8 +12,8 @@
   "appearance": {
     "mode": "IMAGE",
     "asset": "clothing/back/backpack_ryukzak.png",
-    "imageWidth": 298,
-    "imageHeight": 255,
+    "imageWidth": 305,
+    "imageHeight": 254,
     "collision": null
   },
   "behavior": {
@@ -174,11 +174,7 @@
       "REMOVE"
     ],
     "damaged": null,
-    "broken": {
-      "nativeWidth": 378,
-      "nativeHeight": 256,
-      "image": "clothing/back/backpack_ryukzak_broken.png"
-    },
+    "broken": null,
     "destroyAnimation": null
   },
   "block": null,
