@@ -12,8 +12,8 @@
   "appearance": {
     "mode": "IMAGE",
     "asset": "container/fuel/fuel_canister_kanistra_s_toplivom.png",
-    "imageWidth": 271,
-    "imageHeight": 321,
+    "imageWidth": 214,
+    "imageHeight": 250,
     "collision": null
   },
   "behavior": {

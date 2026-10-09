@@ -12,8 +12,8 @@
   "appearance": {
     "mode": "IMAGE",
     "asset": "building/window/window_basic_okno.png",
-    "imageWidth": 343,
-    "imageHeight": 361,
+    "imageWidth": 341,
+    "imageHeight": 360,
     "collision": null
   },
   "behavior": {

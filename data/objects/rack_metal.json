@@ -12,8 +12,8 @@
   "appearance": {
     "mode": "IMAGE",
     "asset": "container/rack/rack_metal_stellazh_metallicheskiy.png",
-    "imageWidth": 457,
-    "imageHeight": 354,
+    "imageWidth": 285,
+    "imageHeight": 366,
     "collision": null
   },
   "behavior": {

@@ -12,8 +12,8 @@
   "appearance": {
     "mode": "IMAGE",
     "asset": "container/crate/crate_wood_derevyannyy_yaschik.png",
-    "imageWidth": 396,
-    "imageHeight": 339,
+    "imageWidth": 667,
+    "imageHeight": 460,
     "collision": null
   },
   "behavior": {

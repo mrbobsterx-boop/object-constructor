@@ -12,8 +12,8 @@
   "appearance": {
     "mode": "IMAGE",
     "asset": "container/energy/battery_bank_akkumulyator.png",
-    "imageWidth": 424,
-    "imageHeight": 261,
+    "imageWidth": 541,
+    "imageHeight": 257,
     "collision": null
   },
   "behavior": {

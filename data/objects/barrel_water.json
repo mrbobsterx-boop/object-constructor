@@ -12,8 +12,8 @@
   "appearance": {
     "mode": "IMAGE",
     "asset": "container/water/barrel_water_bochka_dlya_vody.png",
-    "imageWidth": 337,
-    "imageHeight": 651,
+    "imageWidth": 207,
+    "imageHeight": 240,
     "collision": null
   },
   "behavior": {
