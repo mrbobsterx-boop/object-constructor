@@ -124,11 +124,7 @@
       "REMOVE"
     ],
     "damaged": null,
-    "broken": {
-      "nativeWidth": 527,
-      "nativeHeight": 591,
-      "image": "machine/farm/hydro_rack_gidroponnaya_stoyka_broken.png"
-    },
+    "broken": null,
     "destroyAnimation": null
   },
   "block": null,

@@ -140,11 +140,7 @@
       "REMOVE"
     ],
     "damaged": null,
-    "broken": {
-      "nativeWidth": 560,
-      "nativeHeight": 439,
-      "image": "workbench/electronics/workbench_electronics_elektronnyy_verstak_broken.png"
-    },
+    "broken": null,
     "destroyAnimation": null
   },
   "block": null,

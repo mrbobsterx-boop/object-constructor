@@ -124,11 +124,7 @@
       "REMOVE"
     ],
     "damaged": null,
-    "broken": {
-      "nativeWidth": 568,
-      "nativeHeight": 552,
-      "image": "workbench/sewing/sewing_table_shveynyy_stol_broken.png"
-    },
+    "broken": null,
     "destroyAnimation": null
   },
   "block": null,

@@ -132,11 +132,7 @@
       "REMOVE"
     ],
     "damaged": null,
-    "broken": {
-      "nativeWidth": 521,
-      "nativeHeight": 253,
-      "image": "machine/farm/grow_lamp_lampa_dlya_urozhaya_broken.png"
-    },
+    "broken": null,
     "destroyAnimation": null
   },
   "block": null,

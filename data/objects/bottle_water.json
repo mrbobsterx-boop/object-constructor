@@ -158,11 +158,7 @@
       "REMOVE"
     ],
     "damaged": null,
-    "broken": {
-      "nativeWidth": 135,
-      "nativeHeight": 185,
-      "image": "item/water/bottle_water_butylka_s_vodoy_broken.png"
-    },
+    "broken": null,
     "destroyAnimation": null
   },
   "block": null,

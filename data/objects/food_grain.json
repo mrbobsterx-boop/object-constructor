@@ -12,8 +12,8 @@
   "appearance": {
     "mode": "IMAGE",
     "asset": "item/food/food_grain_zerno.png",
-    "imageWidth": 368,
-    "imageHeight": 262,
+    "imageWidth": 168,
+    "imageHeight": 297,
     "collision": null
   },
   "behavior": {
@@ -123,11 +123,7 @@
       "REMOVE"
     ],
     "damaged": null,
-    "broken": {
-      "nativeWidth": 360,
-      "nativeHeight": 365,
-      "image": "item/food/food_grain_zerno_broken.png"
-    },
+    "broken": null,
     "destroyAnimation": null
   },
   "block": null,

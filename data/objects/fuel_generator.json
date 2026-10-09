@@ -124,11 +124,7 @@
       "REMOVE"
     ],
     "damaged": null,
-    "broken": {
-      "nativeWidth": 423,
-      "nativeHeight": 298,
-      "image": "machine/energy/fuel_generator_generator_na_toplive_broken.png"
-    },
+    "broken": null,
     "destroyAnimation": null
   },
   "block": null,

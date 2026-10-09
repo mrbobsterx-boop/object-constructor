@@ -142,11 +142,7 @@
       "DROP_ITEMS"
     ],
     "damaged": null,
-    "broken": {
-      "nativeWidth": 579,
-      "nativeHeight": 237,
-      "image": "furniture/bed/bed_single_krovat_broken.png"
-    },
+    "broken": null,
     "destroyAnimation": null
   },
   "block": null,

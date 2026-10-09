@@ -141,11 +141,7 @@
       "REMOVE"
     ],
     "damaged": null,
-    "broken": {
-      "nativeWidth": 309,
-      "nativeHeight": 381,
-      "image": "machine/kitchen/stove_cook_plita_broken.png"
-    },
+    "broken": null,
     "destroyAnimation": null
   },
   "block": null,

@@ -12,8 +12,8 @@
   "appearance": {
     "mode": "IMAGE",
     "asset": "machine/vehicle/car_abandoned_broshennaya_mashina.png",
-    "imageWidth": 669,
-    "imageHeight": 232,
+    "imageWidth": 779,
+    "imageHeight": 252,
     "collision": null
   },
   "behavior": {

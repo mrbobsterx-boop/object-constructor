@@ -126,11 +126,7 @@
       "REMOVE"
     ],
     "damaged": null,
-    "broken": {
-      "nativeWidth": 261,
-      "nativeHeight": 326,
-      "image": "furniture/chair/chair_wood_stul_broken.png"
-    },
+    "broken": null,
     "destroyAnimation": null
   },
   "block": null,

@@ -141,11 +141,7 @@
       "REMOVE"
     ],
     "damaged": null,
-    "broken": {
-      "nativeWidth": 555,
-      "nativeHeight": 196,
-      "image": "furniture/farm/planter_box_gryadka_broken.png"
-    },
+    "broken": null,
     "destroyAnimation": null
   },
   "block": null,

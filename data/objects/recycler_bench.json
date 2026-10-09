@@ -125,11 +125,7 @@
       "REMOVE"
     ],
     "damaged": null,
-    "broken": {
-      "nativeWidth": 480,
-      "nativeHeight": 264,
-      "image": "workbench/recycle/recycler_bench_stol_razborki_broken.png"
-    },
+    "broken": null,
     "destroyAnimation": null
   },
   "block": null,

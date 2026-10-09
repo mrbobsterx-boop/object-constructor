@@ -108,11 +108,7 @@
       "REMOVE"
     ],
     "damaged": null,
-    "broken": {
-      "nativeWidth": 532,
-      "nativeHeight": 496,
-      "image": "machine/ui/shelter_panel_panel_ubezhischa_broken.png"
-    },
+    "broken": null,
     "destroyAnimation": null
   },
   "block": null,

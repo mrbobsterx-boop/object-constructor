@@ -124,11 +124,7 @@
       "REMOVE"
     ],
     "damaged": null,
-    "broken": {
-      "nativeWidth": 539,
-      "nativeHeight": 319,
-      "image": "machine/energy/treadmill_generator_begovaya_dorozhka_broken.png"
-    },
+    "broken": null,
     "destroyAnimation": null
   },
   "block": null,

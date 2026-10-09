@@ -12,8 +12,8 @@
   "appearance": {
     "mode": "IMAGE",
     "asset": "machine/stove/stove_heat_pech_burzhuyka.png",
-    "imageWidth": 314,
-    "imageHeight": 463,
+    "imageWidth": 316,
+    "imageHeight": 388,
     "collision": null
   },
   "behavior": {
@@ -133,11 +133,7 @@
       "REMOVE"
     ],
     "damaged": null,
-    "broken": {
-      "nativeWidth": 303,
-      "nativeHeight": 396,
-      "image": "machine/stove/stove_heat_pech_burzhuyka_broken.png"
-    },
+    "broken": null,
     "destroyAnimation": null
   },
   "block": null,

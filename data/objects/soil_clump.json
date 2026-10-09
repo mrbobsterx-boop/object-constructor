@@ -12,8 +12,8 @@
   "appearance": {
     "mode": "IMAGE",
     "asset": "item/agriculture/soil_clump_grunt.png",
-    "imageWidth": 143,
-    "imageHeight": 120,
+    "imageWidth": 146,
+    "imageHeight": 126,
     "collision": null
   },
   "behavior": {

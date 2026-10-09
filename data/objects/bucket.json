@@ -157,11 +157,7 @@
       "REMOVE"
     ],
     "damaged": null,
-    "broken": {
-      "nativeWidth": 355,
-      "nativeHeight": 432,
-      "image": "tool/container/bucket_vedro_broken.png"
-    },
+    "broken": null,
     "destroyAnimation": null
   },
   "block": null,

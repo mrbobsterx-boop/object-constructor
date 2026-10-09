@@ -12,8 +12,8 @@
   "appearance": {
     "mode": "IMAGE",
     "asset": "item/food/meat_raw_syroe_myaso.png",
-    "imageWidth": 388,
-    "imageHeight": 265,
+    "imageWidth": 432,
+    "imageHeight": 283,
     "collision": null
   },
   "behavior": {

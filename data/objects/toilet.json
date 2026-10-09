@@ -141,11 +141,7 @@
       "REMOVE"
     ],
     "damaged": null,
-    "broken": {
-      "nativeWidth": 190,
-      "nativeHeight": 253,
-      "image": "furniture/toilet/toilet_unitaz_broken.png"
-    },
+    "broken": null,
     "destroyAnimation": null
   },
   "block": null,

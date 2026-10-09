@@ -141,11 +141,7 @@
       "REMOVE"
     ],
     "damaged": null,
-    "broken": {
-      "nativeWidth": 496,
-      "nativeHeight": 287,
-      "image": "machine/power/fuse_box_elektroschit_broken.png"
-    },
+    "broken": null,
     "destroyAnimation": null
   },
   "block": null,

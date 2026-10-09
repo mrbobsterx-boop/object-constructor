@@ -172,11 +172,7 @@
       "REMOVE"
     ],
     "damaged": null,
-    "broken": {
-      "nativeWidth": 249,
-      "nativeHeight": 437,
-      "image": "machine/kitchen/fridge_holodilnik_broken.png"
-    },
+    "broken": null,
     "destroyAnimation": null
   },
   "block": null,

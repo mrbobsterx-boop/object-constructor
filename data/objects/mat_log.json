@@ -12,8 +12,8 @@
   "appearance": {
     "mode": "IMAGE",
     "asset": "item/wood/mat_log_brevna.png",
-    "imageWidth": 549,
-    "imageHeight": 137,
+    "imageWidth": 143,
+    "imageHeight": 124,
     "collision": null
   },
   "behavior": {

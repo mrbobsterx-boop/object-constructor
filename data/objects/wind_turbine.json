@@ -124,11 +124,7 @@
       "REMOVE"
     ],
     "damaged": null,
-    "broken": {
-      "nativeWidth": 312,
-      "nativeHeight": 338,
-      "image": "machine/energy/wind_turbine_vetrogenerator_broken.png"
-    },
+    "broken": null,
     "destroyAnimation": null
   },
   "block": null,

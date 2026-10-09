@@ -124,11 +124,7 @@
       "REMOVE"
     ],
     "damaged": null,
-    "broken": {
-      "nativeWidth": 530,
-      "nativeHeight": 250,
-      "image": "furniture/bath/bathtub_vanna_broken.png"
-    },
+    "broken": null,
     "destroyAnimation": null
   },
   "block": null,

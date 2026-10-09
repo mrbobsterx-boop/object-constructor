@@ -124,11 +124,7 @@
       "REMOVE"
     ],
     "damaged": null,
-    "broken": {
-      "nativeWidth": 637,
-      "nativeHeight": 478,
-      "image": "furniture/bed/bunk_bed_dvuhyarusnaya_koyka_broken.png"
-    },
+    "broken": null,
     "destroyAnimation": null
   },
   "block": null,
